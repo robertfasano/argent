@@ -1,14 +1,92 @@
-<HTML>
-<HEAD>
-	<TITLE> ARGENT </TITLE>
+<html>
+<head>
+	<title> ARGENT </title>
   <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='main.css') }}">
 
   <script type="text/javascript"
-	<SCRIPT language="javascript">
+	<script language="javascript">
+
+		function clearTable(tableID) {
+			var table = document.getElementById(tableID);            <!-- get handle to table --!>
+
+			var colCount = table.rows[1].cells.length-1;
+			var rowCount = table.rows.length-2;
+			console.log(rowCount, colCount)
+
+			// Delete timestep text boxes
+			for (var j=0; j<colCount; j++) {
+				duration = document.getElementById(`duration${j}`)
+				duration.parentNode.removeChild(duration)
+			}
+
+			// Delete TTL labels
+			for (var i=0; i<rowCount; i++) {
+				ttl_label = document.getElementById(`ttl_label${i}`)
+				ttl_label.parentNode.removeChild(ttl_label)
+
+			}
+
+			// Delete checkboxes
+			for (var i=0; i<rowCount; i++) {
+				for (var j=0; j<colCount; j++) {
+					console.log(i,j)
+					checkbox = document.getElementById(`chk${i}${j}`)
+					checkbox.parentNode.removeChild(checkbox)
+				}
+			}
+
+			while (table.rows.length > 0) {
+				table.deleteRow(0)
+			}
+
+			console.log(table.rows.length)
+			table.insertRow(0)
+			table.rows[0].insertCell(0).innerHTML = ''
+			table.rows[0].insertCell(1).innerHTML = `<input type=\"text\" value='0 s' class=duration id="duration0">`
+			table.rows[0].insertCell(2).innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addColumnButton\' value=\"\" onclick=\"addCol(\'dataTable\')\" /></div>"
+			table.insertRow(1)
+			table.rows[1].insertCell(0).innerHTML = "<p id='ttl_label0'>TTL0</p>"
+			table.rows[1].insertCell(1).innerHTML = `<input type=\"checkbox\" id=\"chk00" class=\"check_box\"><label for='chk00'></label>`
+			table.insertRow(2)
+			table.rows[2].insertCell(0).innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addRowButton\' value=\"\" onclick=\"addRow(\'dataTable\')\" /></div>"
+
+		}
+
+		function addCol(tableID) {
+			var table = document.getElementById(tableID);            <!-- get handle to table --!>
+
+			var colCount = table.rows[1].cells.length-1;
+			var rowCount = table.rows.length-1 ;
+			console.log(rowCount, colCount)
+			var button = document.getElementById('addColumnButton')
+			button.parentNode.removeChild(button)
+
+			var newTimestep = table.rows[0].insertCell(colCount+1)
+			var stepID = `duration${colCount}`
+			newTimestep.innerHTML = `<input type=\"text\" value='0 s' class=duration id=${stepID}>`
+			// Unit conversion
+			newTimestep.addEventListener("keyup", event => {
+					if(event.key !== "Enter") return; // Use `.key` instead.
+					convert(stepID)
+					event.preventDefault(); // No need to `return false;`.
+			});
+
+			for(var i=1; i<rowCount; i++) {
+				var newCell = table.rows[i].insertCell(colCount+1);
+				var newID = `chk${i-1}${colCount}`
+
+				newCell.innerHTML = `<input type=\"checkbox\" id=\"${newID}\" class=\"check_box\"><label for=\"${newID}\"></label>`;
+				newCell.style.width = 75
+			}
+			// Add column button back
+			newCell = table.rows[0].insertCell(colCount+2)
+			newCell.innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addColumnButton\' value=\"\" onclick=\"addCol(\'dataTable\')\" /></div>"
+
+		}
 
 		function addRow(tableID) {
 
-			var table = document.getElementById(tableID);            <!-- get handle to table --!>
+			var table = document.getElementById(tableID);
       var colCount = table.rows[1].cells.length;
       var rowCount = table.rows.length-1;
       var button = document.getElementById('addRowButton')
@@ -20,6 +98,7 @@
       var label = `TTL${rowCount-1}`
       var ttl = row.insertCell(0);
       ttl.innerHTML = label;
+			ttl.id = `ttl_label${rowCount-1}`
 
 			for(var i=1; i<colCount; i++) {
 				var newCell	= row.insertCell(i);
@@ -94,17 +173,6 @@
       }
     }
 
-    function get() {
-      const Http = new XMLHttpRequest()
-      const url = 'http://127.0.0.1:8051/get'
-      Http.open("GET", url)
-      Http.send()
-
-      Http.onreadystatechange=(e)=>{
-        console.log(Http.responseText)
-      }
-    }
-
     // Unit conversion
     window.addEventListener("DOMContentLoaded", function() {
       document.querySelector("#duration0").addEventListener("keyup", event => {
@@ -114,67 +182,32 @@
       });
     }, false);
 
-
-
-    function addCol(tableID) {
-      var table = document.getElementById(tableID);            <!-- get handle to table --!>
-
-      var colCount = table.rows[1].cells.length-1;
-      var rowCount = table.rows.length-1 ;
-      var button = document.getElementById('addColumnButton')
-      button.parentNode.removeChild(button)
-
-      var newTimestep = table.rows[0].insertCell(colCount+1)
-      var stepID = `duration${colCount}`
-      newTimestep.innerHTML = `<input type=\"text\" value='0 s' class=duration id=${stepID}>`
-      // Unit conversion
-      newTimestep.addEventListener("keyup", event => {
-          if(event.key !== "Enter") return; // Use `.key` instead.
-          convert(stepID)
-          event.preventDefault(); // No need to `return false;`.
-      });
-
-
-      for(var i=1; i<rowCount; i++) {
-        var newCell = table.rows[i].insertCell(colCount+1);
-        var newID = `chk${i-1}${colCount}`
-
-        newCell.innerHTML = `<input type=\"checkbox\" id=\"${newID}\" class=\"check_box\"><label for=\"${newID}\"></label>`;
-        newCell.style.width = 75
-      }
-      // Add column button back
-      newCell = table.rows[0].insertCell(colCount+2)
-      newCell.innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addColumnButton\' value=\"\" onclick=\"addCol(\'dataTable\')\" /></div>"
-
-    }
-
-
-	</SCRIPT>
-</HEAD>
-<BODY>
-  <header> <h1> ARGENT </h1> </header>
+	</script>
+</head>
+<body>
   <div class="startButton"><INPUT type="submit" value="" onclick="check('dataTable')" /></div>
-  <div class="checkButton"><INPUT type="submit" value="" onclick="setAll('dataTable', true)" /></div>
-  <div class="uncheckButton"><INPUT type="submit" value="" onclick="setAll('dataTable', false)" /></div>
+  <!-- <div class="checkButton"><INPUT type="submit" value="" onclick="setAll('dataTable', true)" /></div> -->
+  <!-- <div class="uncheckButton"><INPUT type="submit" value="" onclick="setAll('dataTable', false)" /></div> -->
+	<div class="uncheckButton"><INPUT type="submit" value="" onclick="clearTable('dataTable')" /></div>
 
   <br>
   <br>
+	<header> <h1> TTL </h1> </header>
+	<table id="dataTable">
+    <tr>
+      <td></td>
+      <td><input type="text" value='0 s', class=duration id="duration0"></td>
+      <td><div class="addButton"><INPUT type="submit" id='addColumnButton' value="" onclick="addCol('dataTable')" /></div></td>
+		</tr>
+		<tr>
+      <td><p id='ttl_label0'>TTL0</p></td>
+			<td style="width:75px"><INPUT type="checkbox" id="chk00" class="check_box"/><label for="chk00"></label></td>
+		</tr>
+    <tr>
+      <td><div class="addButton"><INPUT type="submit" id='addRowButton' value="" onclick="addRow('dataTable')" /></div></td>
+    </tr>
+	</table>
 
-	<TABLE id="dataTable">
-    <TR>
-      <TD>Duration</TD>
-      <TD><input type="text" value='0 s', class=duration id="duration0"></TD>
-      <TD><div class="addButton"><INPUT type="submit" id='addColumnButton' value="" onclick="addCol('dataTable')" /></div></TD>
-
-		<TR>
-      <TD>TTL0</TD>
-			<TD style="width:75px"><INPUT type="checkbox" id="chk00" class="check_box"/><label for="chk00"></label></TD>
-		</TR>
-    <TR>
-      <TD><div class="addButton"><INPUT type="submit" id='addRowButton' value="" onclick="addRow('dataTable')" /></div></TD>
-    </TR>
-	</TABLE>
-
-
-</BODY>
-</HTML>
+	<header> <h1> DDS </h1> </header>
+</body>
+</html>
