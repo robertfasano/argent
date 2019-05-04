@@ -1,0 +1,68 @@
+@font-face {
+  font-family: Exo-2;
+  src: url('images/Exo2-Light.ttf')
+}
+*{
+  font-family: Exo-2;
+}
+.check_box {
+    display:none;
+}
+
+.check_box + label{
+    background:url('images/unchecked.png') no-repeat;
+    height: 30px;
+    width: 75px;
+    display:inline-block;
+    padding: 0 0 0 0px;
+}
+
+.check_box:checked + label{
+    background:url('images/checked.png') no-repeat;
+    height: 30px;
+    width: 75px;
+    display:inline-block;
+    padding: 0 0 0 0px;
+}
+
+.duration {
+  width: 75px;
+}
+
+div.addButton input {
+    background:url('images/content-add.svg') no-repeat;
+    cursor:pointer;
+    width: 24px;
+    height: 24px;
+    border: none;
+}
+
+div.startButton input {
+    background:url('images/outline-play-arrow.svg') no-repeat;
+    cursor:pointer;
+    width: 24px;
+    height: 24px;
+    border: none;
+    display:inline-block;
+    float: left;
+}
+
+div.checkButton input {
+    background:url('images/baseline-check-24px.svg') no-repeat;
+    cursor:pointer;
+    width: 24px;
+    height: 24px;
+    border: none;
+    display:inline-block;
+    float: left;
+}
+
+div.uncheckButton input {
+    background:url('images/baseline-clear-24px.svg') no-repeat;
+    cursor:pointer;
+    width: 24px;
+    height: 24px;
+    border: none;
+    display:inline-block;
+    float: left;
+}

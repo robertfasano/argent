@@ -1,0 +1,180 @@
+<HTML>
+<HEAD>
+	<TITLE> ARGENT </TITLE>
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='main.css') }}">
+
+  <script type="text/javascript"
+	<SCRIPT language="javascript">
+
+		function addRow(tableID) {
+
+			var table = document.getElementById(tableID);            <!-- get handle to table --!>
+      var colCount = table.rows[1].cells.length;
+      var rowCount = table.rows.length-1;
+      var button = document.getElementById('addRowButton')
+      button.parentNode.removeChild(button)
+      table.deleteRow(rowCount)
+
+      console.log(rowCount)
+      var row = table.insertRow(rowCount);
+      var label = `TTL${rowCount-1}`
+      var ttl = row.insertCell(0);
+      ttl.innerHTML = label;
+
+			for(var i=1; i<colCount; i++) {
+				var newCell	= row.insertCell(i);
+        var newID = `chk${rowCount-1}${i-1}`
+        newCell.innerHTML = `<input type=\"checkbox\" id=\"${newID}\" class=\"check_box\"><label for=\"${newID}\"></label>`;
+        newCell.style.width = 75
+			}
+      // Add button back at end of table
+      var newRow = table.insertRow(rowCount+1)
+      var newButton = newRow.insertCell(0)
+      newButton.innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addRowButton\' value=\"\" onclick=\"addRow(\'dataTable\')\" /></div>"
+		}
+
+    function setAll(tableID, state) {
+      var table = document.getElementById(tableID);
+      var colCount = table.rows[1].cells.length;
+      var rowCount = table.rows.length-1 ;
+      for (var row=1; row<rowCount; row++) {
+        for (var col=0; col<colCount-1; col++) {
+          var boxID = `chk${row-1}${col}`
+          var box = document.getElementById(boxID)
+          box.checked=state
+        }
+      }
+    }
+
+    function check(tableID) {
+      var table = document.getElementById(tableID);
+      var colCount = table.rows[1].cells.length;
+      var rowCount = table.rows.length-1;
+      var sequence = []
+      for (var col=0; col<colCount-1; col++) {
+        var timestep = {}
+        timestep['duration'] = document.getElementById(`duration${col}`).value
+        timestep['TTL'] = []
+        for (var row=1; row<rowCount; row++) {
+          var boxID = `chk${row-1}${col}`
+          var box = document.getElementById(boxID)
+          if (box.checked === true) {
+            timestep['TTL'].push(row)
+          }
+        }
+        sequence.push(timestep)
+      }
+      console.log(sequence)
+      post('start', sequence)
+    }
+
+    function post(endpoint, data) {
+      const post = new XMLHttpRequest()
+      const url = `http://127.0.0.1:8051/${endpoint}`
+      console.log(url)
+      post.open("POST", url)
+      post.setRequestHeader("Content-type", "application/json");
+      var payload = {"payload": data}
+      console.log(JSON.stringify(payload))
+      post.send(JSON.stringify(payload))
+    }
+
+    function convert(stepID) {
+      var data = document.getElementById(stepID).value
+      const Http2 = new XMLHttpRequest()
+      const url = `http://127.0.0.1:8051/convert/${data}`
+      console.log(url)
+      Http2.open("GET", url)
+      Http2.setRequestHeader("Content-type", "application/json");
+      Http2.send()
+      Http2.onreadystatechange=(e)=>{
+        console.log(Http2.responseText)
+        document.getElementById(stepID).value = Http2.responseText
+
+      }
+    }
+
+    function get() {
+      const Http = new XMLHttpRequest()
+      const url = 'http://127.0.0.1:8051/get'
+      Http.open("GET", url)
+      Http.send()
+
+      Http.onreadystatechange=(e)=>{
+        console.log(Http.responseText)
+      }
+    }
+
+    // Unit conversion
+    window.addEventListener("DOMContentLoaded", function() {
+      document.querySelector("#duration0").addEventListener("keyup", event => {
+          if(event.key !== "Enter") return; // Use `.key` instead.
+          convert('duration0')
+          event.preventDefault(); // No need to `return false;`.
+      });
+    }, false);
+
+
+
+    function addCol(tableID) {
+      var table = document.getElementById(tableID);            <!-- get handle to table --!>
+
+      var colCount = table.rows[1].cells.length-1;
+      var rowCount = table.rows.length-1 ;
+      var button = document.getElementById('addColumnButton')
+      button.parentNode.removeChild(button)
+
+      var newTimestep = table.rows[0].insertCell(colCount+1)
+      var stepID = `duration${colCount}`
+      newTimestep.innerHTML = `<input type=\"text\" value='0 s' class=duration id=${stepID}>`
+      // Unit conversion
+      newTimestep.addEventListener("keyup", event => {
+          if(event.key !== "Enter") return; // Use `.key` instead.
+          convert(stepID)
+          event.preventDefault(); // No need to `return false;`.
+      });
+
+
+      for(var i=1; i<rowCount; i++) {
+        var newCell = table.rows[i].insertCell(colCount+1);
+        var newID = `chk${i-1}${colCount}`
+
+        newCell.innerHTML = `<input type=\"checkbox\" id=\"${newID}\" class=\"check_box\"><label for=\"${newID}\"></label>`;
+        newCell.style.width = 75
+      }
+      // Add column button back
+      newCell = table.rows[0].insertCell(colCount+2)
+      newCell.innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addColumnButton\' value=\"\" onclick=\"addCol(\'dataTable\')\" /></div>"
+
+    }
+
+
+	</SCRIPT>
+</HEAD>
+<BODY>
+  <header> <h1> ARGENT </h1> </header>
+  <div class="startButton"><INPUT type="submit" value="" onclick="check('dataTable')" /></div>
+  <div class="checkButton"><INPUT type="submit" value="" onclick="setAll('dataTable', true)" /></div>
+  <div class="uncheckButton"><INPUT type="submit" value="" onclick="setAll('dataTable', false)" /></div>
+
+  <br>
+  <br>
+
+	<TABLE id="dataTable">
+    <TR>
+      <TD>Duration</TD>
+      <TD><input type="text" value='0 s', class=duration id="duration0"></TD>
+      <TD><div class="addButton"><INPUT type="submit" id='addColumnButton' value="" onclick="addCol('dataTable')" /></div></TD>
+
+		<TR>
+      <TD>TTL0</TD>
+			<TD style="width:75px"><INPUT type="checkbox" id="chk00" class="check_box"/><label for="chk00"></label></TD>
+		</TR>
+    <TR>
+      <TD><div class="addButton"><INPUT type="submit" id='addRowButton' value="" onclick="addRow('dataTable')" /></div></TD>
+    </TR>
+	</TABLE>
+
+
+</BODY>
+</HTML>
