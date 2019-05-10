@@ -68,7 +68,7 @@
 
 			var newTimestep = table.rows[0].insertCell(colCount+1)
 			var stepID = `duration${colCount}`
-			newTimestep.innerHTML = `<input type=\"text\" value='0 s' class=duration id=${stepID}>`
+			newTimestep.innerHTML = `<input type=\"text\" value='10 ms' class=duration id=${stepID}>`
 			// Unit conversion
 			newTimestep.addEventListener("keyup", event => {
 					if(event.key !== "Enter") return; // Use `.key` instead.
@@ -89,6 +89,27 @@
 
 		}
 
+		function addDDS() {
+			var table = document.getElementById('ddsTable')
+			var row = table.insertRow(table.rows.length)
+			var label = row.insertCell(0)
+			var num = table.rows.length-2
+			label.innerHTML = `DDS${num}`
+			var edit = row.insertCell(1)
+			var id = `freq${num}`
+			edit.innerHTML = `<input type=\"text\" value='100 MHz' class=duration id=${id}>`
+			edit.addEventListener("keyup", event => {
+					if(event.key !== "Enter") return; // Use `.key` instead.
+					convert(id)
+					event.preventDefault(); // No need to `return false;`.
+			});
+
+			var att_edit = row.insertCell(2)
+			var att_id = `att${num}`
+			att_edit.innerHTML = `<input type=\"text\" value='0' class=duration id=${att_id}>`
+
+
+		}
 		function addRow(tableID) {
 
 			var table = document.getElementById(tableID);
@@ -147,7 +168,14 @@
             timestep['TTL'].push(row-1)
           }
         }
-        sequence.push(timestep)
+				timestep['DDS'] = []
+				for (var i=0; i<4; i++) {
+					freq = document.getElementById(`freq${i}`).value
+					att = document.getElementById(`att${i}`).value
+					timestep['DDS'].push({'frequency': freq, 'attenuation': att})
+				}
+				sequence.push(timestep)
+
       }
       console.log(sequence)
       post('start', sequence)
@@ -192,6 +220,9 @@
       for (var i=0; i<7; i++) {
 				addRow('dataTable')
 			}
+			for (var i=0; i<4; i++) {
+				addDDS()
+			}
     }, false);
 
 	</script>
@@ -208,7 +239,7 @@
 	<table id="dataTable">
     <tr>
       <td></td>
-      <td><input type="text" value='0 s', class=duration id="duration0"></td>
+      <td><input type="text" value='10 ms', class=duration id="duration0"></td>
       <td><div class="addButton"><INPUT type="submit" id='addColumnButton' value="" onclick="addCol('dataTable')" /></div></td>
 		</tr>
 		<tr>
@@ -220,6 +251,14 @@
     </tr>
 	</table>
 
+
 	<header> <h1> DDS </h1> </header>
+	<table id="ddsTable">
+	<tr>
+		<td></td>
+		<td> Frequency </td>
+		<td> Attenuation </td>
+	</tr>
+	</table>
 </body>
 </html>

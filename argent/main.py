@@ -44,6 +44,12 @@ def start():
         qty = Q_(step['duration'])
         qty.ito_base_units()
         step['duration'] = qty.magnitude
+
+        for i in range(len(step['DDS'])):
+            freq = Q_(step['DDS'][i]['frequency'])
+            freq.ito_base_units()
+            step['DDS'][i]['frequency'] = freq.magnitude
+            step['DDS'][i]['attenuation'] = float(step['DDS'][i]['attenuation'])
     with open('sequence.json', 'w') as file:
         json.dump(sequence, file)
     os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run sequencer_loop.py"')

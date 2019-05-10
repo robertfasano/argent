@@ -58,6 +58,15 @@ def get_dacs(dac_channels, sequence=None) -> TList(TList(TFloat)):
 
     return state
 
+def get_dds(sequence) -> TList(TList(TList(TFloat))):
+    state = []
+    for step in sequence:
+        step_state = []
+        for i in range(len(step['DDS'])):
+            step_state.append([step['DDS'][i]['frequency'],step['DDS'][i]['attenuation']])
+        state.append(step_state)
+    return state
+
 def get_adcs(adc_channels, sequence=None) -> TList(TList(TInt32)):
     ''' Queries the EMERGENT API and receives a sequence of the format
             [{'name': 'step1', 'TTL': [0,1], 'ADC': [0]}]
@@ -93,7 +102,11 @@ class Sequencer(EnvExperiment):
         self.setattr_device("core")
         self.setattr_device("scheduler")
         self.setattr_device("core_dma")
-
+        self.setattr_device("urukul0_cpld")  #4 Channels of DDS
+        self.setattr_device("urukul0_ch0")
+        self.setattr_device("urukul0_ch1")
+        self.setattr_device("urukul0_ch2")
+        self.setattr_device("urukul0_ch3")
         self._ttls = []
         for i in range(16):
             self.setattr_device("ttl%i"%i)
@@ -111,6 +124,7 @@ class Sequencer(EnvExperiment):
         self.ttl_table = [[0]]
         self.adc_table = [[0]]
         self.dac_table = [[0.0]]
+        self.dds_table = [[[0.0, 0.0]]]
         self.data = [[[0]]]
 
     def prepare_attributes(self, sequence=None):
@@ -147,6 +161,7 @@ class Sequencer(EnvExperiment):
         self.adc_table = get_adcs(self.adc_channels, sequence)
         self.dac_table = get_dacs(self.dac_channels, sequence)
         self.times = get_timesteps(sequence)
+        self.dds_table = get_dds(sequence)
 
 
 
@@ -155,6 +170,9 @@ class Sequencer(EnvExperiment):
 
     def get_ttl_table(self) -> TList(TList(TInt32)):
         return self.ttl_table
+
+    def get_dds_table(self) -> TList(TList(TList(TFloat))):
+        return self.dds_table
 
     def get_adc_table(self) -> TList(TList(TInt32)):
         print(self.adc_table)
@@ -179,7 +197,24 @@ class Sequencer(EnvExperiment):
         self.core.break_realtime()
         self.zotino0.init()
         self.core.break_realtime()
-        delay(1*ms)
+        self.urukul0_cpld.init()
+        self.urukul0_ch0.init()
+        self.urukul0_ch1.init()
+        self.urukul0_ch2.init()
+        self.urukul0_ch3.init()
+        self.urukul0_ch0.sw.on()
+        self.urukul0_ch1.sw.on()
+        self.urukul0_ch2.sw.on()
+        self.urukul0_ch3.sw.on()
+        # self.urukul0_ch0.set_att(0.)
+        # self.urukul0_ch1.set_att(0.)
+        # self.urukul0_ch2.set_att(0.)
+        # self.urukul0_ch3.set_att(0.)
+
+        delay(10*ms)
+        # self.urukul0_ch0.set(10*MHz)
+        # self.urukul0_ch1.sw.on()
+        # self.urukul0_ch0.set_att(0.)
 
     @kernel
     def slack(self):
@@ -201,10 +236,13 @@ class Sequencer(EnvExperiment):
         self.ttl_table = self.get_ttl_table()
         self.adc_table = self.get_adc_table()
         self.dac_table = self.get_dac_table()
+        self.dds_table = self.get_dds_table()
         print(self.times)
         print(self.ttl_table)
         print(self.adc_table)
         print(self.dac_table)
+        print(self.dds_table)
+
         adc_delay = 1*ms
         N_samples = self.get_N_samples(adc_delay)
         data = [[[0 for ch in range(8)] for n in range(N_samples[i])] for i in range(len(self.times))]
@@ -212,9 +250,25 @@ class Sequencer(EnvExperiment):
             ## [0 for ch in range(8)] -> [0]*8 can cause different list elements
             ## to share byte addresses, such that updating one will update all
         self.core.break_realtime()
-        delay(1*ms)            # adjust as needed to avoid RTIO underflows
+        delay(10*ms)            # adjust as needed to avoid RTIO underflows
 
+        with sequential:
+            col=0
+            self.urukul0_ch0.set(self.dds_table[col][0][0]*Hz)
+            self.urukul0_ch1.set(self.dds_table[col][1][0]*Hz)
+            self.urukul0_ch2.set(self.dds_table[col][2][0]*Hz)
+            self.urukul0_ch3.set(self.dds_table[col][3][0]*Hz)
+            self.urukul0_ch0.sw.on()
+            self.urukul0_ch1.sw.on()
+            self.urukul0_ch2.sw.on()
+            self.urukul0_ch3.sw.on()
+            delay(1*ms)
+            self.urukul0_ch0.set_att(self.dds_table[col][0][1])
+            self.urukul0_ch1.set_att(self.dds_table[col][1][1])
+            self.urukul0_ch2.set_att(self.dds_table[col][2][1])
+            self.urukul0_ch3.set_att(self.dds_table[col][3][1])
         while True:
+            # delay(10*ms)
             data = self.execute(self._ttls, adc_delay,  N_samples, data)
 
 
@@ -258,6 +312,7 @@ class Sequencer(EnvExperiment):
 
                             ttls[ch].off()
                             delay(time)
+
                 ''' ADC '''
                 # if self.do_adc == 1:
                 with sequential:
@@ -265,6 +320,8 @@ class Sequencer(EnvExperiment):
                         data = self.get_samples(col, N_samples[col], adc_delay, data)
                     else:
                         delay(time)
+
+
             col += 1
         return data
 
