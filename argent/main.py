@@ -3,6 +3,7 @@ from flask import render_template
 import json
 import threading
 import numpy as np
+import os
 from pint import UnitRegistry
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -39,10 +40,14 @@ def convert(text):
 @app.route("/start", methods=['POST'])
 def start():
     sequence = request.get_json()['payload']
+    for step in sequence:
+        qty = Q_(step['duration'])
+        qty.ito_base_units()
+        step['duration'] = qty.magnitude
     with open('sequence.json', 'w') as file:
         json.dump(sequence, file)
+    os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run sequencer_loop.py"')
     return ''
-
 
 
 # run the application

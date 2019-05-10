@@ -43,6 +43,11 @@
 			table.insertRow(0)
 			table.rows[0].insertCell(0).innerHTML = ''
 			table.rows[0].insertCell(1).innerHTML = `<input type=\"text\" value='0 s' class=duration id="duration0">`
+			document.getElementById('duration0').addEventListener("keyup", event => {
+					if(event.key !== "Enter") return; // Use `.key` instead.
+					convert('duration0')
+					event.preventDefault(); // No need to `return false;`.
+			});
 			table.rows[0].insertCell(2).innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addColumnButton\' value=\"\" onclick=\"addCol(\'dataTable\')\" /></div>"
 			table.insertRow(1)
 			table.rows[1].insertCell(0).innerHTML = "<p id='ttl_label0'>TTL0</p>"
@@ -138,7 +143,8 @@
           var boxID = `chk${row-1}${col}`
           var box = document.getElementById(boxID)
           if (box.checked === true) {
-            timestep['TTL'].push(row)
+						console.log(row)
+            timestep['TTL'].push(row-1)
           }
         }
         sequence.push(timestep)
@@ -180,6 +186,12 @@
           convert('duration0')
           event.preventDefault(); // No need to `return false;`.
       });
+    }, false);
+
+		window.addEventListener("DOMContentLoaded", function() {
+      for (var i=0; i<7; i++) {
+				addRow('dataTable')
+			}
     }, false);
 
 	</script>
