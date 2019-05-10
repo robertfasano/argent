@@ -13,100 +13,17 @@ import time
 def prepare_data_sets(times, n_samples) -> TList(TList(TList(TInt32))):
     return [[[0]*8]*n_samples[i] for i in range(len(times))]
 
-def get_ttls(ttl_channels, sequence=None) -> TList(TList(TInt32)):
-    ''' Queries the EMERGENT API and receives a sequence of the format
-            [{'name': 'step1', 'TTL': [0,1], 'ADC': [0]}]
-        Prepares a TTL table from this sequence. '''
-    if sequence is None:
-        sequence = requests.get('http://127.0.0.1:5000/artiq/sequence').json()
-    state = []
-    for step in sequence:
-        if 'TTL' not in step:
-            step['TTL'] = []
-        step_state = []
-        for ch in ttl_channels:
-            if ch in step['TTL'] or str(ch) in step['TTL']:
-                step_state.append(1)
-            else:
-                step_state.append(0)
-        state.append(step_state)
-    state = list(map(list, zip(*state)))            # transpose
-
-    return state
-
-def get_dacs(dac_channels, sequence=None) -> TList(TList(TFloat)):
-    ''' Queries the EMERGENT API and receives a sequence of the format
-            [{'name': 'step1', 'TTL': [0,1], 'ADC': [0]}]
-        Prepares a TTL table from this sequence. '''
-    if sequence is None:
-        sequence = requests.get('http://127.0.0.1:5000/artiq/sequence').json()
-    state = []
-    for step in sequence:
-        if 'DAC' not in step:
-            step['DAC'] = []
-        step_state = []
-        for ch in dac_channels:
-            index = None
-            if ch in step['DAC']:
-                value = float(step['DAC'][ch])
-            elif str(ch) in step['DAC']:
-                value = float(step['DAC'][str(ch)])
-            else:
-                value = 0.0
-            step_state.append(value)
-        state.append(step_state)
-
-    return state
-
-def get_dds(sequence) -> TList(TList(TList(TFloat))):
-    state = []
-    for step in sequence:
-        step_state = []
-        for i in range(len(step['DDS'])):
-            step_state.append([step['DDS'][i]['frequency'],step['DDS'][i]['attenuation']])
-        state.append(step_state)
-    return state
-
-def get_adcs(adc_channels, sequence=None) -> TList(TList(TInt32)):
-    ''' Queries the EMERGENT API and receives a sequence of the format
-            [{'name': 'step1', 'TTL': [0,1], 'ADC': [0]}]
-        Prepares an ADC table from this sequence. '''
-    if sequence is None:
-        sequence = requests.get('http://127.0.0.1:5000/artiq/sequence').json()
-    state = []
-    for step in sequence:
-        step_state = []
-        if 'ADC' not in step:
-            step['ADC'] = []
-        for ch in adc_channels:
-            if ch in step['ADC'] or str(ch) in step['ADC']:
-                step_state.append(1)
-            else:
-                step_state.append(0)
-        state.append(step_state)
-
-    return state
-
-def get_timesteps(sequence=None) -> TList(TFloat):
-    if sequence is None:
-        run = requests.get('http://127.0.0.1:5000/artiq/sequence').json()
-        sequence = run['sequence']
-
-    times = []
-    for step in sequence:
-        times.append(float(step['duration']))
-    return times
-
 class Sequencer(EnvExperiment):
     def build(self):
         self.setattr_device("core")
         self.setattr_device("scheduler")
         self.setattr_device("core_dma")
         self.setattr_device("urukul0_cpld")  #4 Channels of DDS
-        self.setattr_device("urukul0_ch0")
-        self.setattr_device("urukul0_ch1")
-        self.setattr_device("urukul0_ch2")
-        self.setattr_device("urukul0_ch3")
+        self._dds = []
+        for i in range(4):
+            self.setattr_device('urukul0_ch{}'.format(i))
+            dev = getattr(self, 'urukul0_ch{}'.format(i))
+            self._dds.append(dev)
         self._ttls = []
         for i in range(16):
             self.setattr_device("ttl%i"%i)
@@ -127,18 +44,15 @@ class Sequencer(EnvExperiment):
         self.dds_table = [[[0.0, 0.0]]]
         self.data = [[[0]]]
 
-    def prepare_attributes(self, sequence=None):
-        # self.ttl_channels = list(8, range(16))
-        # for step in sequence:
-        #     for ch in step['TTL']:
-        #         if int(ch) not in self.ttl_channels:
-        #             self.ttl_channels.append(int(ch))
-        # self.ttl_channels.sort()
-        if sequence is None:
-            # sequence = requests.get('http://127.0.0.1:5000/artiq/sequence').json()
-            with open('sequence.json', 'r') as file:
-                sequence = json.load(file)
-            print(sequence)
+    def prepare_attributes(self):
+        ''' Reads a sequence from file, then recasts into ARTIQ-friendly types
+            (nested lists of ints and floats) which can be accessed in the kernel
+            via RPC to the master. '''
+        with open('sequence.json', 'r') as file:
+            sequence = json.load(file)
+        print(sequence)
+
+        ''' Prepare ADC channels '''
         self.adc_channels = []
         for step in sequence:
             if 'ADC' not in step or step['ADC'] == []:
@@ -148,6 +62,7 @@ class Sequencer(EnvExperiment):
                     self.adc_channels.append(int(ch))
         self.adc_channels.sort()
 
+        ''' Prepare DAC channels '''
         self.dac_channels = []
         for step in sequence:
             if 'DAC' not in step or step['DAC'] == {}:
@@ -157,12 +72,69 @@ class Sequencer(EnvExperiment):
                     self.dac_channels.append(int(ch))
         self.dac_channels.sort()
 
-        self.ttl_table = get_ttls(list(range(16)), sequence)
-        self.adc_table = get_adcs(self.adc_channels, sequence)
-        self.dac_table = get_dacs(self.dac_channels, sequence)
-        self.times = get_timesteps(sequence)
-        self.dds_table = get_dds(sequence)
 
+        ''' Form TTL table '''
+        ttl_channels = list(range(16))
+        self.ttl_table = []
+        for step in sequence:
+            if 'TTL' not in step:
+                step['TTL'] = []
+            step_state = []
+            for ch in ttl_channels:
+                if ch in step['TTL'] or str(ch) in step['TTL']:
+                    step_state.append(1)
+                else:
+                    step_state.append(0)
+            self.ttl_table.append(step_state)
+        self.ttl_table = list(map(list, zip(*self.ttl_table)))            # transpose
+
+        ''' Form DAC table '''
+        self.dac_table = []
+        for step in sequence:
+            if 'DAC' not in step:
+                step['DAC'] = []
+            step_state = []
+            for ch in self.dac_channels:
+                index = None
+                if ch in step['DAC']:
+                    value = float(step['DAC'][ch])
+                elif str(ch) in step['DAC']:
+                    value = float(step['DAC'][str(ch)])
+                else:
+                    value = 0.0
+                step_state.append(value)
+            self.dac_table.append(step_state)
+
+
+        ''' Form ADC table '''
+        self.adc_table = []
+        for step in sequence:
+            step_state = []
+            if 'ADC' not in step:
+                step['ADC'] = []
+            for ch in self.adc_channels:
+                if ch in step['ADC'] or str(ch) in step['ADC']:
+                    step_state.append(1)
+                else:
+                    step_state.append(0)
+            self.adc_table.append(step_state)
+
+        ''' Form DDS table '''
+        self.dds_table = []
+        for step in sequence:
+            step_state = []
+            for i in range(len(step['DDS'])):
+                step_state.append([step['DDS'][i]['frequency'],step['DDS'][i]['attenuation']])
+
+
+            self.dds_table.append(step_state)
+
+
+        ''' Form delay list '''
+        # self.times = []
+        # for step in sequence:
+        #     self.times.append(float(step['duration']))
+        self.times = [float(step['duration']) for step in sequence]
 
 
     def get_times(self) -> TList(TFloat):
@@ -181,14 +153,6 @@ class Sequencer(EnvExperiment):
     def get_dac_table(self) -> TList(TList(TFloat)):
         return self.dac_table
 
-    ''' Start management '''
-    def process_submitted(self) -> TBool:
-        return bool(self._submit_emergent)
-
-    def reset_process(self):
-        self._submit_emergent = 0
-        self.do_adc = 0
-
     @kernel
     def initialize_kernel(self):
         self.core.reset()
@@ -198,23 +162,10 @@ class Sequencer(EnvExperiment):
         self.zotino0.init()
         self.core.break_realtime()
         self.urukul0_cpld.init()
-        self.urukul0_ch0.init()
-        self.urukul0_ch1.init()
-        self.urukul0_ch2.init()
-        self.urukul0_ch3.init()
-        self.urukul0_ch0.sw.on()
-        self.urukul0_ch1.sw.on()
-        self.urukul0_ch2.sw.on()
-        self.urukul0_ch3.sw.on()
-        # self.urukul0_ch0.set_att(0.)
-        # self.urukul0_ch1.set_att(0.)
-        # self.urukul0_ch2.set_att(0.)
-        # self.urukul0_ch3.set_att(0.)
-
+        for i in range(4):
+            self._dds[i].init()         # initialize channel
+            self._dds[i].sw.on()        # open rf switch
         delay(10*ms)
-        # self.urukul0_ch0.set(10*MHz)
-        # self.urukul0_ch1.sw.on()
-        # self.urukul0_ch0.set_att(0.)
 
     @kernel
     def slack(self):
@@ -231,7 +182,7 @@ class Sequencer(EnvExperiment):
         self.initialize_kernel()
         for ttl in self._ttls:
             ttl.output()
-        self.prepare_attributes()
+        self.prepare_attributes()      # read a sequence from file and set attributes on the master
         self.times = self.get_times()
         self.ttl_table = self.get_ttl_table()
         self.adc_table = self.get_adc_table()
@@ -252,34 +203,16 @@ class Sequencer(EnvExperiment):
         self.core.break_realtime()
         delay(10*ms)            # adjust as needed to avoid RTIO underflows
 
-        with sequential:
-            col=0
-            self.urukul0_ch0.set(self.dds_table[col][0][0]*Hz)
-            self.urukul0_ch1.set(self.dds_table[col][1][0]*Hz)
-            self.urukul0_ch2.set(self.dds_table[col][2][0]*Hz)
-            self.urukul0_ch3.set(self.dds_table[col][3][0]*Hz)
-            self.urukul0_ch0.sw.on()
-            self.urukul0_ch1.sw.on()
-            self.urukul0_ch2.sw.on()
-            self.urukul0_ch3.sw.on()
-            delay(1*ms)
-            self.urukul0_ch0.set_att(self.dds_table[col][0][1])
-            self.urukul0_ch1.set_att(self.dds_table[col][1][1])
-            self.urukul0_ch2.set_att(self.dds_table[col][2][1])
-            self.urukul0_ch3.set_att(self.dds_table[col][3][1])
         while True:
-            # delay(10*ms)
             data = self.execute(self._ttls, adc_delay,  N_samples, data)
 
 
     @kernel
     def execute(self, ttls, adc_delay, N_samples, data):
-        # self.core.break_realtime()
         col = 0
         for time in self.times:
             start_mu = now_mu()
             with parallel:
-
                 ''' DAC '''
                 with sequential:
                     row = 0
@@ -288,6 +221,7 @@ class Sequencer(EnvExperiment):
                         voltages = self.dac_table[col]
                         self.zotino0.set_dac(voltages, self.dac_channels)
                         delay(time)
+
                 ''' TTL '''
                 with sequential:
                     channels2 = self.ttl_channels[0:8]
@@ -313,49 +247,23 @@ class Sequencer(EnvExperiment):
                             ttls[ch].off()
                             delay(time)
 
+                ''' DDS '''
+                with sequential:
+                    for i in range(4):
+                        delay(10*ns)
+                        self._dds[i].set(self.dds_table[col][i][0]*Hz)
+                        delay(10*ns)
+                        self._dds[i].set_att(self.dds_table[col][i][1])
+
                 ''' ADC '''
-                # if self.do_adc == 1:
                 with sequential:
                     if 1 in self.adc_table[col]:
-                        data = self.get_samples(col, N_samples[col], adc_delay, data)
+                        # data = self.get_samples(col, N_samples[col], adc_delay, data)
+                        for i in range(N_samples[col]):
+                            with parallel:
+                                self.sampler0.sample_mu(data[col][i])
+                                delay(adc_delay)
                     else:
                         delay(time)
-
-
             col += 1
         return data
-
-    @kernel
-    def get_samples(self, step_number, n, dt, data):
-        for i in range(n):
-            with parallel:
-                self.sampler0.sample_mu(data[step_number][i])
-                delay(dt)
-        return data
-
-    @kernel
-    def execute_ttl_pattern(self, ttls, channels, times, table):
-        col=0
-        for time in times:
-            start_mu = now_mu()
-            with parallel:
-                row=0
-                for ch in channels:
-                    at_mu(start_mu)
-                    if table[row][col]==1:
-                        ttls[ch].on()
-                        delay(time)
-                    else:
-                        ttls[ch].off()
-                        delay(time)
-                    row = row + 1
-                col = col + 1
-
-    @kernel
-    def set_ttl_table(self, ttls, channels, times, table):
-        with self.core_dma.record("table"):
-            self.execute_ttl_pattern(ttls, channels, times, table)
-
-    @kernel
-    def TTL_playback(self, table):
-        self.core_dma.playback_handle(table)
