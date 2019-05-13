@@ -42,6 +42,24 @@ def convert(text):
     cleaned_value = np.round(cleaned_value, 9)              # round to 9 digits to remove numerical rounding errors in Python
     return '{:~}'.format(cleaned_value)
 
+# @app.route("/start", methods=['POST'])
+# def start():
+#     sequence = request.get_json()['payload']
+#     for step in sequence:
+#         qty = Q_(step['duration'])
+#         qty.ito_base_units()
+#         step['duration'] = qty.magnitude
+#
+#         for i in range(len(step['DDS'])):
+#             freq = Q_(step['DDS'][i]['frequency'])
+#             freq.ito_base_units()
+#             step['DDS'][i]['frequency'] = freq.magnitude
+#             step['DDS'][i]['attenuation'] = float(step['DDS'][i]['attenuation'])
+#     with open('sequence.json', 'w') as file:
+#         json.dump(sequence, file)
+#     os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run sequencer_loop.py"')
+#     return ''
+
 @app.route("/start", methods=['POST'])
 def start():
     sequence = request.get_json()['payload']
@@ -57,7 +75,10 @@ def start():
             step['DDS'][i]['attenuation'] = float(step['DDS'][i]['attenuation'])
     with open('sequence.json', 'w') as file:
         json.dump(sequence, file)
-    os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run sequencer_loop.py"')
+
+    from generator import write_code
+    code = write_code(sequence)
+    # os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run base_experiment.py"')
     return ''
 
 
@@ -73,6 +94,8 @@ def load():
     with open('saved.json', 'r') as file:
         sequence = json.load(file)
     return json.dumps(sequence)
+
+
 
 # run the application
 if __name__ == "__main__":
