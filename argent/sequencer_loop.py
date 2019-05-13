@@ -203,9 +203,12 @@ class Sequencer(EnvExperiment):
         self.core.break_realtime()
         delay(10*ms)            # adjust as needed to avoid RTIO underflows
 
+        ''' Start DDS on first step values '''
+        for i in range(len(self._dds)):
+            self._dds[i].set(self.dds_table[0][i][0]*Hz)
+
         while True:
             data = self.execute(self._ttls, adc_delay,  N_samples, data)
-
 
     @kernel
     def execute(self, ttls, adc_delay, N_samples, data):
@@ -250,10 +253,18 @@ class Sequencer(EnvExperiment):
                 ''' DDS '''
                 with sequential:
                     for i in range(4):
-                        delay(10*ns)
-                        self._dds[i].set(self.dds_table[col][i][0]*Hz)
-                        delay(10*ns)
-                        self._dds[i].set_att(self.dds_table[col][i][1])
+                        ''' Only update DDS if value is changing '''
+                        new_freq = self.dds_table[col][i][0]*Hz
+                        last_freq = self.dds_table[col-1][i][0]*Hz
+                        if new_freq != last_freq:
+                            delay(10*ns)
+                            self._dds[i].set(self.dds_table[col][i][0]*Hz)
+
+                        new_att = self.dds_table[col][i][1]
+                        last_att = self.dds_table[col-1][i][1]
+                        if new_att != last_att:
+                            delay(10*ns)
+                            self._dds[i].set_att(self.dds_table[col][i][1])
 
                 ''' ADC '''
                 with sequential:
