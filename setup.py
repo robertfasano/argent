@@ -10,6 +10,5 @@ setup(
     packages=find_packages(),
     license='MIT',
     long_description=open('README.md').read(),
-    install_requires=['dash',
-                      'dash-bootstrap-components']
+    install_requires=['flask', 'pint']
 )
