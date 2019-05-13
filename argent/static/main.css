@@ -47,6 +47,26 @@ div.startButton input {
     float: left;
 }
 
+div.saveButton input {
+    background:url('images/content-save.svg') no-repeat;
+    cursor:pointer;
+    width: 24px;
+    height: 24px;
+    border: none;
+    display:inline-block;
+    float: left;
+}
+
+div.loadButton input {
+    background:url('images/baseline-folder_open-24px.svg') no-repeat;
+    cursor:pointer;
+    width: 24px;
+    height: 24px;
+    border: none;
+    display:inline-block;
+    float: left;
+}
+
 div.checkButton input {
     background:url('images/baseline-check-24px.svg') no-repeat;
     cursor:pointer;

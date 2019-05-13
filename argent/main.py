@@ -26,6 +26,11 @@ def get():
 def loopback():
     return json.dumps(request.get_json())
 
+@app.route("/channels")
+def list_channels():
+    from config import channels
+    return json.dumps(channels)
+
 @app.route("/convert/<text>", methods=['GET'])
 def convert(text):
     if text == '':
@@ -55,6 +60,19 @@ def start():
     os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run sequencer_loop.py"')
     return ''
 
+
+@app.route("/save", methods=['POST'])
+def save():
+    sequence = request.get_json()['payload']
+    with open('saved.json', 'w') as file:
+        json.dump(sequence, file)
+    return ''
+
+@app.route("/load")
+def load():
+    with open('saved.json', 'r') as file:
+        sequence = json.load(file)
+    return json.dumps(sequence)
 
 # run the application
 if __name__ == "__main__":

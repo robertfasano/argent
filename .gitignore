@@ -1,0 +1,4 @@
+*.pyc
+*saved.json
+*sequence.json
+*.ipynb_checkpoints

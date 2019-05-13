@@ -7,250 +7,303 @@
 	<script language="javascript">
 
 		function clearTable(tableID) {
-			var table = document.getElementById(tableID);            <!-- get handle to table --!>
-
-			var colCount = table.rows[1].cells.length-1;
-			var rowCount = table.rows.length-2;
-			console.log(rowCount, colCount)
-
-			// Delete timestep text boxes
-			for (var j=0; j<colCount; j++) {
-				duration = document.getElementById(`duration${j}`)
-				duration.parentNode.removeChild(duration)
-			}
-
-			// Delete TTL labels
-			for (var i=0; i<rowCount; i++) {
-				ttl_label = document.getElementById(`ttl_label${i}`)
-				ttl_label.parentNode.removeChild(ttl_label)
-
-			}
-
-			// Delete checkboxes
-			for (var i=0; i<rowCount; i++) {
-				for (var j=0; j<colCount; j++) {
-					console.log(i,j)
-					checkbox = document.getElementById(`chk${i}${j}`)
-					checkbox.parentNode.removeChild(checkbox)
+			var table = document.getElementById(tableID)
+			var rowCount = table.rows.length-1
+			if (rowCount < 1) { return }
+			var colCount = table.rows[1].cells.length
+			while (table.rows.length > 1) {
+				while (table.rows[1].cells.length > 0) {
+					element = table.rows[1].cells[0]
+					element.parentNode.removeChild(element)
 				}
+				table.deleteRow(1)
 			}
-
-			while (table.rows.length > 0) {
-				table.deleteRow(0)
-			}
-
-			console.log(table.rows.length)
-			table.insertRow(0)
-			table.rows[0].insertCell(0).innerHTML = ''
-			table.rows[0].insertCell(1).innerHTML = `<input type=\"text\" value='0 s' class=duration id="duration0">`
-			document.getElementById('duration0').addEventListener("keyup", event => {
-					if(event.key !== "Enter") return; // Use `.key` instead.
-					convert('duration0')
-					event.preventDefault(); // No need to `return false;`.
-			});
-			table.rows[0].insertCell(2).innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addColumnButton\' value=\"\" onclick=\"addCol(\'dataTable\')\" /></div>"
-			table.insertRow(1)
-			table.rows[1].insertCell(0).innerHTML = "<p id='ttl_label0'>TTL0</p>"
-			table.rows[1].insertCell(1).innerHTML = `<input type=\"checkbox\" id=\"chk00" class=\"check_box\"><label for='chk00'></label>`
-			table.insertRow(2)
-			table.rows[2].insertCell(0).innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addRowButton\' value=\"\" onclick=\"addRow(\'dataTable\')\" /></div>"
-
 		}
 
-		function addCol(tableID) {
-			var table = document.getElementById(tableID);            <!-- get handle to table --!>
+		function addCol() {
+			var table = document.getElementById('ttlTable');
+			var adc_table = document.getElementById('adcTable');
 
-			var colCount = table.rows[1].cells.length-1;
-			var rowCount = table.rows.length-1 ;
-			console.log(rowCount, colCount)
+			var timesteps = table.rows[0].cells.length-2
+			var channels = table.rows.length-1
+
+			// Temporarily delete addColumnButton
 			var button = document.getElementById('addColumnButton')
 			button.parentNode.removeChild(button)
+			table.rows[0].deleteCell(timesteps+1)
 
-			var newTimestep = table.rows[0].insertCell(colCount+1)
-			var stepID = `duration${colCount}`
+			var newTimestep = table.rows[0].insertCell(timesteps+1)
+			var stepID = `duration${timesteps}`
 			newTimestep.innerHTML = `<input type=\"text\" value='10 ms' class=duration id=${stepID}>`
 			// Unit conversion
 			newTimestep.addEventListener("keyup", event => {
 					if(event.key !== "Enter") return; // Use `.key` instead.
-					convert(stepID)
+					convert(document.getElementById(stepID))
 					event.preventDefault(); // No need to `return false;`.
 			});
 
-			for(var i=1; i<rowCount; i++) {
-				var newCell = table.rows[i].insertCell(colCount+1);
-				var newID = `chk${i-1}${colCount}`
-
+			// Add TTL channels
+			for(var i=1; i<channels+1; i++) {
+				var newCell = table.rows[i].insertCell(timesteps+1);
+				var newID = `chk${i-1}${timesteps+1}`
 				newCell.innerHTML = `<input type=\"checkbox\" id=\"${newID}\" class=\"check_box\"><label for=\"${newID}\"></label>`;
 				newCell.style.width = 75
 			}
-			// Add column button back
-			newCell = table.rows[0].insertCell(colCount+2)
-			newCell.innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addColumnButton\' value=\"\" onclick=\"addCol(\'dataTable\')\" /></div>"
+
+			// Add ADC channels
+			adc_channels = adc_table.rows.length
+			for(var i=0; i<adc_channels; i++) {
+				var newCell = adc_table.rows[i].insertCell(timesteps+1);
+				var newID = `adc_chk${i-1}${timesteps+1}`
+				newCell.innerHTML = `<input type=\"checkbox\" id=\"${newID}\" class=\"check_box\"><label for=\"${newID}\"></label>`;
+				newCell.style.width = 75
+			}
+
+			// Reinsert addColumnButton after new timestep
+			newCell = table.rows[0].insertCell(timesteps+2)
+			newCell.innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addColumnButton\' value=\"\" onclick=\"addCol(\'ttlTable\')\" /></div>"
 
 		}
 
 		function addDDS() {
 			var table = document.getElementById('ddsTable')
-			var row = table.insertRow(table.rows.length)
+			var rowCount = table.rows.length
+			var channel = table.rows.length-1
+			var row = table.insertRow(channel+1)
+
 			var label = row.insertCell(0)
-			var num = table.rows.length-2
-			label.innerHTML = `DDS${num}`
+			label.innerHTML = `DDS${channel}`
 			var edit = row.insertCell(1)
-			var id = `freq${num}`
+			var id = `freq${channel}`
 			edit.innerHTML = `<input type=\"text\" value='100 MHz' class=duration id=${id}>`
 			edit.addEventListener("keyup", event => {
 					if(event.key !== "Enter") return; // Use `.key` instead.
-					convert(id)
+					convert(document.getElementById(id))
 					event.preventDefault(); // No need to `return false;`.
 			});
 
 			var att_edit = row.insertCell(2)
-			var att_id = `att${num}`
-			att_edit.innerHTML = `<input type=\"text\" value='0' class=duration id=${att_id}>`
-
-
+			att_edit.innerHTML = `<input type=\"text\" value='0' class=duration>`
 		}
-		function addRow(tableID) {
 
-			var table = document.getElementById(tableID);
-      var colCount = table.rows[1].cells.length;
-      var rowCount = table.rows.length-1;
-      var button = document.getElementById('addRowButton')
-      button.parentNode.removeChild(button)
-      table.deleteRow(rowCount)
 
-      console.log(rowCount)
-      var row = table.insertRow(rowCount);
-      var label = `TTL${rowCount-1}`
+		function addTTL() {
+			var table = document.getElementById('ttlTable');
+			var channel = table.rows.length-1
+			var timesteps = table.rows[0].cells.length-2
+
+      var row = table.insertRow(channel+1);
+      var label = `TTL${channel}`
       var ttl = row.insertCell(0);
       ttl.innerHTML = label;
-			ttl.id = `ttl_label${rowCount-1}`
 
-			for(var i=1; i<colCount; i++) {
+			for(var i=1; i<timesteps+1; i++) {
 				var newCell	= row.insertCell(i);
-        var newID = `chk${rowCount-1}${i-1}`
+        var newID = `chk${channel}${i-1}`
         newCell.innerHTML = `<input type=\"checkbox\" id=\"${newID}\" class=\"check_box\"><label for=\"${newID}\"></label>`;
         newCell.style.width = 75
 			}
-      // Add button back at end of table
-      var newRow = table.insertRow(rowCount+1)
-      var newButton = newRow.insertCell(0)
-      newButton.innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addRowButton\' value=\"\" onclick=\"addRow(\'dataTable\')\" /></div>"
 		}
 
-    function setAll(tableID, state) {
-      var table = document.getElementById(tableID);
-      var colCount = table.rows[1].cells.length;
-      var rowCount = table.rows.length-1 ;
-      for (var row=1; row<rowCount; row++) {
-        for (var col=0; col<colCount-1; col++) {
-          var boxID = `chk${row-1}${col}`
-          var box = document.getElementById(boxID)
-          box.checked=state
-        }
-      }
-    }
+		function addADC() {
+			var table = document.getElementById('adcTable');
+			var ttl_table = document.getElementById('ttlTable');
 
-    function check(tableID) {
-      var table = document.getElementById(tableID);
-      var colCount = table.rows[1].cells.length;
-      var rowCount = table.rows.length-1;
+			var channel = table.rows.length-1
+			var timesteps = ttl_table.rows[0].cells.length-2
+
+			var row = table.insertRow(channel+1);
+			var label = `ADC${channel+1}`
+			var adc = row.insertCell(0);
+			adc.innerHTML = label;
+
+			for(var i=1; i<timesteps+1; i++) {
+				var newCell	= row.insertCell(i);
+				var newID = `adc_chk${channel+1}${i-1}`
+				newCell.innerHTML = `<input type=\"checkbox\" id=\"${newID}\" class=\"check_box\"><label for=\"${newID}\"></label>`;
+				newCell.style.width = 75
+			}
+		}
+
+
+		function get_sequence() {
+      var table = document.getElementById('ttlTable');
+      var timesteps = table.rows[0].cells.length-2;
+      var channels = table.rows.length-1;
       var sequence = []
-      for (var col=0; col<colCount-1; col++) {
+      for (var col=1; col<timesteps+1; col++) {
         var timestep = {}
-        timestep['duration'] = document.getElementById(`duration${col}`).value
+				timestep['duration'] = table.rows[0].cells[col].childNodes[0].value
+
         timestep['TTL'] = []
-        for (var row=1; row<rowCount; row++) {
-          var boxID = `chk${row-1}${col}`
-          var box = document.getElementById(boxID)
-          if (box.checked === true) {
-						console.log(row)
+        for (var row=1; row<channels+1; row++) {
+					var box = table.rows[row].cells[col].childNodes[0]
+          if (box.checked) {
             timestep['TTL'].push(row-1)
           }
         }
+
 				timestep['DDS'] = []
-				for (var i=0; i<4; i++) {
-					freq = document.getElementById(`freq${i}`).value
-					att = document.getElementById(`att${i}`).value
+				var dds_table = document.getElementById('ddsTable')
+				var dds_channels = dds_table.rows.length-1
+				for (var row=1; row<dds_channels+1; row++) {
+					freq = dds_table.rows[row].cells[1].childNodes[0].value
+					att = dds_table.rows[row].cells[2].childNodes[0].value
 					timestep['DDS'].push({'frequency': freq, 'attenuation': att})
 				}
-				sequence.push(timestep)
 
+				timestep['ADC'] = []
+				var adc_table = document.getElementById('adcTable')
+				var adc_channels = adc_table.rows.length
+				for (var row=0; row<adc_channels; row++) {
+					var box = adc_table.rows[row].cells[col].childNodes[0]
+          if (box.checked) {
+            timestep['ADC'].push(row)
+					}
+				}
+
+				sequence.push(timestep)
       }
-      console.log(sequence)
-      post('start', sequence)
+      return sequence
     }
+
+		function start() {
+			post('start', get_sequence())
+		}
+
+		function save_sequence() {
+			post('save', get_sequence())
+		}
+
+		function load_sequence() {
+			get('load', set_sequence)
+		}
+
+		function get_channels() {
+			function prepare_gui(response) {
+				clearTable('ttlTable')
+				channels = JSON.parse(response)
+
+				for (var i=0; i<channels['TTL'].length; i++) {
+					addTTL()
+				}
+				clearTable('ddsTable')
+				for (var i=0; i<channels['DDS'].length; i++) {
+					addDDS()
+				}
+				clearTable('adcTable')
+				for (var i=0; i<channels['ADC'].length; i++) {
+					addADC()
+				}
+			}
+
+			getter = get('channels', prepare_gui)
+		}
+
+		function set_sequence(sequence) {
+			sequence = JSON.parse(sequence)
+			ttlTable = document.getElementById('ttlTable')
+			adcTable = document.getElementById('adcTable')
+
+			for (var s=0; s<sequence.length; s++) {
+				for (var ch=0; ch<ttlTable.rows.length-1; ch++) {
+					if (s > ttlTable.rows[0].cells.length-3) {
+						addCol()
+					}
+					var box = ttlTable.rows[ch+1].cells[s+1].childNodes[0]
+					if (sequence[s]['TTL'].includes(ch)) {
+						box.checked = true
+					}
+					else {
+						box.checked = false
+					}
+				}
+				for (var ch=0; ch<adcTable.rows.length; ch++) {
+					var box = adcTable.rows[ch].cells[s+1].childNodes[0]
+					if (sequence[s]['ADC'].includes(ch)) {
+						box.checked = true
+					}
+					else {
+						box.checked = false
+					}
+				}
+			}
+		}
 
     function post(endpoint, data) {
       const post = new XMLHttpRequest()
       const url = `http://127.0.0.1:8051/${endpoint}`
-      console.log(url)
       post.open("POST", url)
       post.setRequestHeader("Content-type", "application/json");
       var payload = {"payload": data}
-      console.log(JSON.stringify(payload))
       post.send(JSON.stringify(payload))
     }
 
-    function convert(stepID) {
-      var data = document.getElementById(stepID).value
-      const Http2 = new XMLHttpRequest()
-      const url = `http://127.0.0.1:8051/convert/${data}`
-      console.log(url)
-      Http2.open("GET", url)
-      Http2.setRequestHeader("Content-type", "application/json");
-      Http2.send()
-      Http2.onreadystatechange=(e)=>{
-        console.log(Http2.responseText)
-        document.getElementById(stepID).value = Http2.responseText
+		function get(endpoint, callback) {
+			const getter = new XMLHttpRequest()
+			const url = `http://127.0.0.1:8051/${endpoint}`
+			getter.open("GET", url)
+			getter.send()
+			getter.onload = function () {callback(getter.responseText)}
+			return getter
+		}
 
-      }
+		function convert(element) {
+      var data = element.value
+			function set(response) {
+				element.value = response
+			}
+			getter = get(`convert/${data}`, set)
     }
 
     // Unit conversion
     window.addEventListener("DOMContentLoaded", function() {
       document.querySelector("#duration0").addEventListener("keyup", event => {
           if(event.key !== "Enter") return; // Use `.key` instead.
-          convert('duration0')
+					convert(document.getElementById('duration0'))
           event.preventDefault(); // No need to `return false;`.
       });
     }, false);
 
 		window.addEventListener("DOMContentLoaded", function() {
-      for (var i=0; i<7; i++) {
-				addRow('dataTable')
-			}
-			for (var i=0; i<4; i++) {
-				addDDS()
-			}
+			get_channels()
     }, false);
 
 	</script>
 </head>
 <body>
-  <div class="startButton"><INPUT type="submit" value="" onclick="check('dataTable')" /></div>
-  <!-- <div class="checkButton"><INPUT type="submit" value="" onclick="setAll('dataTable', true)" /></div> -->
-  <!-- <div class="uncheckButton"><INPUT type="submit" value="" onclick="setAll('dataTable', false)" /></div> -->
-	<div class="uncheckButton"><INPUT type="submit" value="" onclick="clearTable('dataTable')" /></div>
+  <div class="startButton"><INPUT type="submit" value="" onclick="start()" /></div>
+	<div class="uncheckButton"><INPUT type="submit" value="" onclick="get_channels()" /></div>
+	<div class="saveButton"><INPUT type="submit" value="" onclick="save_sequence({})" /></div>
+	<div class="loadButton"><INPUT type="submit" value="" onclick="load_sequence({})" /></div>
 
   <br>
   <br>
+
+	<!-- <div align="left">
+	<div style="display: inline-block; vertical-align: middle;"> -->
 	<header> <h1> TTL </h1> </header>
-	<table id="dataTable">
+	<!-- </div>
+	<div style="display: inline-block; vertical-align: middle;"> -->
+	<table id="ttlTable">
     <tr>
       <td></td>
       <td><input type="text" value='10 ms', class=duration id="duration0"></td>
-      <td><div class="addButton"><INPUT type="submit" id='addColumnButton' value="" onclick="addCol('dataTable')" /></div></td>
+      <td><div class="addButton"><INPUT type="submit" id='addColumnButton' value="" onclick="addCol()" /></div></td>
 		</tr>
-		<tr>
-      <td><p id='ttl_label0'>TTL0</p></td>
-			<td style="width:75px"><INPUT type="checkbox" id="chk00" class="check_box"/><label for="chk00"></label></td>
-		</tr>
-    <tr>
-      <td><div class="addButton"><INPUT type="submit" id='addRowButton' value="" onclick="addRow('dataTable')" /></div></td>
-    </tr>
 	</table>
+	<!-- </div>
+	</div> -->
 
+	<!-- <div align="left">
+	<div style="display: inline-block; vertical-align: middle;"> -->
+	<header> <h1> ADC </h1> </header>
+	<!-- </div> -->
+	<!-- <div style="display: inline-block; vertical-align: middle;"> -->
+	<table id="adcTable">
+	</table>
+	<!-- </div>
+	</div> -->
 
 	<header> <h1> DDS </h1> </header>
 	<table id="ddsTable">
