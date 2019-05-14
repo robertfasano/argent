@@ -16,13 +16,14 @@ def write_preloop(sequence):
     N_samples = []
     for i in range(len(sequence)):
         N_samples.append(int(sequence[i]['duration']/adc_delay))
+    code += '\tadc_delay={}\n'.format(adc_delay)
     code += '\tN_samples={}\n'.format(N_samples)
     code += '\tdata = [[[0 for ch in range(8)] for n in range(N_samples[i])] for i in range({})]\n'.format(len(sequence))
 
 
     code += '\tself.core.break_realtime()\n'
     code += '\twhile True:\n'
-    code += '\t\tdata=loop(self, data)\n'
+    code += '\t\tdata=loop(self, data, adc_delay, N_samples)\n'
     code += '\t\tprint(data)'
 
     ''' Finish and save to file '''
@@ -34,7 +35,7 @@ def write_loop(sequence):
     code = ''
     code += 'from artiq.experiment import *\n'
     code += '@kernel\n'
-    code += 'def loop(self, data):\n'
+    code += 'def loop(self, data, adc_delay, N_samples):\n'
 
     ''' Write TTL events '''
     for i in range(len(sequence)):
@@ -74,13 +75,11 @@ def write_loop(sequence):
                 code += '\t\t\tdelay(10*ns)\n'
 
         ''' Write ADC events '''
-        adc_delay = 1e-3
-        N_samples = int(sequence[i]['duration']/adc_delay)
         if sequence[i]['ADC'] != []:
-            code += '\t\tfor j in range({}):\n'.format(N_samples)
+            code += '\t\tfor j in range(len(N_samples)):\n'
             code += '\t\t\twith parallel:\n'
             code += '\t\t\t\tself.sampler0.sample_mu(data[{}][j])\n'.format(i)
-            code += '\t\t\t\tdelay({})\n'.format(adc_delay)
+            code += '\t\t\t\tdelay(adc_delay)\n'
 
     ''' Finish and save to file '''
     code += '\treturn data'
