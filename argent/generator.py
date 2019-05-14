@@ -19,11 +19,23 @@ def write_preloop(sequence):
     code += '\tadc_delay={}\n'.format(adc_delay)
     code += '\tN_samples={}\n'.format(N_samples)
     code += '\tdata = [[[0 for ch in range(8)] for n in range(N_samples[i])] for i in range({})]\n'.format(len(sequence))
+    code += '\tself.core.break_realtime()\n'
+    ''' Pre-set DDS '''
+    step = sequence[0]['DDS']
+    for d in range(len(step)):
+        ''' Frequency updates '''
+        code += '\tdelay(10*ns)\n'
+        code += '\tself.urukul0_ch{}.set({}*Hz)\n'.format(d, step[d]["frequency"])
+        code += '\tdelay(10*ns)\n'
+        ''' Attenuation updates'''
 
+        code += '\tself.urukul0_ch{}.set_att({})\n'.format(d, step[d]["attenuation"])
+        # code += '\tdelay(10*us)\n'
 
     code += '\tself.core.break_realtime()\n'
     code += '\twhile True:\n'
     code += '\t\tdata=loop(self, data, adc_delay, N_samples)\n'
+
     # code += '\t\tprint(data)'
 
     ''' Finish and save to file '''
@@ -64,7 +76,7 @@ def write_loop(sequence):
         for d in range(len(step)):
             written_sequential_block = False
             ''' Frequency updates '''
-            if i == 0 or step[d]['frequency'] != last_step[d]['frequency']:
+            if step[d]['frequency'] != last_step[d]['frequency']:
                 if not written_sequential_block:
                     code += '\t\twith sequential:\n'
                     written_sequential_block = True
@@ -72,7 +84,7 @@ def write_loop(sequence):
                 code += '\t\t\tdelay(10*ns)\n'
 
             ''' Attenuation updates'''
-            if i == 0 or step[d]['attenuation'] != last_step[d]['attenuation']:
+            if step[d]['attenuation'] != last_step[d]['attenuation']:
                 if not written_sequential_block:
                     code += '\t\twith sequential:\n'
                     written_sequential_block = True
