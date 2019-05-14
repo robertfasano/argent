@@ -73,6 +73,12 @@ def start():
             freq.ito_base_units()
             step['DDS'][i]['frequency'] = freq.magnitude
             step['DDS'][i]['attenuation'] = float(step['DDS'][i]['attenuation'])
+
+        for i in range(len(step['DAC'])):
+            V = Q_(step['DAC'][i])
+            V.ito_base_units()
+            step['DAC'][i] = V.magnitude
+
     with open('sequence.json', 'w') as file:
         json.dump(sequence, file)
 

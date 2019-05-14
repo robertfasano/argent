@@ -24,7 +24,7 @@ def write_preloop(sequence):
     code += '\tself.core.break_realtime()\n'
     code += '\twhile True:\n'
     code += '\t\tdata=loop(self, data, adc_delay, N_samples)\n'
-    code += '\t\tprint(data)'
+    # code += '\t\tprint(data)'
 
     ''' Finish and save to file '''
     with open('generated/preloop.py', 'w') as file:
@@ -51,6 +51,11 @@ def write_loop(sequence):
         for ch in to_turn_off:
             code += '\t\tself.ttl{}.off()\n'.format(ch)
         code += '\t\tdelay({0:.9f}*s)\n'.format(sequence[i]['duration'])
+
+        ''' Write DAC events '''
+        step = sequence[i]['DAC']
+        code += '\t\tself.zotino0.set_dac({}, {})\n'.format(step, list(range(len(step))))
+
 
         ''' Write DDS events '''
         step = sequence[i]['DDS']

@@ -23,6 +23,7 @@
 		function addCol() {
 			var table = document.getElementById('ttlTable');
 			var adc_table = document.getElementById('adcTable');
+			var dac_table = document.getElementById('dacTable');
 
 			var timesteps = table.rows[0].cells.length-2
 			var channels = table.rows.length-1
@@ -59,10 +60,39 @@
 				newCell.style.width = 75
 			}
 
+			// Add DAC channels
+			dac_channels = dac_table.rows.length
+			for(var i=0; i<dac_channels; i++) {
+				var newCell = dac_table.rows[i].insertCell(timesteps+1);
+				var newID = `dac_chk${i}-${timesteps}`
+				newCell.innerHTML = `<input type=\"text\" value='0 V' class=duration id=${newID}>`
+				newCell.style.width = 75
+			}
+
 			// Reinsert addColumnButton after new timestep
 			newCell = table.rows[0].insertCell(timesteps+2)
 			newCell.innerHTML = "<div class=\"addButton\"><INPUT type=\"submit\" id=\'addColumnButton\' value=\"\" onclick=\"addCol(\'ttlTable\')\" /></div>"
 
+		}
+
+		function addDAC() {
+			var table = document.getElementById('dacTable');
+			var ttl_table = document.getElementById('ttlTable');
+
+			var channel = table.rows.length-1
+			var timesteps = ttl_table.rows[0].cells.length-2
+
+			var row = table.insertRow(channel+1);
+			var label = `DAC${channel+1}`
+			var adc = row.insertCell(0);
+			adc.innerHTML = label;
+
+			for(var i=1; i<timesteps+1; i++) {
+				var newCell	= row.insertCell(i);
+				var newID = `dac_chk${channel+1}-${i-1}`
+				newCell.innerHTML = `<input type=\"text\" value='0 V' class=duration id=${newID}>`
+				newCell.style.width = 75
+			}
 		}
 
 		function addDDS() {
@@ -162,6 +192,14 @@
 					}
 				}
 
+				timestep['DAC'] = []
+				var dac_table = document.getElementById('dacTable')
+				var dac_channels = dac_table.rows.length
+				for (var row=0; row<dac_channels; row++) {
+					var edit = dac_table.rows[row].cells[col].childNodes[0]
+					timestep['DAC'].push(edit.value)
+				}
+
 				sequence.push(timestep)
       }
       return sequence
@@ -194,6 +232,10 @@
 				clearTable('adcTable')
 				for (var i=0; i<channels['ADC'].length; i++) {
 					addADC()
+				}
+				clearTable('dacTable')
+				for (var i=0; i<channels['DAC'].length; i++) {
+					addDAC()
 				}
 			}
 
@@ -302,6 +344,17 @@
 	</div>
 	<div style="display: inline-block; vertical-align: middle;">
 	<table id="adcTable">
+	</table>
+	</div>
+	</div>
+
+	<br>
+	<div align="left">
+	<div style="width:18px; display: inline-block; vertical-align: middle; transform: rotate(-90deg);">
+	<header> <h1> DAC </h1> </header>
+	</div>
+	<div style="display: inline-block; vertical-align: middle;">
+	<table id="dacTable">
 	</table>
 	</div>
 	</div>
