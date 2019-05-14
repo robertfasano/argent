@@ -1,9 +1,40 @@
-def write_code(sequence):
+def write_preloop(sequence):
+    ''' Write base code '''
+    code = ''
+    code += 'from artiq.experiment import *\n'
+    code += 'from generated.loop import loop\n'
+    code += '@kernel\n'
+    code += 'def preloop(self):\n'
+
+    code += '\tself.initialize_kernel()\n'
+    code += '\tfor ttl in self._ttls:\n'
+    code += '\t\tttl.output()\n'
+    code += '\t\tttl.off()\n'
+
+    ''' Prepare data array '''
+    adc_delay = 1e-3
+    N_samples = []
+    for i in range(len(sequence)):
+        N_samples.append(int(sequence[i]['duration']/adc_delay))
+    code += '\tN_samples={}\n'.format(N_samples)
+    code += '\tdata = [[[0 for ch in range(8)] for n in range(N_samples[i])] for i in range({})]\n'.format(len(sequence))
+
+
+    code += '\tself.core.break_realtime()\n'
+    code += '\twhile True:\n'
+    code += '\t\tdata=loop(self, data)\n'
+    code += '\t\tprint(data)'
+
+    ''' Finish and save to file '''
+    with open('generated/preloop.py', 'w') as file:
+        file.write(code)
+
+def write_loop(sequence):
     ''' Write base code '''
     code = ''
     code += 'from artiq.experiment import *\n'
     code += '@kernel\n'
-    code += 'def execute(self, data):\n'
+    code += 'def loop(self, data):\n'
 
     ''' Write TTL events '''
     for i in range(len(sequence)):
@@ -42,10 +73,19 @@ def write_code(sequence):
                 code += '\t\t\tself.urukul0_ch{}.set_att({})\n'.format(d, step[d]["attenuation"])
                 code += '\t\t\tdelay(10*ns)\n'
 
+        ''' Write ADC events '''
+        adc_delay = 1e-3
+        N_samples = int(sequence[i]['duration']/adc_delay)
+        if sequence[i]['ADC'] != []:
+            code += '\t\tfor j in range({}):\n'.format(N_samples)
+            code += '\t\t\twith parallel:\n'
+            code += '\t\t\t\tself.sampler0.sample_mu(data[{}][j])\n'.format(i)
+            code += '\t\t\t\tdelay({})\n'.format(adc_delay)
+
     ''' Finish and save to file '''
     code += '\treturn data'
 
-    with open('generated_code.py', 'w') as file:
+    with open('generated/loop.py', 'w') as file:
         file.write(code)
 
     return code

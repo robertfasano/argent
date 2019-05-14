@@ -76,9 +76,10 @@ def start():
     with open('sequence.json', 'w') as file:
         json.dump(sequence, file)
 
-    from generator import write_code
-    code = write_code(sequence)
-    # os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run base_experiment.py"')
+    from generator import write_preloop, write_loop
+    write_preloop(sequence)
+    write_loop(sequence)
+    os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run base_experiment.py"')
     return ''
 
 
