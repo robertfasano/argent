@@ -20,17 +20,26 @@ def write_preloop(sequence):
     code += '\tN_samples={}\n'.format(N_samples)
     code += '\tdata = [[[0 for ch in range(8)] for n in range(N_samples[i])] for i in range({})]\n'.format(len(sequence))
     code += '\tself.core.break_realtime()\n'
+
     ''' Pre-set DDS '''
     step = sequence[0]['DDS']
-    for d in range(len(step)):
-        ''' Frequency updates '''
-        code += '\tdelay(10*ns)\n'
-        code += '\tself.urukul0_ch{}.set({}*Hz)\n'.format(d, step[d]["frequency"])
-        code += '\tdelay(10*ns)\n'
-        ''' Attenuation updates'''
+    code += '\tfreqs = {}\n'.format([x['frequency'] for x in step])
+    code += '\tatts = {}\n'.format([x['attenuation'] for x in step])
 
-        code += '\tself.urukul0_ch{}.set_att({})\n'.format(d, step[d]["attenuation"])
-        # code += '\tdelay(10*us)\n'
+    code += '\tfor i in range(len(self._dds)):\n'
+    code += '\t\tdelay(10*ns)\n'
+    code += '\t\tself._dds[i].set(freqs[i]*Hz)\n'
+    code += '\t\tdelay(10*ns)\n'
+    code += '\t\tself._dds[i].set_att(atts[i])\n'
+
+    # for d in range(len(step)):
+    #     ''' Frequency updates '''
+    #     code += '\tdelay(10*ns)\n'
+    #     code += '\tself.urukul0_ch{}.set({}*Hz)\n'.format(d, step[d]["frequency"])
+    #     code += '\tdelay(10*ns)\n'
+    #     ''' Attenuation updates'''
+    #
+    #     code += '\tself.urukul0_ch{}.set_att({})\n'.format(d, step[d]["attenuation"])
 
     code += '\tself.core.break_realtime()\n'
     code += '\twhile True:\n'
@@ -62,7 +71,7 @@ def write_loop(sequence):
             code += '\t\tself.ttl{}.on()\n'.format(ch)
         for ch in to_turn_off:
             code += '\t\tself.ttl{}.off()\n'.format(ch)
-        code += '\t\tdelay({0:.9f}*s)\n'.format(sequence[i]['duration'])
+        code += '\t\tdelay({:g}*s)\n'.format(sequence[i]['duration'])
 
         ''' Write DAC events '''
         step = sequence[i]['DAC']
