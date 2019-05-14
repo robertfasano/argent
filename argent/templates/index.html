@@ -246,6 +246,7 @@
 			sequence = JSON.parse(sequence)
 			ttlTable = document.getElementById('ttlTable')
 			adcTable = document.getElementById('adcTable')
+			dacTable = document.getElementById('dacTable')
 
 			for (var s=0; s<sequence.length; s++) {
 				for (var ch=0; ch<ttlTable.rows.length-1; ch++) {
@@ -269,6 +270,13 @@
 						box.checked = false
 					}
 				}
+				// load DAC
+				for (var ch=0; ch<dacTable.rows.length; ch++) {
+					dacTable.rows[ch].cells[s+1].childNodes[0].value = sequence[s]['DAC'][ch]
+				}
+				/// load durations
+				element = document.getElementById(`duration${s}`)
+				element.value = sequence[s]['duration']
 			}
 		}
 
@@ -318,6 +326,7 @@
 	<div class="uncheckButton"><INPUT type="submit" value="" onclick="get_channels()" /></div>
 	<div class="saveButton"><INPUT type="submit" value="" onclick="save_sequence({})" /></div>
 	<div class="loadButton"><INPUT type="submit" value="" onclick="load_sequence({})" /></div>
+
 
   <br>
   <br>
