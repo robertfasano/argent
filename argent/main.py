@@ -8,91 +8,92 @@ from pint import UnitRegistry
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
 
+def host(port=5000):
 # creates a Flask application, named app
-app = Flask(__name__)
+    app = Flask(__name__)
 
-# a route where we will display a welcome message via an HTML template
-@app.route("/")
-def hello():
-    message = "Hello, World"
-    return render_template('index.html', message=message)
+    # a route where we will display a welcome message via an HTML template
+    @app.route("/")
+    def hello():
+        message = "Hello, World"
+        return render_template('index.html', message=message)
 
-@app.route("/test")
-def hello_world():
-    message = "Hello, world!"
-    return message
+    @app.route("/test")
+    def hello_world():
+        message = "Hello, world!"
+        return message
 
-@app.route("/loopback", methods=['POST'])
-def loopback():
-    return json.dumps(request.get_json())
+    @app.route("/loopback", methods=['POST'])
+    def loopback():
+        return json.dumps(request.get_json())
 
-@app.route("/channels")
-def list_channels():
-    from config import channels
-    return json.dumps(channels)
+    @app.route("/channels")
+    def list_channels():
+        from config import channels
+        return json.dumps(channels)
 
-@app.route("/convert/<text>", methods=['GET'])
-def convert(text):
-    if text == '':
+    @app.route("/convert/<text>", methods=['GET'])
+    def convert(text):
+        if text == '':
+            return ''
+        duration = Q_(text)
+        if str(duration.units) == 'dimensionless':
+            duration = Q_('{} {}'.format(duration.magnitude, 's'))    # assume base unit if none is passed
+        cleaned_value = duration.to_compact()                   # auto-convert units for compact view
+        cleaned_value = np.round(cleaned_value, 9)              # round to 9 digits to remove numerical rounding errors in Python
+        return '{:~}'.format(cleaned_value)
+
+    from flask import request
+    def shutdown_server():
+        func = request.environ.get('werkzeug.server.shutdown')
+        if func is None:
+            raise RuntimeError('Not running with the Werkzeug Server')
+        func()
+
+    @app.route('/shutdown', methods=['POST'])
+    def shutdown():
+        shutdown_server()
+        return 'Server shutting down...'
+
+    @app.route("/start", methods=['POST'])
+    def start():
+        sequence = request.get_json()['payload']
+        for step in sequence:
+            qty = Q_(step['duration'])
+            qty.ito_base_units()
+            step['duration'] = qty.magnitude
+
+            for i in range(len(step['DDS'])):
+                freq = Q_(step['DDS'][i]['frequency'])
+                freq.ito_base_units()
+                step['DDS'][i]['frequency'] = freq.magnitude
+                step['DDS'][i]['attenuation'] = float(step['DDS'][i]['attenuation'])
+        with open('sequence.json', 'w') as file:
+            json.dump(sequence, file)
+
+        from generator import write_code
+        code = write_code(sequence)
+        # os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run base_experiment.py"')
         return ''
-    duration = Q_(text)
-    if str(duration.units) == 'dimensionless':
-        duration = Q_('{} {}'.format(duration.magnitude, 's'))    # assume base unit if none is passed
-    cleaned_value = duration.to_compact()                   # auto-convert units for compact view
-    cleaned_value = np.round(cleaned_value, 9)              # round to 9 digits to remove numerical rounding errors in Python
-    return '{:~}'.format(cleaned_value)
-
-from flask import request
-def shutdown_server():
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
-
-@app.route('/shutdown', methods=['POST'])
-def shutdown():
-    shutdown_server()
-    return 'Server shutting down...'
-
-@app.route("/start", methods=['POST'])
-def start():
-    sequence = request.get_json()['payload']
-    for step in sequence:
-        qty = Q_(step['duration'])
-        qty.ito_base_units()
-        step['duration'] = qty.magnitude
-
-        for i in range(len(step['DDS'])):
-            freq = Q_(step['DDS'][i]['frequency'])
-            freq.ito_base_units()
-            step['DDS'][i]['frequency'] = freq.magnitude
-            step['DDS'][i]['attenuation'] = float(step['DDS'][i]['attenuation'])
-    with open('sequence.json', 'w') as file:
-        json.dump(sequence, file)
-
-    from generator import write_code
-    code = write_code(sequence)
-    # os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run base_experiment.py"')
-    return ''
 
 
-@app.route("/save", methods=['POST'])
-def save():
-    sequence = request.get_json()['payload']
-    with open('saved.json', 'w') as file:
-        json.dump(sequence, file)
-    return ''
+    @app.route("/save", methods=['POST'])
+    def save():
+        sequence = request.get_json()['payload']
+        with open('saved.json', 'w') as file:
+            json.dump(sequence, file)
+        return ''
 
-@app.route("/load")
-def load():
-    with open('saved.json', 'r') as file:
-        sequence = json.load(file)
-    return json.dumps(sequence)
+    @app.route("/load")
+    def load():
+        with open('saved.json', 'r') as file:
+            sequence = json.load(file)
+        return json.dumps(sequence)
+
+    app.run(debug=False, port=port)
 
 
 
 # run the application
 if __name__ == "__main__":
-#    thread = threading.Thread(target=app.run)
-#    thread.start()
-    app.run(debug=True, port=8051)
+    host(port=5000)
