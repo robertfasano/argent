@@ -17,9 +17,9 @@ def hello():
     message = "Hello, World"
     return render_template('index.html', message=message)
 
-@app.route("/get")
-def get():
-    message = "Hello, World"
+@app.route("/test")
+def hello_world():
+    message = "Hello, world!"
     return message
 
 @app.route("/loopback", methods=['POST'])
@@ -42,23 +42,17 @@ def convert(text):
     cleaned_value = np.round(cleaned_value, 9)              # round to 9 digits to remove numerical rounding errors in Python
     return '{:~}'.format(cleaned_value)
 
-# @app.route("/start", methods=['POST'])
-# def start():
-#     sequence = request.get_json()['payload']
-#     for step in sequence:
-#         qty = Q_(step['duration'])
-#         qty.ito_base_units()
-#         step['duration'] = qty.magnitude
-#
-#         for i in range(len(step['DDS'])):
-#             freq = Q_(step['DDS'][i]['frequency'])
-#             freq.ito_base_units()
-#             step['DDS'][i]['frequency'] = freq.magnitude
-#             step['DDS'][i]['attenuation'] = float(step['DDS'][i]['attenuation'])
-#     with open('sequence.json', 'w') as file:
-#         json.dump(sequence, file)
-#     os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run sequencer_loop.py"')
-#     return ''
+from flask import request
+def shutdown_server():
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
+
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    shutdown_server()
+    return 'Server shutting down...'
 
 @app.route("/start", methods=['POST'])
 def start():
