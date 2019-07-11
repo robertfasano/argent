@@ -1,3 +1,11 @@
+import os
+from config import device_db
+
+def run_sequence(sequence):
+    write_preloop(sequence)
+    write_loop(sequence)
+    os.system(f'start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run base_experiment.py --device-db={device_db}"')
+
 def write_preloop(sequence):
     ''' Write base code '''
     code = ''

@@ -1,1 +1,1 @@
-from .main import host
+from .generator import run_sequence
