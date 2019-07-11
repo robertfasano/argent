@@ -1,6 +1,7 @@
 <html>
 <head>
 	<title> ARGENT </title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='main.css') }}">
 
   <script type="text/javascript"
@@ -65,7 +66,16 @@
 			for(var i=0; i<dac_channels; i++) {
 				var newCell = dac_table.rows[i].insertCell(timesteps+1);
 				var newID = `dac_chk${i}-${timesteps}`
-				newCell.innerHTML = `<input type=\"text\" value='0 V' class=duration id=${newID}>`
+				newCell.innerHTML = `<div class="btn-group">
+							<button type="button" class="btn btn-secondary" id='${newID}' onclick="dacPopup('${newID}')">0 V</button>
+							<button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								<span class="sr-only">Toggle Dropdown</span>
+							</button>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#">Constant</a>
+								<!-- <a class="dropdown-item" href="#">Ramp</a> -->
+							</div>
+						</div>`
 				newCell.style.width = 75
 			}
 
@@ -75,6 +85,25 @@
 
 		}
 
+		// function addDAC() {
+		// 	var table = document.getElementById('dacTable');
+		// 	var ttl_table = document.getElementById('ttlTable');
+		//
+		// 	var channel = table.rows.length-1
+		// 	var timesteps = ttl_table.rows[0].cells.length-2
+		//
+		// 	var row = table.insertRow(channel+1);
+		// 	var label = `DAC${channel+1}`
+		// 	var adc = row.insertCell(0);
+		// 	adc.innerHTML = label;
+		//
+		// 	for(var i=1; i<timesteps+1; i++) {
+		// 		var newCell	= row.insertCell(i);
+		// 		var newID = `dac_chk${channel+1}-${i-1}`
+		// 		newCell.innerHTML = `<input type=\"text\" value='0 V' class=duration id=${newID}>`
+		// 		newCell.style.width = 75
+		// 	}
+		// }
 		function addDAC() {
 			var table = document.getElementById('dacTable');
 			var ttl_table = document.getElementById('ttlTable');
@@ -84,13 +113,22 @@
 
 			var row = table.insertRow(channel+1);
 			var label = `DAC${channel+1}`
-			var adc = row.insertCell(0);
-			adc.innerHTML = label;
+			var dac = row.insertCell(0);
+			dac.innerHTML = label;
 
 			for(var i=1; i<timesteps+1; i++) {
 				var newCell	= row.insertCell(i);
 				var newID = `dac_chk${channel+1}-${i-1}`
-				newCell.innerHTML = `<input type=\"text\" value='0 V' class=duration id=${newID}>`
+				newCell.innerHTML = `<div class="btn-group">
+							<button type="button" class="btn btn-secondary" id='${newID}' onclick="dacPopup('${newID}')">0 V</button>
+							<button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								<span class="sr-only">Toggle Dropdown</span>
+							</button>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#">Constant</a>
+								<!-- <a class="dropdown-item" href="#">Ramp</a> -->
+							</div>
+						</div>`
 				newCell.style.width = 75
 			}
 		}
@@ -196,8 +234,8 @@
 				var dac_table = document.getElementById('dacTable')
 				var dac_channels = dac_table.rows.length
 				for (var row=0; row<dac_channels; row++) {
-					var edit = dac_table.rows[row].cells[col].childNodes[0]
-					timestep['DAC'].push(edit.value)
+					var edit = dac_table.rows[row].cells[col].childNodes[0].childNodes[1]
+					timestep['DAC'].push(edit.innerText)
 				}
 
 				sequence.push(timestep)
@@ -272,7 +310,8 @@
 				}
 				// load DAC
 				for (var ch=0; ch<dacTable.rows.length; ch++) {
-					dacTable.rows[ch].cells[s+1].childNodes[0].value = sequence[s]['DAC'][ch]
+					dacTable.rows[ch].cells[s+1].childNodes[0].childNodes[1].innerText = sequence[s]['DAC'][ch]
+
 				}
 				/// load durations
 				element = document.getElementById(`duration${s}`)
@@ -298,6 +337,12 @@
 			return getter
 		}
 
+		function dacPopup(id) {
+			button = document.getElementById(id)
+			new_value = prompt("New DAC setpoint",button.innerText)
+			if (new_value != null) { button.innerText = new_value }
+			console.log(new_value)
+		}
 		function convert(element) {
       var data = element.value
 			function set(response) {
@@ -327,16 +372,18 @@
 	<div class="saveButton"><INPUT type="submit" value="" onclick="save_sequence({})" /></div>
 	<div class="loadButton"><INPUT type="submit" value="" onclick="load_sequence({})" /></div>
 
+	<!-- <div class="dacButton"><INPUT type="submit" value="3" id="dacButton" onclick="dacPopup('dacButton')" /></div> -->
+
 
   <br>
   <br>
 
 	<div align="left">
-	<div style="width: 30px; display: inline-block; vertical-align: middle;transform: rotate(-90deg);">
+	<div style="width: 30px; display: inline-block; vertical-align: middle;transform: rotate(-90deg); padding: 30px">
 	<header> <h1> TTL </h1> </header>
 	</div>
 	<div style="display: inline-block; vertical-align: middle;">
-	<table id="ttlTable">
+	<table id="ttlTable" class="ttlTable">
     <tr>
       <td></td>
       <td><input type="text" value='10 ms', class=duration id="duration0"></td>
@@ -348,7 +395,7 @@
 
 	<br>
 	<div align="left">
-	<div style="width:27px; display: inline-block; vertical-align: middle; transform: rotate(-90deg);">
+	<div style="width:27px; display: inline-block; vertical-align: middle; transform: rotate(-90deg); padding: 30px">
 	<header> <h1> ADC </h1> </header>
 	</div>
 	<div style="display: inline-block; vertical-align: middle;">
@@ -359,7 +406,7 @@
 
 	<br>
 	<div align="left">
-	<div style="width:18px; display: inline-block; vertical-align: middle; transform: rotate(-90deg);">
+	<div style="width:18px; display: inline-block; vertical-align: middle; transform: rotate(-90deg); padding: 30px">
 	<header> <h1> DAC </h1> </header>
 	</div>
 	<div style="display: inline-block; vertical-align: middle;">
@@ -370,10 +417,10 @@
 
 	<br>
 	<div align="left">
-	<div style="width: 30px; display: inline-block; vertical-align: middle;transform: rotate(-90deg);">
+	<div style="width: 30px; display: inline-block; vertical-align: middle; transform: rotate(-90deg); padding: 30px">
 	<header> <h1> DDS </h1> </header>
 	</div>
-	<div style="display: inline-block; vertical-align: middle;">
+	<div style="display: inline-block; vertical-align: middle; text-align: middle">
 	<table id="ddsTable">
 	<tr>
 		<td></td>
@@ -382,5 +429,16 @@
 	</tr>
 	</table>
 	</div>
+
+
+
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </body>
 </html>
