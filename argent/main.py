@@ -5,6 +5,7 @@ import threading
 import numpy as np
 import os
 from pint import UnitRegistry
+from argent import run_sequence
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
 
@@ -60,6 +61,8 @@ def convert(text):
 #     os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run sequencer_loop.py"')
 #     return ''
 
+
+
 @app.route("/start", methods=['POST'])
 def start():
     sequence = request.get_json()['payload']
@@ -82,10 +85,8 @@ def start():
     with open('sequence.json', 'w') as file:
         json.dump(sequence, file)
 
-    from generator import write_preloop, write_loop
-    write_preloop(sequence)
-    write_loop(sequence)
-    os.system('start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run base_experiment.py"')
+    run_sequence(sequence)
+
     return ''
 
 
