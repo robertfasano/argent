@@ -5,12 +5,11 @@ channels = {"TTL": list(range(0,8)),
             "DDS": list(range(0,4))
 }
 
-''' Enter names of i/o devices as they appear in device_db.py, with the device
-    name prefixes removed. For example, if you have a device 'ttlA0', add
-    'A0' to the 'ttl' field.
+''' Enter names of i/o devices as they appear in device_db.py. For example,
+    if you have a device 'ttlA0', add 'ttlA0' to the 'ttl' field.
 '''
 devices = {
-            'ttl': [f'A{ch}' for ch in range(0,8)],
+            'ttl': [f'ttlA{ch}' for ch in range(0,8)],
             'adc': ['sampler0'],
             'dac': ['zotinoA'],
             'dds': ['urukulA']

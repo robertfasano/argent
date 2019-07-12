@@ -17,8 +17,8 @@ def build(self):
     ''' Initialize TTL '''
     self._ttls = []
     for ttl in {devices['ttl']}:
-        self.setattr_device('ttl%s'%ttl)
-        self._ttls.append(getattr(self, 'ttl%s'%ttl))
+        self.setattr_device(ttl)
+        self._ttls.append(getattr(self, ttl))
 
     ''' Initialize DAC '''
     for dac in {devices['dac']}:
