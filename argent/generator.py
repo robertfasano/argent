@@ -248,6 +248,8 @@ def write_loop(sequence):
     return code
 
 def run_sequence(sequence, initial=None):
+    if not os.path.exists('./generated'):
+        os.mkdir('./generated')
     write_build()
     write_run(sequence, initial=initial)
     write_loop(sequence)
