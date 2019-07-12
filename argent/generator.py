@@ -40,7 +40,7 @@ def write_run(sequence, initial=None):
     adc_delay = 1e-3
     N_samples = []
     for i in range(len(sequence)):
-        N_samples.append(int(sequence[i]['duration']/adc_delay))
+        N_samples.append(int(float(sequence[i]['duration'])/adc_delay))
 
     ''' Write base code '''
     code = f"""
@@ -122,7 +122,7 @@ def write_initial(step):
     for ch in to_turn_on:
         code += '        self.ttl{}.on()\n'.format(ch)
 
-    code += '        delay({:g}*s)\n'.format(step['duration'])
+    code += '        delay({:g}*s)\n'.format(float(step['duration']))
 
     ''' Write DAC events '''
     if 'DAC' in step:
@@ -176,7 +176,7 @@ def write_step(step, last_step, i):
 
     for ch in to_turn_off:
         code += '\t\tself.ttl{}.off()\n'.format(ch)
-    code += '\t\tdelay({:g}*s)\n'.format(step['duration'])
+    code += '\t\tdelay({:g}*s)\n'.format(float(step['duration']))
 
     ''' Write DAC events '''
     if 'DAC' in step:
@@ -237,7 +237,8 @@ def write_loop(sequence):
     dac_state = [0]*32
 
     for i in range(len(sequence)):
-        code += write_step(sequence[i], sequence[i-1], i)
+        if float(sequence[i]['duration']) > 0:
+            code += write_step(sequence[i], sequence[i-1], i)
 
     ''' Finish and save to file '''
     code += '\treturn data'
