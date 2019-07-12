@@ -16,3 +16,4 @@ devices = {
 }
 
 device_db = 'C:/argent/argent/device_db.py'
+sequences_path = 'C:/argent/argent/sequences/'
