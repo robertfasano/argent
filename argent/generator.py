@@ -1,6 +1,6 @@
 import os
 import re
-from config import devices, device_db
+from argent.config import devices, device_db
 
 def write_build():
     code = f"""

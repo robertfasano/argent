@@ -3,3 +3,4 @@
 *.ipynb_checkpoints
 *.egg*
 *generated/
+*.pytest*
