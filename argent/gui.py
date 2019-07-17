@@ -1,7 +1,7 @@
 import json
 import os
 from PyQt5.QtWidgets import QHBoxLayout, QFileDialog, QTabWidget
-from sciQt import Dashboard, IconButton
+from sciQt import Dashboard, IconButton, path as sciQt_path
 from sciQt.widgets import TimingTable
 from argent.generator import run_sequence
 from argent.config import sequences_path
@@ -14,9 +14,10 @@ class GUI(Dashboard):
 
     def buildUI(self):
         button_layout = QHBoxLayout()
-        start_path = 'C:/sciQt/sciQt/resources/icons/outline-play-arrow.svg'
-        save_path = 'C:/sciQt/sciQt/resources/icons/content-save-outline.svg'
-        load_path = 'C:/sciQt/sciQt/resources/icons/outline-folder_open-24px.svg'
+
+        start_path = sciQt_path + '/resources/icons/outline-play-arrow.svg'
+        save_path = sciQt_path + '/resources/icons/content-save-outline.svg'
+        load_path = sciQt_path + '/resources/icons/outline-folder_open-24px.svg'
 
         # button_layout.addWidget(IconButton(start_path, lambda: run_sequence(self.timing_table.get_sequence())))
         button_layout.addWidget(IconButton(start_path, lambda: print(self.timing_table.get_sequence())))
