@@ -131,8 +131,8 @@ def write_initial(step):
             channels = []
             voltages = []
             for ch in step['DAC']:
-                dev = re.split('(\d+)',ch)[0]
-                chnum = re.split('(\d+)',ch)[1]
+                dev = re.split(r'(\d+)',ch)[0]
+                chnum = re.split(r'(\d+)',ch)[1]
                 if dev == devnum:
                     channels.append(int(chnum))
                     voltages.append(float(step['DAC'][ch]))
@@ -141,8 +141,8 @@ def write_initial(step):
     ''' Write DDS events '''
     if 'DDS' in step:
         for ch in step['DDS']:
-            dev = re.split('(\d+)',ch)[0]
-            chnum = re.split('(\d+)',ch)[1]
+            dev = re.split(r'(\d+)',ch)[0]
+            chnum = re.split(r'(\d+)',ch)[1]
             written_sequential_block = False
 
             if 'frequency' in step['DDS'][ch]:
@@ -185,8 +185,8 @@ def write_step(step, last_step, i):
             channels = []
             voltages = []
             for ch in step['DAC']:
-                dev = re.split('(\d+)',ch)[0]
-                chnum = re.split('(\d+)',ch)[1]
+                dev = re.split(r'(\d+)',ch)[0]
+                chnum = re.split(r'(\d+)',ch)[1]
                 if dev == devnum:
                     channels.append(int(chnum))
                     voltages.append(float(step['DAC'][ch]))
@@ -195,8 +195,8 @@ def write_step(step, last_step, i):
     ''' Write DDS events '''
     if 'DDS' in step:
         for ch in step['DDS']:
-            dev = re.split('(\d+)',ch)[0]
-            chnum = re.split('(\d+)',ch)[1]
+            dev = re.split(r'(\d+)',ch)[0]
+            chnum = re.split(r'(\d+)',ch)[1]
             written_sequential_block = False
 
             if 'frequency' in step['DDS'][ch]:
@@ -248,12 +248,15 @@ def write_loop(sequence):
 
     return code
 
-def run_sequence(sequence, initial=None):
+def generate(sequence, initial=None):
     if not os.path.exists('./generated'):
         os.mkdir('./generated')
     write_build()
     write_run(sequence, initial=initial)
     write_loop(sequence)
+
+def run_sequence(sequence, initial=None):
+    generate(sequence, initial=initial)
     os.system(f'start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run base_experiment.py --device-db={device_db}"')
 
 if __name__ == '__main__':
