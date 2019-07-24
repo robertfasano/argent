@@ -1,12 +1,12 @@
-import json
+import yaml
 import re
 import os
 
 class Configurator:
     @staticmethod
     def load(field=None):
-        with open('config.json') as file:
-            config = json.load(file)
+        with open('config.yml') as file:
+            config = yaml.load(file, Loader=yaml.SafeLoader)
         if field is None:
             return config
         else:
@@ -14,12 +14,9 @@ class Configurator:
 
     @staticmethod
     def save(config):
-        output = json.dumps(config, indent=4)
-        output = re.sub(r'": \[\s+', '": [', output)
-        output = re.sub(r'"\s+\]', '"]', output)
+        with open('config.yml', 'w') as file:
+            yaml.dump(config, file)
 
-        with open('config.json', 'w') as file:
-            file.write(output)
 
     @staticmethod
     def update(field, new_value):

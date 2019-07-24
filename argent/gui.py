@@ -1,7 +1,8 @@
 import json
+import yaml
 from PyQt5.QtWidgets import QHBoxLayout, QFileDialog, QDialog, QVBoxLayout
 from sciQt import Dashboard, IconButton
-from sciQt.widgets import TimingTable, FileEdit
+from sciQt.widgets import TimingTable, FileEdit, LabeledComboBox
 from argent.generator import run_sequence
 from argent import Configurator
 
@@ -11,7 +12,6 @@ class ConfigPopup(QDialog):
         self.setWindowTitle('Preferences')
         button = IconButton('settings', None)
         self.setWindowIcon(button.icon)
-
         layout = QVBoxLayout(self)
         config = Configurator.load()
 
@@ -19,9 +19,15 @@ class ConfigPopup(QDialog):
         self.sequence_path_edit.textChanged.connect(lambda: Configurator.update('sequences_path', self.sequence_path_edit.text()))
         layout.addWidget(self.sequence_path_edit)
 
-        self.device_db_edit = FileEdit('Device database', config['device_db'], type='file')
+        self.device_db_edit = FileEdit('Device database', config['device_db'], type='file', extension='.py')
         self.device_db_edit.textChanged.connect(lambda: Configurator.update('device_db', self.device_db_edit.text()))
         layout.addWidget(self.device_db_edit)
+
+        self.sequence_format_box = LabeledComboBox('Sequence format', ['yml', 'json'])
+        index = {'yml': 0, 'json': 1}[config['sequence_format']]
+        self.sequence_format_box.setCurrentIndex(index)
+        self.sequence_format_box.currentTextChanged.connect(lambda: Configurator.update('sequence_format', self.sequence_format_box.currentText()))
+        layout.addWidget(self.sequence_format_box)
 
         self.show()
 
@@ -67,21 +73,36 @@ class GUI(Dashboard):
         self.resize(self.timing_table.sizeHint())
 
     def load(self):
-        path = Configurator.load()['sequences_path']
-        filename = QFileDialog.getOpenFileName(self, 'Load sequence', path)[0]
+        config = Configurator.load()
+        path = config['sequences_path']
+        filter = f"*.{config['sequence_format']}"
+        filename = QFileDialog.getOpenFileName(self, 'Load sequence', path, filter)[0]
         if filename == '':
             return
+        format = config['sequence_format']
         with open(filename) as file:
-            sequence = json.load(file)
+            if format == 'json':
+                sequence = json.load(file)
+            elif format == 'yml':
+                sequence = yaml.load(file, Loader=yaml.SafeLoader)
+
         self.timing_table.set_sequence(sequence)
 
     def save(self):
-        path = Configurator.load()['sequences_path']
-        filename = QFileDialog.getSaveFileName(self, 'Save sequence', path)[0]
+        config = Configurator.load()
+        path = config['sequences_path']
+        format = config['sequence_format']
+        filter = f"*.{config['sequence_format']}"
+        filename = QFileDialog.getSaveFileName(self, 'Save sequence', path, filter)[0]
         if filename == '':
             return
-        with open(filename, 'w') as file:
-            json.dump(self.timing_table.get_sequence(), file)
+        sequence = self.timing_table.get_sequence()
+        if format == 'json':
+            with open(filename, 'w') as file:
+                json.dump(sequence, file, indent=4)
+        elif format == 'yml':
+            with open(filename.replace('json', 'yml'), 'w') as file:
+                yaml.dump(sequence, file, sort_keys=False)
 
 if __name__ == '__main__':
     dashboard = GUI()

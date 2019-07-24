@@ -1,0 +1,12 @@
+device_db: C:/argent/argent/device_db.py
+devices:
+  adc:
+  - sampler0
+  dac:
+  - zotinoA
+  dds:
+  - urukulA
+  ttl:
+  - ttlA
+sequence_format: json
+sequences_path: C:/argent/argent/sequences
