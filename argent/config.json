@@ -1,0 +1,15 @@
+{
+    "devices": {
+        "ttl": ["ttlA"],
+        "adc": ["sampler0"],
+        "dac": ["zotinoA"],
+        "dds": ["urukulA"]
+    },
+    "labels": {
+        "ttl": {
+            "A0": "Shutter"
+        }
+    },
+    "device_db": "C:/argent/argent/device_db.py",
+    "sequences_path": "C:/argent/argent/sequences"
+}

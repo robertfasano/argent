@@ -1,6 +1,12 @@
 import os
 import re
-from argent.config import devices, device_db
+from argent import Configurator
+
+config = Configurator.load()
+ttls = []
+for ttl in config['devices']['ttl']:
+    ttls.extend([f'ttl{i}' for i in range(8)])
+device_db = config['device_db']
 
 def write_build():
     code = f"""
@@ -16,7 +22,7 @@ def build(self):
 
     ''' Initialize TTL '''
     self._ttls = []
-    for ttl in {devices['ttl']}:
+    for ttl in {ttls}:
         self.setattr_device(ttl)
         self._ttls.append(getattr(self, ttl))
 

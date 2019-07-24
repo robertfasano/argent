@@ -1,34 +1,59 @@
 import json
-import os
-from PyQt5.QtWidgets import QHBoxLayout, QFileDialog, QTabWidget
-from sciQt import Dashboard, IconButton, path as sciQt_path
-from sciQt.widgets import TimingTable
+from PyQt5.QtWidgets import QHBoxLayout, QFileDialog, QDialog, QVBoxLayout
+from sciQt import Dashboard, IconButton
+from sciQt.widgets import TimingTable, FileEdit
 from argent.generator import run_sequence
-from argent.config import sequences_path
+from argent import Configurator
+
+class ConfigPopup(QDialog):
+    def __init__(self):
+        QDialog.__init__(self)
+        self.setWindowTitle('Preferences')
+        button = IconButton('settings', None)
+        self.setWindowIcon(button.icon)
+
+        layout = QVBoxLayout(self)
+        config = Configurator.load()
+
+        self.sequence_path_edit = FileEdit('Sequences folder', config['sequences_path'], type='folder')
+        self.sequence_path_edit.textChanged.connect(lambda: Configurator.update('sequences_path', self.sequence_path_edit.text()))
+        layout.addWidget(self.sequence_path_edit)
+
+        self.device_db_edit = FileEdit('Device database', config['device_db'], type='file')
+        self.device_db_edit.textChanged.connect(lambda: Configurator.update('device_db', self.device_db_edit.text()))
+        layout.addWidget(self.device_db_edit)
+
+        self.show()
 
 class GUI(Dashboard):
     def __init__(self):
         Dashboard.__init__(self, title='Timing control panel')
-        if not os.path.exists(sequences_path):
-            os.mkdir(sequences_path)
+
+    def config_dialog(self):
+        self.config_popup = ConfigPopup()
 
     def buildUI(self):
+        button = IconButton('timer', None)
+        self.setWindowIcon(button.icon)
+
         button_layout = QHBoxLayout()
-
-        start_path = sciQt_path + '/resources/icons/outline-play-arrow.svg'
-        save_path = sciQt_path + '/resources/icons/content-save-outline.svg'
-        load_path = sciQt_path + '/resources/icons/outline-folder_open-24px.svg'
-
-        # button_layout.addWidget(IconButton(start_path, lambda: run_sequence(self.timing_table.get_sequence())))
-        button_layout.addWidget(IconButton(start_path, lambda: print(self.timing_table.get_sequence())))
-
-        button_layout.addWidget(IconButton(save_path, self.save))
-        button_layout.addWidget(IconButton(load_path, self.load))
+        button_layout.addWidget(IconButton('play', lambda: print(self.timing_table.get_sequence())))
+        button_layout.addWidget(IconButton('save', self.save))
+        button_layout.addWidget(IconButton('load', self.load))
         button_layout.addStretch()
+        button_layout.addWidget(IconButton('settings', self.config_dialog))
 
-        ttls =  [f'A{i}' for i in range(8)]
-        dacs = [f'A{i}' for i in range(32)]
-        dds = [f'A{i}' for i in range(4)]
+        config = Configurator.load()
+        ttls = []
+        for ttl in config['devices']['ttl']:
+            ttls.extend([f'{ttl.split("ttl")[1]}{i}' for i in range(8)])
+        dacs = []
+        for dac in config['devices']['dac']:
+            dacs.extend([f'{dac.split("zotino")[1]}{i}' for i in range(32)])
+        dds = []
+        for d in config['devices']['dds']:
+            dds.extend([f'{d.split("urukul")[1]}{i}' for i in range(4)])
+
         sequence = [{'duration': 0.2, 'TTL': ['A0'], 'DAC': {'A1': 1}, 'DDS': {'A0': {'frequency': 400}, 'A1': {'attenuation': 2}}},
                     {'duration': 0.5, 'TTL': ['A1'], 'DDS': {'A0': {'frequency': 300, 'attenuation': 3}}}]
 
@@ -42,7 +67,8 @@ class GUI(Dashboard):
         self.resize(self.timing_table.sizeHint())
 
     def load(self):
-        filename = QFileDialog.getOpenFileName(self, 'Load sequence', sequences_path)[0]
+        path = Configurator.load()['sequences_path']
+        filename = QFileDialog.getOpenFileName(self, 'Load sequence', path)[0]
         if filename == '':
             return
         with open(filename) as file:
@@ -50,7 +76,8 @@ class GUI(Dashboard):
         self.timing_table.set_sequence(sequence)
 
     def save(self):
-        filename = QFileDialog.getSaveFileName(self, 'Save sequence', sequences_path)[0]
+        path = Configurator.load()['sequences_path']
+        filename = QFileDialog.getSaveFileName(self, 'Save sequence', path)[0]
         if filename == '':
             return
         with open(filename, 'w') as file:
