@@ -1,3 +1,1 @@
-pint
-flask
-requests
+pyyaml >= 5.1.1

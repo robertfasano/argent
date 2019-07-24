@@ -10,5 +10,5 @@ setup(
     packages=find_packages(),
     license='MIT',
     long_description=open('README.md').read(),
-    install_requires=['flask', 'pint', 'requests']
+    install_requires=['pyyaml>=5.1.1']
 )
