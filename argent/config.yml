@@ -1,4 +1,4 @@
-device_db: C:/argent/argent/device_db.py
+device_db: ./device_db.py
 devices:
   adc:
   - samplerA
@@ -9,4 +9,4 @@ devices:
   ttl:
   - ttlA
 sequence_format: json
-sequences_path: C:/argent/argent/sequences
+sequences_path: ./sequences
