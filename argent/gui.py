@@ -78,7 +78,7 @@ class GUI(Dashboard):
         self.resize(self.timing_table.sizeHint())
 
     def load(self):
-        path, format = Configurator.load('sequence_path', 'sequence_format')
+        path, format = Configurator.load('sequences_path', 'sequence_format')
         filter = f"*.{format}"
         filename = QFileDialog.getOpenFileName(self, 'Load sequence', path, filter)[0]
         if filename == '':
@@ -92,7 +92,7 @@ class GUI(Dashboard):
         self.timing_table.set_sequence(sequence)
 
     def save(self):
-        path, format = Configurator.load('sequence_path', 'sequence_format')
+        path, format = Configurator.load('sequences_path', 'sequence_format')
         filter = f"*.{format}"
         filename = QFileDialog.getSaveFileName(self, 'Save sequence', path, filter)[0]
         if filename == '':
