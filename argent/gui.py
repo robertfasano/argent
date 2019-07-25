@@ -13,18 +13,18 @@ class ConfigPopup(QDialog):
         button = IconButton('settings', None)
         self.setWindowIcon(button.icon)
         layout = QVBoxLayout(self)
-        config = Configurator.load()
 
-        self.sequence_path_edit = FileEdit('Sequences folder', config['sequences_path'], type='folder')
+        path, format, device_db = Configurator.load('sequence_path', 'sequence_format', 'device_db')
+        self.sequence_path_edit = FileEdit('Sequences folder', path, type='folder')
         self.sequence_path_edit.textChanged.connect(lambda: Configurator.update('sequences_path', self.sequence_path_edit.text()))
         layout.addWidget(self.sequence_path_edit)
 
-        self.device_db_edit = FileEdit('Device database', config['device_db'], type='file', extension='.py')
+        self.device_db_edit = FileEdit('Device database', device_db, type='file', extension='.py')
         self.device_db_edit.textChanged.connect(lambda: Configurator.update('device_db', self.device_db_edit.text()))
         layout.addWidget(self.device_db_edit)
 
         self.sequence_format_box = LabeledComboBox('Sequence format', ['yml', 'json'])
-        index = {'yml': 0, 'json': 1}[config['sequence_format']]
+        index = {'yml': 0, 'json': 1}[format]
         self.sequence_format_box.setCurrentIndex(index)
         self.sequence_format_box.currentTextChanged.connect(lambda: Configurator.update('sequence_format', self.sequence_format_box.currentText()))
         layout.addWidget(self.sequence_format_box)
@@ -51,18 +51,18 @@ class GUI(Dashboard):
         button_layout.addStretch()
         button_layout.addWidget(IconButton('settings', self.config_dialog))
 
-        config = Configurator.load()
+        devices, = Configurator.load('devices')
         ttls = []
-        for ttl in config['devices']['ttl']:
+        for ttl in devices['ttl']:
             ttls.extend([f'{ttl.split("ttl")[1]}{i}' for i in range(8)])
         dacs = []
-        for dac in config['devices']['dac']:
+        for dac in devices['dac']:
             dacs.extend([f'{dac.split("zotino")[1]}{i}' for i in range(32)])
         dds = []
-        for d in config['devices']['dds']:
+        for d in devices['dds']:
             dds.extend([f'{d.split("urukul")[1]}{i}' for i in range(4)])
         adcs = []
-        for adc in config['devices']['adc']:
+        for adc in devices['adc']:
             adcs.append(adc.split("sampler")[1])
 
         sequence = [{'duration': 0.2, 'TTL': ['A0'], 'DAC': {'A1': 1}, 'DDS': {'A0': {'frequency': 400}, 'A1': {'attenuation': 2}}},
@@ -78,13 +78,11 @@ class GUI(Dashboard):
         self.resize(self.timing_table.sizeHint())
 
     def load(self):
-        config = Configurator.load()
-        path = config['sequences_path']
-        filter = f"*.{config['sequence_format']}"
+        path, format = Configurator.load('sequence_path', 'sequence_format')
+        filter = f"*.{format}"
         filename = QFileDialog.getOpenFileName(self, 'Load sequence', path, filter)[0]
         if filename == '':
             return
-        format = config['sequence_format']
         with open(filename) as file:
             if format == 'json':
                 sequence = json.load(file)
@@ -94,10 +92,8 @@ class GUI(Dashboard):
         self.timing_table.set_sequence(sequence)
 
     def save(self):
-        config = Configurator.load()
-        path = config['sequences_path']
-        format = config['sequence_format']
-        filter = f"*.{config['sequence_format']}"
+        path, format = Configurator.load('sequence_path', 'sequence_format')
+        filter = f"*.{format}"
         filename = QFileDialog.getSaveFileName(self, 'Save sequence', path, filter)[0]
         if filename == '':
             return

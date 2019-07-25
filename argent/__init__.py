@@ -4,13 +4,15 @@ import os
 
 class Configurator:
     @staticmethod
-    def load(field=None):
+    def load(*fields):
+        ''' Loads and returns the configuration file. If fields are specified,
+            returns only the corresponding values. '''
         with open('config.yml') as file:
             config = yaml.load(file, Loader=yaml.SafeLoader)
-        if field is None:
+        if len(fields) == 0:
             return config
         else:
-            return config[field]
+            return [config[f] for f in fields]
 
     @staticmethod
     def save(config):
