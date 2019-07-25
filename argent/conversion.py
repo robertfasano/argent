@@ -3,17 +3,13 @@ import numpy as np
 from artiq.coredevice.sampler import adc_mu_to_volt
 
 def convert_to_dataframe(data, durations, adc_delays):
-    df = pd.DataFrame(columns=range(8))
-    total_time = 0
-    for i in range(len(durations)):
-        if adc_delays[i] == -1.0:
-            continue
-        t0 = total_time
-        index = np.linspace(0, (len(data[i])-1)*adc_delays[i], len(data[i])) + total_time
-        subdf = pd.DataFrame(np.array(data[i]), index=index)
-        df = df.append(subdf)
-        total_time += durations[i]
-    df = df[(df.T != 0).any()]
+    elapsed_time = 0
+    index = []
+    for i, delay in enumerate(adc_delays):
+        samples = int(durations[i]/delay)
+        index.extend(np.linspace(0, (samples-1)*delay, samples) + elapsed_time)
+        elapsed_time += durations[i]
+    df = pd.DataFrame(np.array(data), index = index)
     df = adc_mu_to_volt(df)
 
     print(df)

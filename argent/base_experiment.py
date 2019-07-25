@@ -9,8 +9,8 @@ class Sequencer(EnvExperiment):
     run = run
 
     @kernel
-    def sample(self, device, data, step_number, samples, adc_delay):
-    	for j in range(samples):
-    		with parallel:
-    			device.sample_mu(data[step_number][j])
-    			delay(adc_delay)
+    def sample(self, device, data, start_index, samples, adc_delay):
+        for j in range(samples):
+            with parallel:
+                device.sample_mu(data[start_index+j])
+                delay(adc_delay)
