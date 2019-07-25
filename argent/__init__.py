@@ -2,12 +2,16 @@ import yaml
 import re
 import os
 
+path = os.path.dirname(__file__)
+
 class Configurator:
     @staticmethod
     def load(*fields):
         ''' Loads and returns the configuration file. If fields are specified,
             returns only the corresponding values. '''
-        with open('config.yml') as file:
+        config_path = os.path.join(path, 'config.yml')
+        print(config_path)
+        with open(config_path) as file:
             config = yaml.load(file, Loader=yaml.SafeLoader)
         if len(fields) == 0:
             return config
@@ -16,7 +20,7 @@ class Configurator:
 
     @staticmethod
     def save(config):
-        with open('config.yml', 'w') as file:
+        with open(os.path.join(path, 'config.yml'), 'w') as file:
             yaml.dump(config, file)
 
 
