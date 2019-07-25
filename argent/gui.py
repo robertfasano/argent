@@ -63,7 +63,7 @@ class GUI(Dashboard):
             dds.extend([f'{d.split("urukul")[1]}{i}' for i in range(4)])
         adcs = []
         for adc in config['devices']['adc']:
-            adcs.extend([f'{adc.split("sampler")[1]}{i}' for i in range(8)])
+            adcs.append(adc.split("sampler")[1])
 
         sequence = [{'duration': 0.2, 'TTL': ['A0'], 'DAC': {'A1': 1}, 'DDS': {'A0': {'frequency': 400}, 'A1': {'attenuation': 2}}},
                     {'duration': 0.5, 'TTL': ['A1'], 'DDS': {'A0': {'frequency': 300, 'attenuation': 3}}}]

@@ -44,10 +44,20 @@ def build(self):
 
 def write_run(sequence, initial=None):
     ''' Prepare data array '''
-    adc_delay = 1e-3
     N_samples = []
+
     for i in range(len(sequence)):
-        N_samples.append(int(float(sequence[i]['duration'])/adc_delay))
+        if 'ADC' in sequence[i]:
+            devs = [ch for ch in sequence[i]['ADC']]
+            if len(devs) == 0:
+                N_samples.append(0)
+            elif len(devs) > 1:
+                raise Exception('Only one Sampler device per timestep is supported.')
+            else:
+                adc_delay = sequence[i]['ADC'][devs[0]]
+                N_samples.append(int(float(sequence[i]['duration'])/adc_delay))
+        else:
+            N_samples.append(0)
 
     ''' Write base code '''
     code = f"""
@@ -57,7 +67,6 @@ from conversion import convert_to_dataframe
 @kernel
 def run(self):
     print('Running ARTIQ sequence.')
-    adc_delay = {adc_delay}
     N_samples = {N_samples}
     data = [[[0 for ch in range(8)] for n in range(N_samples[i])] for i in range({len(sequence)})]
     ''' Initialize kernel '''
@@ -115,12 +124,20 @@ def run(self):
                 code += f"""    self.ttl{ttl}.off()\n"""
 
     durations = [step['duration'] for step in sequence]
+    adc_delays = []
+    for step in sequence:
+        if 'ADC' in step:
+            if step['ADC'] != []:
+                adc_delays.append(list(step['ADC'].values())[0])
+            else:
+                adc_delays.append(-1.0)
+        else:
+            adc_delays.append(1.0)
     code += f"""
     delay(10*us)
     # while True:
-    data=loop(self, data, adc_delay, N_samples)
-    convert_to_dataframe(data, {durations}, {adc_delay})
-
+    loop(self, data)
+    convert_to_dataframe(data, {durations}, {adc_delays})
     """
 
     ''' Finish and save to file '''
@@ -240,18 +257,11 @@ def write_step(step, last_step, i):
 
     ''' Write ADC events '''
     if 'ADC' in step:
-        devs = []
-        for ch in step['ADC']:
-            dev = re.split(r'(\d+)',ch)[0]
-            if dev not in devs:
-                devs.append(dev)
-        if len(devs) == 0:
-            pass
-        elif len(devs) > 1:
-            raise Exception('Only one Sampler device per timestep is supported.')
-        else:
-            dev = devs[0]
-            code += f'\t\tself.sample(self.sampler{dev}, data, {i}, N_samples{[i]}, adc_delay)\n'
+        if step['ADC'] != []:
+            adc_delay = list(step['ADC'].values())[0]
+            dev = list(step['ADC'].keys())[0]
+            n_samples = int(float(step['duration'])/adc_delay)
+            code += f'\t\tself.sample(self.sampler{dev}, data, {i}, {n_samples}, {adc_delay})\n'
 
     return code
 
@@ -260,7 +270,7 @@ def write_loop(sequence):
     code = ''
     code += 'from artiq.experiment import *\n'
     code += '@kernel\n'
-    code += 'def loop(self, data, adc_delay, N_samples, initial=False):\n'
+    code += 'def loop(self, data, initial=False):\n'
 
     dac_state = [0]*32
 
