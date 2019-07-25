@@ -43,7 +43,9 @@ class GUI(Dashboard):
         self.setWindowIcon(button.icon)
 
         button_layout = QHBoxLayout()
-        button_layout.addWidget(IconButton('play', lambda: print(self.timing_table.get_sequence())))
+        # button_layout.addWidget(IconButton('play', lambda: print(self.timing_table.get_sequence())))
+        button_layout.addWidget(IconButton('play', lambda: run_sequence(self.timing_table.get_sequence())))
+
         button_layout.addWidget(IconButton('save', self.save))
         button_layout.addWidget(IconButton('load', self.load))
         button_layout.addStretch()
@@ -59,11 +61,14 @@ class GUI(Dashboard):
         dds = []
         for d in config['devices']['dds']:
             dds.extend([f'{d.split("urukul")[1]}{i}' for i in range(4)])
+        adcs = []
+        for adc in config['devices']['adc']:
+            adcs.extend([f'{adc.split("sampler")[1]}{i}' for i in range(8)])
 
         sequence = [{'duration': 0.2, 'TTL': ['A0'], 'DAC': {'A1': 1}, 'DDS': {'A0': {'frequency': 400}, 'A1': {'attenuation': 2}}},
                     {'duration': 0.5, 'TTL': ['A1'], 'DDS': {'A0': {'frequency': 300, 'attenuation': 3}}}]
 
-        self.timing_table = TimingTable(sequence, ttls=ttls, dacs=dacs, dds=dds)
+        self.timing_table = TimingTable(sequence, ttls=ttls, dacs=dacs, dds=dds, adcs=adcs)
         self.timing_table.model().columnsInserted.connect(lambda: self.resize(self.timing_table.sizeHint()))
         self.timing_table.model().columnsRemoved.connect(lambda: self.resize(self.timing_table.sizeHint()))
 

@@ -5,8 +5,9 @@ from argent import Configurator
 config = Configurator.load()
 ttls = []
 for ttl in config['devices']['ttl']:
-    ttls.extend([f'ttl{i}' for i in range(8)])
+    ttls.extend([f'{ttl}{i}' for i in range(8)])
 device_db = config['device_db']
+devices = config['devices']
 
 def write_build():
     code = f"""
@@ -52,17 +53,20 @@ def write_run(sequence, initial=None):
     code = f"""
 from artiq.experiment import *
 from generated.loop import loop
+from conversion import convert_to_dataframe
 @kernel
 def run(self):
     print('Running ARTIQ sequence.')
     adc_delay = {adc_delay}
     N_samples = {N_samples}
     data = [[[0 for ch in range(8)] for n in range(N_samples[i])] for i in range({len(sequence)})]
-
     ''' Initialize kernel '''
     self.core.reset()
     self.core.break_realtime()
     """
+    ## NOTE: simplifying thie data declaration using pythonic syntax like
+    ## [0 for ch in range(8)] -> [0]*8 can cause different list elements
+    ## to share byte addresses, such that updating one will update all
 
     ''' DAC initialization '''
     for dac in devices['dac']:
@@ -110,10 +114,13 @@ def run(self):
             for ttl in to_turn_off:
                 code += f"""    self.ttl{ttl}.off()\n"""
 
-
+    durations = [step['duration'] for step in sequence]
     code += f"""
-    while True:
-        data=loop(self, data, adc_delay, N_samples)
+    delay(10*us)
+    # while True:
+    data=loop(self, data, adc_delay, N_samples)
+    convert_to_dataframe(data, {durations}, {adc_delay})
+
     """
 
     ''' Finish and save to file '''
@@ -122,13 +129,7 @@ def run(self):
 
 def write_initial(step):
     code = ''
-    ''' Write TTL events '''
-    to_turn_on = [x for x in step['TTL']]
     code += '    with parallel:\n'
-    for ch in to_turn_on:
-        code += '        self.ttl{}.on()\n'.format(ch)
-
-    code += '        delay({:g}*s)\n'.format(float(step['duration']))
 
     ''' Write DAC events '''
     if 'DAC' in step:
@@ -143,6 +144,15 @@ def write_initial(step):
                     channels.append(int(chnum))
                     voltages.append(float(step['DAC'][ch]))
             code += f"        self.zotino{devnum}.set_dac({voltages}, {channels})\n"
+
+    ''' Write TTL events '''
+    to_turn_on = [x for x in step['TTL']]
+    for ch in to_turn_on:
+        code += '        self.ttl{}.on()\n'.format(ch)
+
+    code += '        delay({:g}*s)\n'.format(float(step['duration']))
+
+
 
     ''' Write DDS events '''
     if 'DDS' in step:
@@ -177,14 +187,10 @@ def write_step(step, last_step, i):
     if i == 0:
         to_turn_on = [x for x in step['TTL']]
     code += '\twith parallel:\n'
-    for ch in to_turn_on:
-        code += '\t\tself.ttl{}.on()\n'.format(ch)
-
-    for ch in to_turn_off:
-        code += '\t\tself.ttl{}.off()\n'.format(ch)
-    code += '\t\tdelay({:g}*s)\n'.format(float(step['duration']))
 
     ''' Write DAC events '''
+    code += '\t\twith sequential:\n'
+    code += '\t\t\tdelay(10*ns)\n'
     if 'DAC' in step:
         for dac in devices['dac']:
             devnum = dac.split('zotino')[1]
@@ -196,7 +202,17 @@ def write_step(step, last_step, i):
                 if dev == devnum:
                     channels.append(int(chnum))
                     voltages.append(float(step['DAC'][ch]))
-            code += f"\t\tself.zotino{devnum}.set_dac({voltages}, {channels})\n"
+            code += f"\t\t\tself.zotino{devnum}.set_dac({voltages}, {channels})\n"
+
+    ''' Write TTL events '''
+    for ch in to_turn_on:
+        code += '\t\tself.ttl{}.on()\n'.format(ch)
+
+    for ch in to_turn_off:
+        code += '\t\tself.ttl{}.off()\n'.format(ch)
+    code += '\t\tdelay({:g}*s)\n'.format(float(step['duration']))
+
+
 
     ''' Write DDS events '''
     if 'DDS' in step:
@@ -222,14 +238,20 @@ def write_step(step, last_step, i):
                 code += '\t\t\tdelay(10*ns)\n'
 
 
-    # if 'ADC' in sequence[i]:
-
-    # ''' Write ADC events '''
-    # if sequence[i]['ADC'] != []:
-    #     code += '\t\tfor j in range(len(N_samples)):\n'
-    #     code += '\t\t\twith parallel:\n'
-    #     code += '\t\t\t\tself.sampler0.sample_mu(data[{}][j])\n'.format(i)
-    #     code += '\t\t\t\tdelay(adc_delay)\n'
+    ''' Write ADC events '''
+    if 'ADC' in step:
+        devs = []
+        for ch in step['ADC']:
+            dev = re.split(r'(\d+)',ch)[0]
+            if dev not in devs:
+                devs.append(dev)
+        if len(devs) == 0:
+            pass
+        elif len(devs) > 1:
+            raise Exception('Only one Sampler device per timestep is supported.')
+        else:
+            dev = devs[0]
+            code += f'\t\tself.sample(self.sampler{dev}, data, {i}, N_samples{[i]}, adc_delay)\n'
 
     return code
 
