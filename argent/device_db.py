@@ -126,32 +126,32 @@ for i in range(4):
 
 
 # Sampler (EEM3) starting at RTIO channel 22
-device_db["spi_sampler0_adc"] = {
+device_db["spi_samplerA_adc"] = {
     "type": "local",
     "module": "artiq.coredevice.spi2",
     "class": "SPIMaster",
     "arguments": {"channel": 22}
 }
-device_db["spi_sampler0_pgia"] = {
+device_db["spi_samplerA_pgia"] = {
     "type": "local",
     "module": "artiq.coredevice.spi2",
     "class": "SPIMaster",
     "arguments": {"channel": 23}
 }
-device_db["spi_sampler0_cnv"] = {
+device_db["spi_samplerA_cnv"] = {
     "type": "local",
     "module": "artiq.coredevice.ttl",
     "class": "TTLOut",
     "arguments": {"channel": 24},
 }
-device_db["sampler0"] = {
+device_db["samplerA"] = {
     "type": "local",
     "module": "artiq.coredevice.sampler",
     "class": "Sampler",
     "arguments": {
-        "spi_adc_device": "spi_sampler0_adc",
-        "spi_pgia_device": "spi_sampler0_pgia",
-        "cnv_device": "spi_sampler0_cnv"
+        "spi_adc_device": "spi_samplerA_adc",
+        "spi_pgia_device": "spi_samplerA_pgia",
+        "cnv_device": "spi_samplerA_cnv"
     }
 }
 

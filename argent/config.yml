@@ -1,7 +1,7 @@
 device_db: C:/argent/argent/device_db.py
 devices:
   adc:
-  - sampler0
+  - samplerA
   dac:
   - zotinoA
   dds:
