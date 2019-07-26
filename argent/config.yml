@@ -1,12 +1,9 @@
 device_db: ./device_db.py
 devices:
-  adc:
-  - samplerA
-  dac:
-  - zotinoA
-  dds:
-  - urukulA
-  ttl:
-  - ttlA
+  adc: [samplerA]
+  dac: [zotinoA]
+  dds: [urukulA]
+  ttl: [ttlA]
 sequence_format: json
 sequences_path: ./sequences
+timestep_unit: ms

@@ -7,14 +7,15 @@ from argent.generator import run_sequence
 from argent import Configurator
 
 class ConfigPopup(QDialog):
-    def __init__(self):
+    def __init__(self, window):
         QDialog.__init__(self)
+        self.window = window
         self.setWindowTitle('Preferences')
         button = IconButton('settings', None)
         self.setWindowIcon(button.icon)
         layout = QVBoxLayout(self)
 
-        path, format, device_db = Configurator.load('sequence_path', 'sequence_format', 'device_db')
+        path, format, device_db, timestep_unit = Configurator.load('sequences_path', 'sequence_format', 'device_db', 'timestep_unit')
         self.sequence_path_edit = FileEdit('Sequences folder', path, type='folder')
         self.sequence_path_edit.textChanged.connect(lambda: Configurator.update('sequences_path', self.sequence_path_edit.text()))
         layout.addWidget(self.sequence_path_edit)
@@ -29,29 +30,40 @@ class ConfigPopup(QDialog):
         self.sequence_format_box.currentTextChanged.connect(lambda: Configurator.update('sequence_format', self.sequence_format_box.currentText()))
         layout.addWidget(self.sequence_format_box)
 
+        self.time_unit_box = LabeledComboBox('Default timestep unit', ['s', 'ms', 'us'])
+        index = {'s': 0, 'ms': 1, 'us': 2}[timestep_unit]
+        self.time_unit_box.setCurrentIndex(index)
+        self.time_unit_box.currentTextChanged.connect(self.update_timestep_unit)
+        layout.addWidget(self.time_unit_box)
+
         self.show()
+
+    def update_timestep_unit(self):
+        unit = self.time_unit_box.currentText()
+        Configurator.update('timestep_unit', unit)
+        self.window.timing_table.time_unit = unit
 
 class GUI(Dashboard):
     def __init__(self):
         Dashboard.__init__(self, title='Timing control panel')
 
     def config_dialog(self):
-        self.config_popup = ConfigPopup()
+        self.config_popup = ConfigPopup(self)
 
     def buildUI(self):
         button = IconButton('timer', None)
         self.setWindowIcon(button.icon)
 
         button_layout = QHBoxLayout()
-        # button_layout.addWidget(IconButton('play', lambda: print(self.timing_table.get_sequence())))
-        button_layout.addWidget(IconButton('play', lambda: run_sequence(self.timing_table.get_sequence())))
+        button_layout.addWidget(IconButton('play', lambda: print(self.timing_table.get_sequence())))
+        # button_layout.addWidget(IconButton('play', lambda: run_sequence(self.timing_table.get_sequence())))
 
         button_layout.addWidget(IconButton('save', self.save))
         button_layout.addWidget(IconButton('load', self.load))
         button_layout.addStretch()
         button_layout.addWidget(IconButton('settings', self.config_dialog))
 
-        devices, = Configurator.load('devices')
+        devices, timestep_unit = Configurator.load('devices', 'timestep_unit')
         ttls = []
         for ttl in devices['ttl']:
             ttls.extend([f'{ttl.split("ttl")[1]}{i}' for i in range(8)])
@@ -68,7 +80,7 @@ class GUI(Dashboard):
         sequence = [{'duration': 0.2, 'TTL': ['A0'], 'DAC': {'A1': 1}, 'DDS': {'A0': {'frequency': 400}, 'A1': {'attenuation': 2}}},
                     {'duration': 0.5, 'TTL': ['A1'], 'DDS': {'A0': {'frequency': 300, 'attenuation': 3}}}]
 
-        self.timing_table = TimingTable(sequence, ttls=ttls, dacs=dacs, dds=dds, adcs=adcs)
+        self.timing_table = TimingTable(sequence, ttls=ttls, dacs=dacs, dds=dds, adcs=adcs, time_unit = timestep_unit)
         self.timing_table.model().columnsInserted.connect(lambda: self.resize(self.timing_table.sizeHint()))
         self.timing_table.model().columnsRemoved.connect(lambda: self.resize(self.timing_table.sizeHint()))
 
