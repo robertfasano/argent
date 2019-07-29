@@ -3,7 +3,7 @@ import yaml
 from PyQt5.QtWidgets import QHBoxLayout, QFileDialog, QDialog, QVBoxLayout
 from sciQt import Dashboard, IconButton
 from sciQt.widgets import TimingTable, FileEdit, LabeledComboBox
-from argent.generator import run_sequence
+from argent.generator import Generator
 from argent import Configurator
 
 class ConfigPopup(QDialog):
@@ -55,8 +55,8 @@ class GUI(Dashboard):
         self.setWindowIcon(button.icon)
 
         button_layout = QHBoxLayout()
-        button_layout.addWidget(IconButton('play', lambda: print(self.timing_table.get_sequence())))
-        # button_layout.addWidget(IconButton('play', lambda: run_sequence(self.timing_table.get_sequence())))
+        # button_layout.addWidget(IconButton('play', lambda: print(self.timing_table.get_sequence())))
+        button_layout.addWidget(IconButton('play', lambda: Generator(self.timing_table.get_sequence()).run()))
 
         button_layout.addWidget(IconButton('save', self.save))
         button_layout.addWidget(IconButton('load', self.load))

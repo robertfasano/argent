@@ -12,4 +12,4 @@ def convert_to_dataframe(data, durations, adc_delays):
     df = pd.DataFrame(np.array(data), index = index)
     df = adc_mu_to_volt(df)
 
-    print(df)
+    return df
