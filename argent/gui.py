@@ -6,6 +6,24 @@ from sciQt.widgets import TimingTable, FileEdit, LabeledComboBox
 from argent.generator import Generator
 from argent import Configurator
 
+class ExperimentPopup(QDialog):
+    def __init__(self, window):
+        QDialog.__init__(self)
+        self.window = window
+        self.setWindowTitle('Experiment setup')
+        self.setWindowIcon(IconButton('tune', None).icon)
+        layout = QVBoxLayout(self)
+        self.build_edit = FileEdit('Build script', self.window.build_path, type='file')
+        self.build_edit.textChanged.connect(lambda: setattr(self.window, 'build_path', self.build_edit.text()))
+        self.analysis_edit = FileEdit('Analysis script', self.window.analysis_path, type='file')
+        self.analysis_edit.textChanged.connect(lambda: setattr(self.window, 'analysis_path', self.build_edit.text()))
+
+
+        layout.addWidget(self.build_edit)
+        layout.addWidget(self.analysis_edit)
+
+        self.show()
+
 class ConfigPopup(QDialog):
     def __init__(self, window):
         QDialog.__init__(self)
@@ -45,22 +63,29 @@ class ConfigPopup(QDialog):
 
 class GUI(Dashboard):
     def __init__(self):
-        Dashboard.__init__(self, title='Timing control panel')
+        Dashboard.__init__(self, title='ARTIQ')
+
 
     def config_dialog(self):
         self.config_popup = ConfigPopup(self)
 
+    def experiment_dialog(self):
+        self.experiment_popup = ExperimentPopup(self)
+
     def buildUI(self):
+        self.build_path = ''
+        self.analysis_path = ''
         button = IconButton('timer', None)
         self.setWindowIcon(button.icon)
 
         button_layout = QHBoxLayout()
         # button_layout.addWidget(IconButton('play', lambda: print(self.timing_table.get_sequence())))
-        button_layout.addWidget(IconButton('play', lambda: Generator(self.timing_table.get_sequence()).run()))
+        button_layout.addWidget(IconButton('play', self.play))
 
         button_layout.addWidget(IconButton('save', self.save))
         button_layout.addWidget(IconButton('load', self.load))
         button_layout.addStretch()
+        button_layout.addWidget(IconButton('tune', self.experiment_dialog))
         button_layout.addWidget(IconButton('settings', self.config_dialog))
 
         devices, timestep_unit = Configurator.load('devices', 'timestep_unit')
@@ -88,6 +113,11 @@ class GUI(Dashboard):
         self.layout.addWidget(self.timing_table.tabs)
 
         self.resize(self.timing_table.sizeHint())
+
+    def play(self):
+        ''' Run a sequence '''
+        gen = Generator(self.timing_table.get_sequence(), analysis_path = self.analysis_path, build_path = self.build_path)
+        gen.run()
 
     def load(self):
         path, format = Configurator.load('sequences_path', 'sequence_format')

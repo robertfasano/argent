@@ -3,11 +3,12 @@ import re
 import textwrap
 from argent import Configurator
 
-ANALYSIS_DELAY = 50e-3
-
 class Generator:
-    def __init__(self, sequence, initial=None):
+    def __init__(self, sequence, initial=None, analysis_path='', build_path=''):
         self.device_db, self.devices = Configurator.load('device_db', 'devices')
+        self.analysis_path = analysis_path
+        self.build_path = build_path
+
         self.ttls = []
         for ttl in self.devices['ttl']:
             self.ttls.extend([f'{ttl}{i}' for i in range(8)])
@@ -23,7 +24,20 @@ class Generator:
 
     def write_build(self):
         ''' Sets device attributes to allow access. '''
-        code = textwrap.dedent(f"""\
+        code = ''
+
+        if self.build_path != '':
+            code += textwrap.dedent(f"""\
+                import importlib.util
+                spec = importlib.util.spec_from_file_location("build_module", '{self.build_path}')
+                build_module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(build_module)
+                """
+                            )
+
+        code += textwrap.dedent(f"""\
+
+
             def build(self):
                 self.setattr_device("core")
                 self.setattr_device("scheduler")
@@ -51,6 +65,10 @@ class Generator:
                     self._adcs.append(getattr(self, adc))
                             """
                             )
+
+        if self.build_path != '':
+            code += '    build_module.build(self)'
+
         with open('generated/build.py', 'w') as file:
             file.write(code)
 
@@ -73,11 +91,19 @@ class Generator:
                 self.N_samples.append(0)
 
         ''' Write base code '''
-        code = textwrap.dedent(f"""\
+        code = ''
+        if self.analysis_path != '':
+            code += textwrap.dedent(f"""\
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("analyze_module", '{self.analysis_path}')
+            analyze_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(analyze_module)
+            """
+            )
+        code += textwrap.dedent(f"""\
             from artiq.experiment import *
             from generated.loop import loop
             from generated.first_pass import first_pass
-            from analysis import analyze
 
             @kernel
             def run(self):
@@ -89,6 +115,10 @@ class Generator:
                 self.core.reset()
                 self.core.break_realtime()
                                 """)
+
+        ''' ADC initialization '''
+        for adc in self.devices['adc']:
+            code += f"    self.{adc}.init()\n"
 
         ''' DAC initialization '''
         for dac in self.devices['dac']:
@@ -132,15 +162,14 @@ class Generator:
                 self.adc_delays.append(-1.0)
         code += f"""    ''' First sequence iteration ''' \n"""
         code += f"""    first_pass(self, data)\n"""
-        code += f"""    with parallel:\n"""
-        code += f"""        delay({ANALYSIS_DELAY})\n"""
-        code += f"""        analyze(data, {self.durations}, {self.adc_delays})\n"""
+        if self.analysis_path != '':
+            code += f"""    analyze_module.analyze(self, data, {self.durations}, {self.adc_delays})\n"""     # run analysis script
 
         code += f"""    ''' Start looping ''' \n"""
-        code += f"""    loop(self, data)\n"""
-        code += f"""    with parallel:\n"""
-        code += f"""        delay({ANALYSIS_DELAY})\n"""
-        code += f"""        analyze(data, {self.durations}, {self.adc_delays})\n"""
+        code += f"""    while True:\n"""
+        code += f"""        loop(self, data)\n"""
+        if self.analysis_path != '':
+            code += f"""        analyze_module.analyze(self, data, {self.durations}, {self.adc_delays})\n"""     # run analysis script
 
         ''' Finish and save to file '''
         with open('generated/run.py', 'w') as file:
@@ -309,7 +338,7 @@ class Generator:
         return code
 
     def run(self):
-        os.system(f'start "" cmd /k "cd /argent/argent/ & call activate artiq-4 & artiq_run base_experiment.py --device-db={self.device_db}"')
+        os.system(f'start "" cmd /k "cd /argent/argent/ & call activate artiq & artiq_run base_experiment.py --device-db={self.device_db}"')
 
 if __name__ == '__main__':
     initial_state = {'duration': 100e-3, 'TTL': ['A1'], 'DAC': {'A0': 5}, 'DDS': {'A0': {'frequency':1e6}}}
