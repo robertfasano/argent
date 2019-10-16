@@ -13,37 +13,12 @@ Argent represents this as a two-step sequence syntactically defined as
 sequence = [{'duration': '3 us', 'TTL': [0]}, 
             {'duration': '3 us', 'TTL': []}]
 ```
-The presence of 0 in the TTL list in the first timestep dictionary tells TTL0 to turn on, while the absence in the second timestep tells it to turn off. The beauty of this approach is that a grid-based GUI can easily be converted into such a representation, which is then fed into a code generator to produce the lower level syntax. To demonstrate this advantage, let's look at a more complex experiment, which turns on four TTLs, then gradually turns them off in steps:
-
-Base ARTIQ syntax:
-``` 
-with parallel:
-     ttl0.on()
-     ttl1.on()
-     ttl2.on()
-     ttl3.on()
-delay(3*us)
-ttl0.off() 
-delay(5*us)
-ttl1.off()
-delay(7*us)
-ttl2.off()
-ttl3.off()
-delay(2*us)
-```
-Argent syntax:
-``` 
-sequence = [{'duration': '3 us', 'TTL': [0, 1, 2, 3]}, 
-            {'duration': '5 us', 'TTL': [1, 2, 3]},
-            {'duration': '7 us', 'TTL': [2, 3]},
-            {'duration': '2 us', 'TTL': []}]
-```
-The Argent syntax is cleaner and more readable, allowing scalable sequence definition up to many TTL lines.
-
-# The user interface
-The GUI is written in HTML, JavaScript, and CSS and should run in any browser at http://127.0.0.1:8051/. The only dependency is Flask, which is used in the Python backend to host the GUI.
+The Argent syntax is cleaner and more readable, allowing scalable sequence definition up to many TTL lines. Additionally, this higher-level syntax is compatible with a grid-based GUI which treats sequences as series of timesteps, each containing any number of RTIO events. Using either the list/dict syntax or the included Qt-based GUI, you can define any of the following events at each timestep:
+* TTL on/off
+* DAC voltage change
+* Streamed ADC read
+* DDS frequency or attenuation update
 
 # Ongoing development
-* ADC control is implemented but data is not yet stored.
+* Run user-defined functions after each sequence to process and store data.
 * DAC setpoints are constant within timesteps; will add the ability to output ramps or other waveforms within a single timestep.
-* Per-timestep DDS updates are enabled through the dictionary format but not yet through the GUI.
