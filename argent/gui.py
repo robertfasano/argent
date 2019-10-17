@@ -127,10 +127,12 @@ class GUI(Dashboard):
             return
         with open(filename) as file:
             if format == 'json':
-                sequence = json.load(file)
+                preset = json.load(file)
             elif format == 'yml':
-                sequence = yaml.load(file, Loader=yaml.SafeLoader)
-
+                preset = yaml.load(file, Loader=yaml.SafeLoader)
+        sequence = preset['sequence']
+        self.build_path = preset.get('build_path', '')
+        self.analysis_path = preset.get('analysis_path', '')
         self.timing_table.set_sequence(sequence)
 
     def save(self):
@@ -140,12 +142,14 @@ class GUI(Dashboard):
         if filename == '':
             return
         sequence = self.timing_table.get_sequence()
+
+        preset = {'sequence': sequence, 'analysis_path': self.analysis_path, 'build_path': self.build_path}
         if format == 'json':
             with open(filename, 'w') as file:
-                json.dump(sequence, file, indent=4)
+                json.dump(preset, file, indent=4)
         elif format == 'yml':
             with open(filename.replace('json', 'yml'), 'w') as file:
-                yaml.dump(sequence, file, sort_keys=False)
+                yaml.dump(preset, file, sort_keys=False)
 
 if __name__ == '__main__':
     dashboard = GUI()
