@@ -42,6 +42,7 @@ class Generator:
                 self.setattr_device("core")
                 self.setattr_device("scheduler")
                 self.setattr_device("core_dma")
+                self.online = True       # bool flag to control loop
                 ''' Initialize DDS '''
                 for urukul in {self.devices['dds']}:
                     self.setattr_device("%s_cpld"%(urukul))  #4 Channels of DDS
@@ -166,11 +167,11 @@ class Generator:
             code += f"""    analyze_module.analyze(self, data, {self.durations}, {self.adc_delays})\n"""     # run analysis script
 
         code += f"""    ''' Start looping ''' \n"""
-        code += f"""    while True:\n"""
+        code += f"""    while self.online:\n"""
         code += f"""        loop(self, data)\n"""
         if self.analysis_path != '':
             code += f"""        analyze_module.analyze(self, data, {self.durations}, {self.adc_delays})\n"""     # run analysis script
-
+        code += f"""    print('Experiment complete!')"""
         ''' Finish and save to file '''
         with open('generated/run.py', 'w') as file:
             file.write(code)
