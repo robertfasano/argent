@@ -69,6 +69,13 @@ class Generator:
             for key, value in seq['build_parameters'].items():
                 code += f'    self.{key} = {value}\n'
 
+        ## write cycle time
+        T = 0
+        for seq in self.sequences:
+            for step in seq['sequence']:
+                T += step['duration']
+        code += f'    self.cycle_time = {T}\n'
+        
         with open('generated/build.py', 'w') as file:
             file.write(code)
 
