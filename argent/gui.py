@@ -1,10 +1,13 @@
 import json
 import yaml
-from PyQt5.QtWidgets import QHBoxLayout, QFileDialog, QDialog, QVBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout, QFileDialog, QDialog, QVBoxLayout, QTabWidget, QWidget, QPushButton
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QCursor
 from sciQt import Dashboard, IconButton
-from sciQt.widgets import TimingTable, FileEdit, LabeledComboBox
+from sciQt.widgets import TimingTable, FileEdit, LabeledComboBox, DictMenu, DictTable
 from argent.generator import Generator
 from argent import Configurator
+from argent.dataserver import DataClient
 
 class ExperimentPopup(QDialog):
     def __init__(self, window):
@@ -15,14 +18,21 @@ class ExperimentPopup(QDialog):
         layout = QVBoxLayout(self)
         self.build_edit = FileEdit('Build script', self.window.build_path, type='file')
         self.build_edit.textChanged.connect(lambda: setattr(self.window, 'build_path', self.build_edit.text()))
-        self.analysis_edit = FileEdit('Analysis script', self.window.analysis_path, type='file')
-        self.analysis_edit.textChanged.connect(lambda: setattr(self.window, 'analysis_path', self.build_edit.text()))
-
-
         layout.addWidget(self.build_edit)
-        layout.addWidget(self.analysis_edit)
 
-        self.show()
+        self.build_parameters = DictTable({})
+        layout.addWidget(self.build_parameters)
+
+        self.sync_button = QPushButton('Sync')
+        self.sync_button.clicked.connect(self.sync)
+        layout.addWidget(self.sync_button)
+
+    def sync(self):
+        params = self.build_parameters.get_parameters()
+        self.window.main.data_client.send(f'setpoint {params["setpoint"]}')
+
+
+
 
 class ConfigPopup(QDialog):
     def __init__(self, window):
@@ -54,6 +64,7 @@ class ConfigPopup(QDialog):
         self.time_unit_box.currentTextChanged.connect(self.update_timestep_unit)
         layout.addWidget(self.time_unit_box)
 
+
         self.show()
 
     def update_timestep_unit(self):
@@ -61,34 +72,67 @@ class ConfigPopup(QDialog):
         Configurator.update('timestep_unit', unit)
         self.window.timing_table.time_unit = unit
 
-class GUI(Dashboard):
-    def __init__(self):
-        Dashboard.__init__(self, title='ARTIQ')
+class SequenceTabs(QTabWidget):
+    def __init__(self, window):
+        super().__init__()
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.context_menu)
+        self.window = window
+        self.sequences = []
 
 
-    def config_dialog(self):
-        self.config_popup = ConfigPopup(self)
+    def context_menu(self, event):
+        ''' Handles right-click menu on header items. '''
+        # col = self.columnAt(event.x())
+        idx = self.tabBar().tabAt(event)
+        actions = {'Insert right': lambda: self.insert_sequence(idx+1),
+                   'Insert left': lambda: self.insert_sequence(idx),
+                   'Delete': lambda: self.delete_sequence(idx)
+                   }
+        self.menu = DictMenu('header options', actions)
+        self.menu.popup(QCursor.pos())
 
-    def experiment_dialog(self):
+    def delete_sequence(self, idx):
+        del self.sequences[idx]
+        self.removeTab(idx)
+
+    def insert_sequence(self, idx):
+        sequence = SequenceTab(self.window)
+        self.sequences.insert(idx, sequence)
+        self.insertTab(idx, sequence, f'Sequence {len(self.sequences)}')
+
+class SequenceTab(QWidget):
+    def __init__(self, main):
+        super().__init__()
+        self.main = main
+        self.build_path = ''
+        self.build_parameters = {}
         self.experiment_popup = ExperimentPopup(self)
 
-    def buildUI(self):
-        self.build_path = ''
-        self.analysis_path = ''
-        button = IconButton('timer', None)
-        self.setWindowIcon(button.icon)
-
+        self.setLayout(QVBoxLayout())
         button_layout = QHBoxLayout()
-        # button_layout.addWidget(IconButton('play', lambda: print(self.timing_table.get_sequence())))
-        button_layout.addWidget(IconButton('play', self.play))
-
         button_layout.addWidget(IconButton('save', self.save))
         button_layout.addWidget(IconButton('load', self.load))
         button_layout.addStretch()
         button_layout.addWidget(IconButton('tune', self.experiment_dialog))
-        button_layout.addWidget(IconButton('settings', self.config_dialog))
 
-        devices, timestep_unit = Configurator.load('devices', 'timestep_unit')
+        timestep_unit = Configurator.load('timestep_unit')
+        ttls, dacs, dds, adcs = self.load_devices()
+
+
+        sequence = [{'duration': 0.2, 'TTL': ['A0'], 'DAC': {'A1': 1}, 'DDS': {'A0': {'frequency': 400}, 'A1': {'attenuation': 2}}},
+                    {'duration': 0.5, 'TTL': ['A1'], 'DDS': {'A0': {'frequency': 300, 'attenuation': 3}}}]
+
+        self.timing_table = TimingTable(sequence, ttls=ttls, dacs=dacs, dds=dds, adcs=adcs, time_unit = timestep_unit)
+
+
+        self.layout().addLayout(button_layout)
+        self.layout().addWidget(self.timing_table.tabs)
+
+
+    def load_devices(self):
+        ## load devices from config file
+        devices, = Configurator.load('devices')
         ttls = []
         for ttl in devices['ttl']:
             ttls.extend([f'{ttl.split("ttl")[1]}{i}' for i in range(8)])
@@ -102,22 +146,10 @@ class GUI(Dashboard):
         for adc in devices['adc']:
             adcs.append(adc.split("sampler")[1])
 
-        sequence = [{'duration': 0.2, 'TTL': ['A0'], 'DAC': {'A1': 1}, 'DDS': {'A0': {'frequency': 400}, 'A1': {'attenuation': 2}}},
-                    {'duration': 0.5, 'TTL': ['A1'], 'DDS': {'A0': {'frequency': 300, 'attenuation': 3}}}]
+        return ttls, dacs, dds, adcs
 
-        self.timing_table = TimingTable(sequence, ttls=ttls, dacs=dacs, dds=dds, adcs=adcs, time_unit = timestep_unit)
-        self.timing_table.model().columnsInserted.connect(lambda: self.resize(self.timing_table.sizeHint()))
-        self.timing_table.model().columnsRemoved.connect(lambda: self.resize(self.timing_table.sizeHint()))
-
-        self.layout.addLayout(button_layout)
-        self.layout.addWidget(self.timing_table.tabs)
-
-        self.resize(self.timing_table.sizeHint())
-
-    def play(self):
-        ''' Run a sequence '''
-        gen = Generator(self.timing_table.get_sequence(), analysis_path = self.analysis_path, build_path = self.build_path)
-        gen.run()
+    def experiment_dialog(self):
+        self.experiment_popup.show()
 
     def load(self):
         path, format = Configurator.load('sequences_path', 'sequence_format')
@@ -132,8 +164,9 @@ class GUI(Dashboard):
                 preset = yaml.load(file, Loader=yaml.SafeLoader)
         sequence = preset['sequence']
         self.build_path = preset.get('build_path', '')
-        self.analysis_path = preset.get('analysis_path', '')
         self.timing_table.set_sequence(sequence)
+        self.experiment_popup.build_parameters.set_parameters(preset.get('parameters', {}))
+        self.experiment_popup.build_edit.setText(self.build_path)
 
     def save(self):
         path, format = Configurator.load('sequences_path', 'sequence_format')
@@ -143,13 +176,63 @@ class GUI(Dashboard):
             return
         sequence = self.timing_table.get_sequence()
 
-        preset = {'sequence': sequence, 'analysis_path': self.analysis_path, 'build_path': self.build_path}
+        preset = {'sequence': sequence, 'build_path': self.build_path,
+                  'parameters': self.experiment_popup.build_parameters.get_parameters()}
         if format == 'json':
             with open(filename, 'w') as file:
                 json.dump(preset, file, indent=4)
         elif format == 'yml':
             with open(filename.replace('json', 'yml'), 'w') as file:
                 yaml.dump(preset, file, sort_keys=False)
+
+
+class GUI(Dashboard):
+    def __init__(self):
+        Dashboard.__init__(self, title='ARTIQ')
+
+    def config_dialog(self):
+        self.config_popup = ConfigPopup(self)
+
+    def experiment_dialog(self):
+        self.experiment_popup = ExperimentPopup(self)
+
+
+    def buildUI(self):
+
+        button = IconButton('timer', None)
+        self.setWindowIcon(button.icon)
+
+        port, = Configurator.load('port')
+        self.data_client = DataClient(f'127.0.0.1:{port}')
+
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(IconButton('play', self.play))
+        button_layout.addWidget(IconButton('stop', self.data_client.stop))
+        button_layout.addStretch()
+
+        button_layout.addWidget(IconButton('settings', self.config_dialog))
+
+        self.tab_widget = SequenceTabs(self)
+        self.tab_widget.insert_sequence(0)
+
+        self.layout.addLayout(button_layout)
+        self.layout.addWidget(self.tab_widget)
+        self.resize(self.tab_widget.sequences[0].timing_table.sizeHint())
+
+    def play(self):
+        ''' Run a sequence '''
+        print(self.get_sequences())
+        # self.data_client.start()
+        gen = Generator(self.get_sequences())
+        gen.run()
+
+    def get_sequences(self):
+        sequences = []
+        for seq in self.tab_widget.sequences:
+            sequences.append({'sequence': seq.timing_table.get_sequence(),
+                              'build_path': seq.build_path,
+                              'build_parameters': seq.experiment_popup.build_parameters.get_parameters()})
+        return sequences
 
 if __name__ == '__main__':
     dashboard = GUI()

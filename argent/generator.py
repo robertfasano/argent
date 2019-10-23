@@ -4,39 +4,32 @@ import textwrap
 from argent import Configurator
 
 class Generator:
-    def __init__(self, sequence, initial=None, analysis_path='', build_path=''):
+    def __init__(self, sequences):
         self.device_db, self.devices = Configurator.load('device_db', 'devices')
-        self.analysis_path = analysis_path
-        self.build_path = build_path
 
-        self.ttls = []
+        ttls = []
         for ttl in self.devices['ttl']:
-            self.ttls.extend([f'{ttl}{i}' for i in range(8)])
-
-        self.sequence = sequence
-        self.initial = initial
+            ttls.extend([f'{ttl}{i}' for i in range(8)])
+        self.devices['ttl'] = ttls
+        self.functions = {}
+        self.sequences = sequences
         if not os.path.exists('./generated'):
             os.mkdir('./generated')
         self.write_build()
-        self.write_run(initial=initial)
-        self.write_first_pass()
-        self.write_loop()
+        self.write_run()
+        self.write_loop(first_pass=True)
+        self.write_loop(first_pass=False)
 
     def write_build(self):
         ''' Sets device attributes to allow access. '''
         code = ''
 
-        if self.build_path != '':
-            code += textwrap.dedent(f"""\
-                import importlib.util
-                spec = importlib.util.spec_from_file_location("build_module", '{self.build_path}')
-                build_module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(build_module)
-                """
-                            )
+        ''' import all build modules '''
+        build_paths = [seq.get('build_path', '') for seq in self.sequences]
 
         code += textwrap.dedent(f"""\
-
+            from argent import load_build_functions
+            build_functions = load_build_functions({build_paths})
 
             def build(self):
                 self.setattr_device("core")
@@ -51,7 +44,7 @@ class Generator:
 
                 ''' Initialize TTL '''
                 self._ttls = []
-                for ttl in {self.ttls}:
+                for ttl in {self.devices['ttl']}:
                     self.setattr_device(ttl)
                     self._ttls.append(getattr(self, ttl))
 
@@ -64,53 +57,72 @@ class Generator:
                 for adc in {self.devices['adc']}:
                     self.setattr_device(adc)         # 8 channel ADC
                     self._adcs.append(getattr(self, adc))
+
+                for i in range({len(self.sequences)}):
+                    build_functions[i](self)
+
                             """
                             )
 
-        if self.build_path != '':
-            code += '    build_module.build(self)'
+        ## write build parameters
+        for seq in self.sequences:
+            for key, value in seq['build_parameters'].items():
+                code += f'    self.{key} = {value}\n'
 
         with open('generated/build.py', 'w') as file:
             file.write(code)
 
-    def write_run(self, initial=None):
+    def write_run(self):
         ''' Generates the initial real-time part of the sequence. '''
-        ''' Prepare data array '''
-        self.N_samples = []
 
-        for i, step in enumerate(self.sequence):
-            if 'ADC' in step:
-                devs = [ch for ch in step['ADC']]
-                if len(devs) == 0:
-                    self.N_samples.append(0)
-                elif len(devs) > 1:
-                    raise Exception('Only one Sampler device per timestep is supported.')
-                else:
-                    adc_delay = step['ADC'][devs[0]]
-                    self.N_samples.append(int(float(step['duration'])/adc_delay))
-            else:
-                self.N_samples.append(0)
-
-        ''' Write base code '''
         code = ''
-        if self.analysis_path != '':
-            code += textwrap.dedent(f"""\
-            import importlib.util
-            spec = importlib.util.spec_from_file_location("analyze_module", '{self.analysis_path}')
-            analyze_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(analyze_module)
-            """
-            )
+
+        ''' Prepare data array '''
+        self.all_samples = []
+        for seq in self.sequences:
+            N_samples = []
+
+            for i, step in enumerate(seq['sequence']):
+                if 'ADC' in step:
+                    devs = [ch for ch in step['ADC']]
+                    if len(devs) == 0:
+                        N_samples.append(0)
+                    elif len(devs) > 1:
+                        raise Exception('Only one Sampler device per timestep is supported.')
+                    else:
+                        adc_delay = step['ADC'][devs[0]]
+                        N_samples.append(int(float(step['duration'])/adc_delay))
+                else:
+                    N_samples.append(0)
+            self.all_samples.append(N_samples)
+        data = [[[0 for ch in range(8)] for n in range(sum(self.all_samples[N]))] for N in range(len(self.sequences))]
+        if data == [[]]:
+            data = [[[-1]]]      # add placeholder for type inference if ADC is unused
+
+        self.durations = []
+        self.adc_delays = []
+        for seq in self.sequences:
+            self.durations.append([step['duration'] for step in seq['sequence']])
+            adc_delays = []
+            for step in seq['sequence']:
+                if 'ADC' in step:
+                    if step['ADC'] != []:
+                        adc_delays.append(list(step['ADC'].values())[0])
+                    else:
+                        adc_delays.append(-1.0)
+                else:
+                    adc_delays.append(-1.0)
+            self.adc_delays.append(adc_delays)
+
         code += textwrap.dedent(f"""\
             from artiq.experiment import *
             from generated.loop import loop
-            from generated.first_pass import first_pass
+            from generated.first_pass import loop as first_pass
 
             @kernel
             def run(self):
                 print('Running ARTIQ sequence.')
-                N_samples = {self.N_samples}
-                data = [[0 for ch in range(8)] for n in range({sum(self.N_samples)})]
+                data = {data}
 
                 ''' Initialize kernel '''
                 self.core.reset()
@@ -137,124 +149,91 @@ class Generator:
         code += f"""        ttl.output()\n"""
         code += f"""        ttl.off()\n"""
 
-        ''' Write initial step. If none is specified, turn all DAC channels off. '''
-        if self.initial is None:
-            self.initial = {'duration': 10e-3,
-                            'TTL': [],
-                            'DAC': {}}
-            for dac in self.devices['dac']:
-                keys = [f'{dac[-1]}{i}' for i in range(32)]
-                values = [0.0]*32
-                dac_state = dict(zip(keys, values))
-                self.initial['DAC'].update(dac_state)
-        code += "    self.core.break_realtime()\n"
-        code += "    delay(3*ms)\n"
-        code += self.write_initial(self.initial)
-
-        self.durations = [step['duration'] for step in self.sequence]
-        self.adc_delays = []
-        for step in self.sequence:
-            if 'ADC' in step:
-                if step['ADC'] != []:
-                    self.adc_delays.append(list(step['ADC'].values())[0])
-                else:
-                    self.adc_delays.append(-1.0)
-            else:
-                self.adc_delays.append(-1.0)
-        code += f"""    ''' First sequence iteration ''' \n"""
-        code += f"""    first_pass(self, data)\n"""
-        if self.analysis_path != '':
-            code += f"""    analyze_module.analyze(self, data, {self.durations}, {self.adc_delays})\n"""     # run analysis script
+        code += f"""    self.core.break_realtime()\n\n"""
+        code += f"""    delay(1*ms)\n\n"""
 
         code += f"""    ''' Start looping ''' \n"""
+        code += f"""    first_pass(self, data)\n"""
         code += f"""    while self.online:\n"""
         code += f"""        loop(self, data)\n"""
-        if self.analysis_path != '':
-            code += f"""        analyze_module.analyze(self, data, {self.durations}, {self.adc_delays})\n"""     # run analysis script
-        code += f"""    print('Experiment complete!')"""
+
         ''' Finish and save to file '''
         with open('generated/run.py', 'w') as file:
             file.write(code)
 
 
-    def write_first_pass(self):
-        ''' Generates the first loop of the sequence. '''
-        code = ''
-        code += 'from artiq.experiment import *\n'
-        code += '@kernel\n'
-        code += 'def first_pass(self, data):\n'
 
-        ## write first step
-        step = self.sequence[0]
-        code += '    with parallel:\n'
-        code += self.write_dac_events(step)
-        code += self.write_ttl_events(step, self.initial)
-        code += self.write_dds_events(step)
-        code += self.write_adc_events(step, 0)
-
-        ## write remaining steps
-        for i, step in enumerate(self.sequence):
-            if i == 0:
-                continue
-            if float(step['duration']) > 0:
-                code += '    with parallel:\n'
-                code += self.write_dac_events(step)
-                code += self.write_ttl_events(step, self.sequence[i-1])
-                code += self.write_dds_events(step)
-                code += self.write_adc_events(step, i)
-
-        ''' Finish and save to file '''
-        code += '    return data'
-
-        with open('generated/first_pass.py', 'w') as file:
-            file.write(code)
-
-        return code
-
-    def write_loop(self):
+    def write_loop(self, first_pass=False):
         ''' Generates the looping part of the sequence step by step. '''
         code = ''
         code += 'from artiq.experiment import *\n'
+
+        ## parse functions for import
+        locators = []
+        for seq in self.sequences:
+            for step in seq['sequence']:
+                func = step.get('Function', {})
+                if func != {}:
+                    locators.append((func['path'], func['function']))
+        code += textwrap.dedent(f"""\
+            from argent import import_functions
+            functions = import_functions({locators})
+
+            """
+        )
+
+
         code += '@kernel\n'
         code += 'def loop(self, data):\n'
 
-        for i, step in enumerate(self.sequence):
-            if float(step['duration']) > 0:
-                code += '    with parallel:\n'
-                code += self.write_dac_events(step)
-                code += self.write_ttl_events(step, self.sequence[i-1])
-                code += self.write_dds_events(step)
-                code += self.write_adc_events(step, i)
+        func_idx = 0
+        for n, seq in enumerate(self.sequences):
+            for i, step in enumerate(seq['sequence']):
+                if float(step['duration']) > 0:
+                    code += '    with parallel:\n'
+                    code += self.write_dac_events(step)
+                    if first_pass:
+                        last_step = {'TTL': []}
+                    elif i > 0:
+                        last_step = seq['sequence'][i-1]
+                    else:
+                        last_step = self.sequences[n-1]['sequence'][-1]
+                    code += self.write_ttl_events(step, last_step)
+                    code += self.write_dds_events(step)
+                    code += self.write_adc_events(step, i, n)
+                    if 'Function' in step:
+                    # if step['Function']['function'] != '':
+                        code += f'    functions[{func_idx}](self, data, {self.durations[n]}, {self.adc_delays[n]})\n'
+                        func_idx += 1
+            # code += f'    analysis_functions[{n}](self, data, {self.durations[n]}, {self.adc_delays[n]})\n'
 
         ''' Finish and save to file '''
         code += '    return data'
 
-        with open('generated/loop.py', 'w') as file:
-            file.write(code)
+        if first_pass:
+            with open('generated/first_pass.py', 'w') as file:
+                file.write(code)
+        else:
+            with open('generated/loop.py', 'w') as file:
+                file.write(code)
 
         return code
 
-    def write_initial(self, step):
-        code = "\n    ''' Initial state '''\n"
-        code += '    with parallel:\n'
-        code += self.write_dac_events(step)
-        code += self.write_ttl_events(step, {})
-        code += self.write_dds_events(step)
-
-        return code
-
-    def write_adc_events(self, step, i):
-        ''' Generates code for the ADC events for a given step. '''
+    def write_adc_events(self, step, i, n):
+        ''' Generates code for the ADC events for a given step.
+            i: step number
+            n: sequence number
+        '''
         code = ''
         if 'ADC' not in step:
             return code
         if step['ADC'] == []:
             return code
-        adc_delay = self.adc_delays[i]
+        adc_delay = self.adc_delays[n][i]
         dev = list(step['ADC'].keys())[0]
-        n_samples = self.N_samples[i]
-        previous_samples = sum(self.N_samples[:i])
-        code += f'        self.sample(self.sampler{dev}, data, {previous_samples}, {n_samples}, {adc_delay})\n'
+        n_samples = self.all_samples[n][i]
+        previous_samples = sum(self.all_samples[n][:i])
+        code += f'        self.sample(self.sampler{dev}, data[{n}], {previous_samples}, {n_samples}, {adc_delay})\n'
         return code
 
     def write_dac_events(self, step):
@@ -340,11 +319,3 @@ class Generator:
 
     def run(self):
         os.system(f'start "" cmd /k "cd /argent/argent/ & call activate artiq & artiq_run base_experiment.py --device-db={self.device_db}"')
-
-if __name__ == '__main__':
-    initial_state = {'duration': 100e-3, 'TTL': ['A1'], 'DAC': {'A0': 5}, 'DDS': {'A0': {'frequency':1e6}}}
-    sequence = [{'duration': 10e-3, 'TTL': ['A0'], 'DAC': {'A0': 1}, 'DDS': {'A0': {'attenuation':0}}},
-                {'duration': 10e-3, 'TTL': ['A2'], 'DAC': {'A0': 2}, 'DDS': {'A0': {'attenuation':31}}}
-    ]
-    print(sequence)
-    Generator(sequence).run()
