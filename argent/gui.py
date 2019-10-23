@@ -7,7 +7,7 @@ from sciQt import Dashboard, IconButton
 from sciQt.widgets import TimingTable, FileEdit, LabeledComboBox, DictMenu, DictTable
 from argent.generator import Generator
 from argent import Configurator
-from argent.dataserver import DataClient
+from argent.dataserver import PcComm
 
 class ExperimentPopup(QDialog):
     def __init__(self, window):
@@ -29,10 +29,7 @@ class ExperimentPopup(QDialog):
 
     def sync(self):
         params = self.build_parameters.get_parameters()
-        self.window.main.data_client.send(f'setpoint {params["setpoint"]}')
-
-
-
+        self.window.main.comm.send(params)
 
 class ConfigPopup(QDialog):
     def __init__(self, window):
@@ -83,7 +80,6 @@ class SequenceTabs(QTabWidget):
 
     def context_menu(self, event):
         ''' Handles right-click menu on header items. '''
-        # col = self.columnAt(event.x())
         idx = self.tabBar().tabAt(event)
         actions = {'Insert right': lambda: self.insert_sequence(idx+1),
                    'Insert left': lambda: self.insert_sequence(idx),
@@ -196,18 +192,18 @@ class GUI(Dashboard):
     def experiment_dialog(self):
         self.experiment_popup = ExperimentPopup(self)
 
-
     def buildUI(self):
 
         button = IconButton('timer', None)
         self.setWindowIcon(button.icon)
 
-        port, = Configurator.load('port')
-        self.data_client = DataClient(f'127.0.0.1:{port}')
+        control_port, broadcast_port = Configurator.load('control_port', 'broadcast_port')
+        self.comm = PcComm(f'127.0.0.1:{control_port}', f'127.0.0.1:{broadcast_port}')
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(IconButton('play', self.play))
-        button_layout.addWidget(IconButton('stop', self.data_client.stop))
+        stop_button = IconButton('stop', self.comm.stop)
+        button_layout.addWidget(stop_button)
         button_layout.addStretch()
 
         button_layout.addWidget(IconButton('settings', self.config_dialog))
@@ -222,7 +218,7 @@ class GUI(Dashboard):
     def play(self):
         ''' Run a sequence '''
         print(self.get_sequences())
-        # self.data_client.start()
+        self.comm.subscribe()
         gen = Generator(self.get_sequences())
         gen.run()
 

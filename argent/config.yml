@@ -4,6 +4,8 @@ devices:
   dac: [zotinoA]
   dds: [urukulA]
   ttl: [ttlA]
-sequence_format: json
+sequence_format: yml
 sequences_path: ./sequences
 timestep_unit: ms
+control_port: 1107
+broadcast_port: 1205
