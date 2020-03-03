@@ -5,3 +5,5 @@
 *generated/
 *.pytest*
 *.pyon
+node_modules*
+dist*
