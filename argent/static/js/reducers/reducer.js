@@ -69,13 +69,45 @@ export default function reducer(state=[], action) {
           return reducer(state=state, action={'type': 'dds/check', 'channel': action.channel, 'timestep': action.timestep})
         }
 
+      case 'timing/moveLeft':
+      return produce(state, draft => {
+        let t = action.timestep
+        let prev = action.timestep - 1
+        let temp = draft['sequence'][prev]
+        draft['sequence'][prev] = draft['sequence'][t]
+        draft['sequence'][t] = temp
 
+        temp = draft['timestep_scales'][prev]
+        draft['timestep_scales'][prev] = draft['timestep_scales'][t]
+        draft['timestep_scales'][t] = temp
+
+      })
+
+      case 'timing/moveRight':
+      return produce(state, draft => {
+        let t = action.timestep
+        let next = action.timestep + 1
+        let temp = draft['sequence'][next]
+        draft['sequence'][next] = draft['sequence'][t]
+        draft['sequence'][t] = temp
+
+        temp = draft['timestep_scales'][next]
+        draft['timestep_scales'][next] = draft['timestep_scales'][t]
+        draft['timestep_scales'][t] = temp
+
+      })
+
+      case 'timing/delete':
+        return produce(state, draft => {
+          draft['sequence'].splice(action.timestep, 1)
+        })
+        
       case 'timing/update':
         return produce(state, draft => {
           draft['sequence'][action.timestep]['duration'] = action.duration
         })
 
-      case 'timing/append':
+      case 'timing/insert':
         return produce(state, draft => {
           const newStep = {'ttl': {}, 'dac': {}, 'dds': {}, 'adc': {}, 'duration': 1}
 
@@ -92,9 +124,14 @@ export default function reducer(state=[], action) {
             newStep['adc'][channel] = {'samples': '', 'on': false}
           }
 
-          draft['sequence'] = draft['sequence'].concat(newStep)
+          draft['sequence'].splice(action.timestep+1, 0, newStep)
+          draft['timestep_scales'].splice(action.timestep+1, 0, 1)
         })
 
+      case 'scale/update':
+        return produce(state, draft => {
+          draft['timestep_scales'][action.timestep] = action.value
+        })
     }
 }
 
@@ -105,6 +142,10 @@ function toggleADC(timestep, channel) {
 
 function updateADCSamples(timestep, channel, value) {
   return {type: 'adc/updateSamples', timestep: timestep, channel: channel, value: value}
+}
+
+function updateScale(timestep, value) {
+  return {type: 'scale/update', timestep: timestep, value: value}
 }
 
 function toggleTTL(timestep, channel) {
@@ -131,8 +172,20 @@ export function updateTimestep(timestep, duration) {
   return {type: 'timing/update', timestep: timestep, duration: duration}
 }
 
-export function appendTimestep() {
-  return {type: 'timing/append'}
+export function insertTimestep(timestep) {
+  return {type: 'timing/insert', timestep: timestep}
+}
+
+export function deleteTimestep(timestep) {
+  return {type: 'timing/delete', timestep: timestep}
+}
+
+export function moveLeft(timestep) {
+  return {type: 'timing/moveLeft', timestep: timestep}
+}
+
+export function moveRight(timestep) {
+  return {type: 'timing/moveRight', timestep: timestep}
 }
 
 const actions = {'adc': {'toggle': toggleADC,
@@ -145,10 +198,12 @@ const actions = {'adc': {'toggle': toggleADC,
                          'toggle': toggleDDS
                        },
                  'timing': {'update': updateTimestep,
-                            'append': appendTimestep
-                          }
-
-
+                            'insert': insertTimestep,
+                            'delete': deleteTimestep,
+                            'moveLeft': moveLeft,
+                            'moveRight': moveRight
+                          },
+                'scale': {'update': updateScale}
                }
 
 export {actions}

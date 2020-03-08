@@ -56,7 +56,7 @@ function initialState(channels) {
                              'on': false
                               }
   }
-  return {'sequence': [state], 'channels': channels}
+  return {'sequence': [state], 'channels': channels, 'timestep_scales': [1]}
 }
 
 export function createGUI(parameters) {
