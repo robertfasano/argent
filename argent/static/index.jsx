@@ -33,7 +33,7 @@ const theme = createMuiTheme({
 });
 
 function initialState(channels) {
-  const state = {'duration': 1,
+  const state = {'duration': '1',
                  'ttl': {},
                  'dac': {},
                  'dds': {},

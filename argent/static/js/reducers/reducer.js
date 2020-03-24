@@ -109,7 +109,7 @@ export default function reducer(state=[], action) {
 
       case 'timing/insert':
         return produce(state, draft => {
-          const newStep = {'ttl': {}, 'dac': {}, 'dds': {}, 'adc': {}, 'duration': 1}
+          const newStep = {'ttl': {}, 'dac': {}, 'dds': {}, 'adc': {}, 'duration': '1'}
 
           for (let channel of state['channels'].TTL) {
             newStep['ttl'][channel] = false
