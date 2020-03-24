@@ -12,9 +12,16 @@ import ScaledInput from './ScaledInput.jsx'
 import FixedUnitInput from './FixedUnitInput.jsx'
 import {connect} from 'react-redux'
 import {actions} from './reducers/reducer.js'
+import {gradient} from './colors.js'
 
 function DDSButton(props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
+
+  let color = "#D3D3D3"
+  if (props.on) {
+    color = gradient("#004e67", "#D3D3D3", 0, 31.5, props.attenuation)
+  }
+
   const handleClick = event => {
     setAnchorEl(event.currentTarget)
   }
@@ -39,7 +46,7 @@ function DDSButton(props) {
     <TableCell component="th" scope="row" key={props.timestep}>
       <Button variant="contained"
               disableRipple={true}
-              style={{backgroundColor: props.on? '#ffff00': '#D3D3D3'}}
+              style={{backgroundColor: color}}
               onClick={(event) => handleClick(event)}
               >
         {''}
@@ -80,7 +87,6 @@ function DDSButton(props) {
     </TableCell>
 )
 }
-
 
 function mapStateToProps(state, ownProps){
   return {frequency: state['sequence'][ownProps.timestep]['dds'][ownProps.channel]['frequency'],
