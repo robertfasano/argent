@@ -35,7 +35,11 @@ function precisionOf(n) {
   // remove decimal point
   n = n.replace('.', '')
 
-  return n.length
+  let prec = n.length
+  if (prec == 0) {
+    prec = 1
+  }
+  return prec
 }
 
 function preciseString(number, precision) {
@@ -46,14 +50,14 @@ function preciseString(number, precision) {
 function ScaledInput(props) {
   const [scale, setScale] = [props.scale, props.setScale]
   const [displayValue, setDisplayValue] = React.useState((props.value/scale).toString())
-
   syncDisplayValue()
 
   function syncDisplayValue() {
     // Because the displayValue is a separate state from props.value, they can
     // desynchronize if props.value is changed from outside this component. This
     // function checks for this and resynchronizes if necessary.
-    if (props.value == '') {
+    if (props.value == '' & displayValue != '') {
+      setDisplayValue('')
       return
     }
     if (props.value / scale != displayValue) {
@@ -96,13 +100,20 @@ function ScaledInput(props) {
     if (scaleValue == null){
       scaleValue = scale
     }
-    let newValue = preciseString(value*scaleValue, precisionOf(value))
+    let newValue = ''
+    if (value != '') {
+      newValue = preciseString(value*scaleValue, precisionOf(value))
+    }
     props.onChange(newValue)
     setDisplayValue(value)
 
   }
 
   function changeUnits(newScale) {
+    if (props.value == '') {
+      setScale(newScale)
+      return
+    }
     let oldScale = scale
     let newValue = preciseString(props.value*newScale/oldScale, precisionOf(displayValue))
     props.onChange(newValue)
