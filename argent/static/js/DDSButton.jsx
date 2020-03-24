@@ -9,6 +9,7 @@ import Box from '@material-ui/core/Box'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import Switch from '@material-ui/core/Switch';
 import ScaledInput from './ScaledInput.jsx'
+import FixedUnitInput from './FixedUnitInput.jsx'
 import {connect} from 'react-redux'
 import {actions} from './reducers/reducer.js'
 
@@ -69,16 +70,10 @@ function DDSButton(props) {
         />
       </Box>
       <Box m={1}>
-        <TextField onChange = {(event) => updateAttenuation(event.target.value)}
-                   value = {props.attenuation}
-                   variant = "outlined"
-                   size = "small"
-                   label="Attenuation"
-                   InputProps={{
-                     endAdornment: <InputAdornment position="end">
-                                    dB
-                                   </InputAdornment>
-                   }}
+        <FixedUnitInput value={props.attenuation}
+                        onChange = {(event) => updateAttenuation(event.target.value)}
+                        label = 'Attenuation'
+                        unit = 'dB'
         />
       </Box>
       </Popover>
