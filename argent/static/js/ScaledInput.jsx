@@ -4,121 +4,109 @@ import React from 'react';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-function precisionOf(n) {
-  // Returns the number of significant figures in a number or string.
-  n = n.toString()
-
-  // remove trailing zeros with no decimal point
-  if (!n.includes('.')) {
-    while (true) {
-      let char = n.slice(-1)
-      if (char == '0') {
-        n = n.substring(0, n.length - 1)
-      }
-      else {
-        break
-      }
-    }
+function decimalPlaces(value, precision) {
+  // Determines the number of decimal places a value should have for the
+  // desired precision
+  value = Math.abs(value).toString()
+  if (value == 0) {
+    return precision-1
   }
+  let digits = precision - Math.floor(Math.log10(value))-1
 
-  // remove leading zeros
-  while (true) {
-    let char = n.charAt(0)
-    if (char == '0' || char == '.') {
-      n = n.slice(1)
-    }
-    else {
-      break
-    }
-  }
-
-  // remove decimal point
-  n = n.replace('.', '')
-
-  let prec = n.length
-  if (prec == 0) {
-    prec = 1
-  }
-  return prec
+  return Math.max(0, digits)
 }
 
-function preciseString(number, precision) {
-  // Converts a number into a string representation with the desired precision
-  return parseFloat(number.toPrecision(precision)).toString()
+function precisionOf(n) {
+  // Returns the number of significant figures in a number or string.
+  n = n.split('e')[0]     // compute precision of mantissa only
+  n = n.replace('-', '')
+  // special case: if equal to zero, return the number of zeros to avoid
+  // overwriting user input
+  if (n == 0) {
+    n = n.replace('.', '')
+    return n.length
+  }
+
+  if (!n.includes('.')) {
+    n = n.replace(/0+$/, "")   // remove trailing zeros with no decimal point
+  }
+  n = n.replace(/^0*\.0*/, "")  // remove leading zeros before and after decimal point
+  n = n.replace('.', '')  // remove decimal point
+  return n.length
+}
+
+function scaleString(str, scale) {
+  // Multiplies a passed number in string form by a scale factor, maintaining
+  // the original precision
+
+  // add a leading zero to decimal numbers for consistency
+  if (str.charAt(0) == '.') {
+    str = str.replace('.', '0.')
+  }
+  else if (str.substring(0, 2) == '-.') {
+    str = str.replace('-.', '-0.')
+  }
+
+  let number = Math.abs(str) * scale
+
+  let places = decimalPlaces(number, precisionOf(str))
+  number = number.toFixed(places)
+  if (str.charAt(0) == '-') {
+    number = '-' + number
+  }
+
+  return number
 }
 
 function ScaledInput(props) {
   const [scale, setScale] = [props.scale, props.setScale]
   const [displayValue, setDisplayValue] = React.useState((props.value/scale).toString())
+  const [hasTrailingDecimal, setTrailingDecimal] = React.useState(props.value.slice(-1) == '.')
+  let exceptions = ['', '-', '.', '-.']
   syncDisplayValue()
 
   function syncDisplayValue() {
     // Because the displayValue is a separate state from props.value, they can
-    // desynchronize if props.value is changed from outside this component. This
-    // function checks for this and resynchronizes if necessary.
-    if (props.value == '' & displayValue != '') {
-      setDisplayValue('')
+    // desynchronize if props.value is changed from outside this component, e.g.
+    // when swapping the order of timesteps. This function checks for this and
+    // resynchronizes if necessary.
+    if (exceptions.includes(props.value)) {
+      if (displayValue != props.value) {
+        setDisplayValue(props.value)
+      }
       return
     }
-    if (props.value / scale != displayValue) {
-      let newValue = preciseString(props.value/scale, precisionOf(props.value))
+    let newValue = scaleString(props.value, 1/scale)
+    if (hasTrailingDecimal) {
+      newValue += '.'
+    }
+    if (newValue != displayValue) {
       setDisplayValue(newValue)
     }
   }
-  function scaleInitialValue() {
-    // Set the initial unit based on the passed value. Examples:
-    //    10 -> 10 V
-    //    0.01 -> 10 mV
-    //    0.00001 -> 100 uV
-    if (props.value == 0) {
-      return
-    }
-    const scaleFactors = Object.values(props.units).sort()
-    var expof10 = Math.log10(props.value)
 
-    var sign = 1
-    if (expof10 > 0) {
-      expof10 = Math.floor(expof10/3)*3
-      sign = 0
+  function onChange(value) {
+    let newValue = value
+    if (!exceptions.includes(value)) {
+      newValue = scaleString(value, scale)
     }
-    else {
-      expof10 = Math.floor((-expof10 + 3) / 3) * (-3)
-    }
-    var scaledValue = props.value / 10**expof10
-    if (scaledValue >= 1000.) {
-      scaledValue /= 1000.0
-      expof10 += 3*sign
-    }
-
-    const factor = 10**expof10
-    if (scaleFactors.includes(factor)) {
-      setScale(factor)
-    }
-  }
-
-  function onChange(value, scaleValue) {
-    if (scaleValue == null){
-      scaleValue = scale
-    }
-    let newValue = ''
-    if (value != '') {
-      newValue = preciseString(value*scaleValue, precisionOf(value))
-    }
+    setTrailingDecimal(value.slice(-1) == '.')
     props.onChange(newValue)
     setDisplayValue(value)
-
+    if (0 < Math.abs(value) & Math.abs(value) < 1e-3) {
+      alert('Warning: numerical value too small. Choose an appropriate metric prefix.')
+    }
   }
 
   function changeUnits(newScale) {
-    if (props.value == '') {
+    if (exceptions.includes(props.value)) {
       setScale(newScale)
       return
     }
-    let oldScale = scale
-    let newValue = preciseString(props.value*newScale/oldScale, precisionOf(displayValue))
+    let newValue = scaleString(props.value, newScale/scale)
+
     props.onChange(newValue)
     setScale(newScale)
-
   }
 
   return (
