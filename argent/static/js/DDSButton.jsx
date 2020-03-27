@@ -2,23 +2,18 @@ import React from 'react';
 import Button from '@material-ui/core/Button';
 import Popover from '@material-ui/core/Popover';
 import TableCell from '@material-ui/core/TableCell';
-import Typography from '@material-ui/core/Typography';
-import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid'
 import Box from '@material-ui/core/Box'
-import InputAdornment from '@material-ui/core/InputAdornment'
 import Switch from '@material-ui/core/Switch';
 import ScaledInput from './ScaledInput.jsx'
 import FixedUnitInput from './FixedUnitInput.jsx'
 import ModeSelector from './ModeSelector.jsx'
 import {connect} from 'react-redux'
-import {actions} from './reducers/reducer.js'
 import {gradient} from './colors.js'
-
 
 function getColor(value) {
   if (value == "") {
-    return "#D3D3D3"
+    return '#004e67'
   }
   return gradient('#004e67', "#D3D3D3", 0, 31.5, value)
 }
@@ -28,11 +23,12 @@ function DDSButton(props) {
 
   let color = "#D3D3D3"
   if (props.on) {
-    color = getColor(props.attenuation)
+    color = getColor(props.attenuation.setpoint)
   }
-  let constantStyle = {backgroundColor: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`}  // changing gradient to uniform color is faster than setting backgroundColor
-  let ramp = `linear-gradient(90deg, ${getColor(props.attenuation_start)} 0%, ${getColor(props.attenuation_stop)} 100%)`
+  let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`}  // changing gradient to uniform color is faster than setting backgroundColor
+  let ramp = `linear-gradient(90deg, ${getColor(props.attenuation.start)} 0%, ${getColor(props.attenuation.stop)} 100%)`
   let rampStyle = props.on? {background: ramp}: constantStyle
+  let style = props.attenuation.mode=='constant'? constantStyle: rampStyle
 
   const handleClick = event => {
     setAnchorEl(event.currentTarget)
@@ -42,45 +38,24 @@ function DDSButton(props) {
   }
   const open = Boolean(anchorEl);
 
-  function updateFrequency(value) {
-    props.dispatch(actions.dds.frequency.update(props.timestep, props.channel, value))
+  function dispatch(type, value) {
+    props.dispatch({type: type,
+                    timestep: props.timestep,
+                    channel: props.channel,
+                    value: value})
   }
-
-  function updateAttenuation(value) {
-    props.dispatch(actions.dds.attenuation.update(props.timestep, props.channel, value))
-  }
-
-  const handleFrequencyMode = event => {
-    props.dispatch(actions.dds.frequency.setMode(props.timestep, props.channel, event.target.value))
-  };
-
-  const handleAttenuationMode = event => {
-    props.dispatch(actions.dds.attenuation.setMode(props.timestep, props.channel, event.target.value))
-  };
 
   function updateSwitch(event) {
-    props.dispatch(actions.dds.toggle(props.timestep, props.channel))
-  }
-
-  function updateFrequencyStart(value) {
-    props.dispatch(actions.dds.frequency.updateStart(props.timestep, props.channel, value))
-  }
-  function updateFrequencyStop(value) {
-    props.dispatch(actions.dds.frequency.updateStop(props.timestep, props.channel, value))
-  }
-
-  function updateAttenuationStart(value) {
-    props.dispatch(actions.dds.attenuation.updateStart(props.timestep, props.channel, value))
-  }
-  function updateAttenuationStop(value) {
-    props.dispatch(actions.dds.attenuation.updateStop(props.timestep, props.channel, value))
+    props.dispatch({type: 'dds/toggle',
+                    timestep: props.timestep,
+                    channel: props.channel})
   }
 
   return (
     <TableCell component="th" scope="row" key={props.timestep}>
       <Button variant="contained"
               disableRipple={true}
-              style={props.attenuation_mode=='constant'? constantStyle: rampStyle}
+              style={style}
               onClick={(event) => handleClick(event)}
               >
         {''}
@@ -98,98 +73,93 @@ function DDSButton(props) {
           horizontal: 'left',
         }}
       >
-      <Box m={1}>
-        <Switch checked={props.on} onChange={updateSwitch}/>
-      </Box>
-      <Box m={1}>
-        <ModeSelector label={"Frequency"}
-                      value={props.frequency_mode}
-                      onChange={handleFrequencyMode}
-        />
-      </Box>
-      {props.frequency_mode=='constant'? (
         <Box m={1}>
-          <ScaledInput value={props.frequency}
-                         onChange = {updateFrequency}
-                         units = {{'Hz': 1, 'kHz': 1e3, 'MHz': 1e6}}
-                         label = 'Setpoint'
-                         variant = 'outlined'
-                         size = 'small'
-          />
-        </Box>
-      ): null}
-      {props.frequency_mode=='ramp'? (
-        <React.Fragment>
-        <Box m={1}>
-          <ScaledInput value={props.frequency_start}
-                         onChange = {updateFrequencyStart}
-                         units = {{'Hz': 1, 'kHz': 1e3, 'MHz': 1e6}}
-                         label = 'Start'
-                         variant = 'outlined'
-          />
+          <Switch checked={props.on} onChange={updateSwitch}/>
         </Box>
         <Box m={1}>
-          <ScaledInput value={props.frequency_stop}
-                         onChange = {updateFrequencyStop}
-                         units = {{'Hz': 1, 'kHz': 1e3, 'MHz': 1e6}}
-                         label = 'Stop'
-                         variant = 'outlined'
+          <ModeSelector label={"Frequency"}
+                        value={props.frequency.mode}
+                        onChange = {(event) => dispatch('dds/frequency/mode', event.target.value)}
+
           />
         </Box>
-        </React.Fragment>
-      ):
-      null}
-      <Box m={1}>
-        <ModeSelector label={"Attenuation"}
-                      value={props.attenuation_mode}
-                      onChange={handleAttenuationMode}
-        />
-      </Box>
-      {props.attenuation_mode=='constant'? (
+        {props.frequency.mode=='constant'? (
+          <Box m={1}>
+            <ScaledInput value={props.frequency.setpoint}
+                           onChange = {(value) => dispatch('dds/frequency/setpoint', value)}
+                           units = {{'Hz': 1, 'kHz': 1e3, 'MHz': 1e6}}
+                           label = 'Setpoint'
+                           variant = 'outlined'
+                           size = 'small'
+            />
+          </Box>
+        ): null}
+        {props.frequency.mode=='ramp'? (
+          <React.Fragment>
+          <Box m={1}>
+            <ScaledInput value={props.frequency.start}
+                           onChange = {(value) => dispatch('dds/frequency/start', value)}
+                           units = {{'Hz': 1, 'kHz': 1e3, 'MHz': 1e6}}
+                           label = 'Start'
+                           variant = 'outlined'
+            />
+          </Box>
+          <Box m={1}>
+            <ScaledInput value={props.frequency.stop}
+                           onChange = {(value) => dispatch('dds/frequency/stop', value)}
+                           units = {{'Hz': 1, 'kHz': 1e3, 'MHz': 1e6}}
+                           label = 'Stop'
+                           variant = 'outlined'
+            />
+          </Box>
+          </React.Fragment>
+        ):
+        null}
         <Box m={1}>
-          <FixedUnitInput value={props.attenuation}
-                          onChange = {(event) => updateAttenuation(event.target.value)}
-                          label = 'Setpoint'
-                          unit = 'dB'
+          <ModeSelector label={"Attenuation"}
+                        value={props.attenuation.mode}
+                        onChange = {(event) => dispatch('dds/attenuation/mode', event.target.value)}
           />
         </Box>
-      ): null}
-      {props.attenuation_mode=='ramp'? (
-        <React.Fragment>
-        <Box m={1}>
-          <FixedUnitInput value={props.attenuation_start}
-                          onChange = {(event) => updateAttenuationStart(event.target.value)}
-                          label = 'Start'
-                          unit = 'dB'
-          />
-        </Box>
-        <Box m={1}>
-          <FixedUnitInput value={props.attenuation_stop}
-                          onChange = {(event) => updateAttenuationStop(event.target.value)}
-                          label = 'Stop'
-                          unit = 'dB'
-          />
-        </Box>
-        </React.Fragment>
-      ):
-      null}
+        {props.attenuation.mode=='constant'? (
+          <Box m={1}>
+            <FixedUnitInput value={props.attenuation.setpoint}
+                            onChange = {(event) => dispatch('dds/attenuation/setpoint', event.target.value)}
+                            label = 'Setpoint'
+                            unit = 'dB'
+            />
+          </Box>
+        ): null}
+        {props.attenuation.mode=='ramp'? (
+          <React.Fragment>
+          <Box m={1}>
+            <FixedUnitInput value={props.attenuation.start}
+                            onChange = {(event) => dispatch('dds/attenuation/start', event.target.value)}
+                            label = 'Start'
+                            unit = 'dB'
+            />
+          </Box>
+          <Box m={1}>
+            <FixedUnitInput value={props.attenuation.stop}
+                            onChange = {(event) => dispatch('dds/attenuation/stop', event.target.value)}
+                            label = 'Stop'
+                            unit = 'dB'
+            />
+          </Box>
+          </React.Fragment>
+        ):
+        null}
 
       </Popover>
     </TableCell>
-)
-}
+)}
 
 function mapStateToProps(state, ownProps){
   let dict = state['sequence'][ownProps.timestep]['dds'][ownProps.channel]
-  return {frequency: dict.frequency.setpoint,
-          frequency_start: dict.frequency.start,
-          frequency_stop: dict.frequency.stop,
-          attenuation: dict.attenuation.setpoint,
-          attenuation_start: dict.attenuation.start,
-          attenuation_stop: dict.attenuation.stop,
-          on: dict.on,
-          frequency_mode: dict.frequency.mode,
-          attenuation_mode: dict.attenuation.mode
+  return {frequency: dict.frequency,
+          attenuation: dict.attenuation,
+          on: dict.on
         }
 }
+
 export default connect(mapStateToProps)(DDSButton)

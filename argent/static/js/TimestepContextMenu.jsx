@@ -2,7 +2,6 @@ import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
 import IconButton from '@material-ui/core/IconButton';
 import {connect} from 'react-redux'
-import {actions} from './reducers/reducer.js'
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MenuIcon from '@material-ui/icons/Menu';
@@ -20,25 +19,17 @@ function TimestepContextMenu(props) {
     setAnchorEl(null);
   };
 
-  function moveLeft(index) {
-    props.dispatch(actions.timing.moveLeft(index))
+  function dispatch(type) {
+    // send a store update and close the menu
+    props.dispatch({type: type, timestep: props.timestep})
     setAnchorEl(null);
   }
 
-  function moveRight(index) {
-    props.dispatch(actions.timing.moveRight(index))
+  function insertTimestep(timestep) {
+    props.dispatch({type: 'timestep/insert', timestep: timestep})
     setAnchorEl(null);
   }
 
-  function insertTimestep(index) {
-    props.dispatch(actions.timing.insert(index))
-    setAnchorEl(null);
-  }
-
-  function deleteTimestep(index) {
-    props.dispatch(actions.timing.delete(index))
-    setAnchorEl(null);
-  }
   return (
     <TableCell onMouseEnter={() => setVisible(true)}
                onMouseLeave={() => setVisible(false)}
@@ -57,11 +48,24 @@ function TimestepContextMenu(props) {
       open={Boolean(anchorEl)}
       onClose={handleClose}
     >
-      {props.index>0? <MenuItem onClick={() => moveLeft(props.index)}>Move left</MenuItem> : null}
-      {props.index<props.length-1? <MenuItem onClick={() => moveRight(props.index)}>Move right</MenuItem> : null}
-      <MenuItem onClick={() => insertTimestep(props.index-1)}>Insert left</MenuItem>
-      <MenuItem onClick={() => insertTimestep(props.index)}>Insert right</MenuItem>
-      {props.length>1? <MenuItem onClick={() => deleteTimestep(props.index)}>Delete</MenuItem> : null}
+      {props.timestep>0?
+        <MenuItem onClick={() => dispatch('timestep/moveLeft')}>
+          Move left
+        </MenuItem> : null}
+      {props.timestep<props.length-1?
+        <MenuItem onClick={() => dispatch('timestep/moveRight')}>
+          Move right
+        </MenuItem> : null}
+      <MenuItem onClick={() => insertTimestep(props.timestep-1)}>
+        Insert left
+      </MenuItem>
+      <MenuItem onClick={() => insertTimestep(props.timestep)}>
+        Insert right
+      </MenuItem>
+      {props.length>1?
+        <MenuItem onClick={() => dispatch('timestep/delete')}>
+          Delete
+        </MenuItem> : null}
     </Menu>
   </TableCell>
   )

@@ -11,7 +11,6 @@ import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import {connect} from 'react-redux'
-import {actions} from './reducers/reducer.js'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import TextField from '@material-ui/core/TextField';
@@ -31,12 +30,12 @@ function TTLTable(props) {
     setExpanded({...expanded, [name]: !expanded[name]})
   }
 
-  function updateTimestep(index, dt) {
-    props.dispatch(actions.timing.update(index, dt))
+  function updateTimestep(timestep, duration) {
+    props.dispatch({type: 'timestep/duration', timestep: timestep, duration: duration})
   }
 
-  function setScale(index, value) {
-    props.dispatch(actions.scale.update(index, value))
+  function setScale(timestep, value) {
+    props.dispatch({type: 'timestep/scale', timestep: timestep, value: value})
   }
 
   return (
@@ -48,7 +47,7 @@ function TTLTable(props) {
             <TableRow>
               <TableCell />
               {props.state.map((i, index) => (
-                <TimestepContextMenu index={index} length={props.state.length} key={index}/>
+                <TimestepContextMenu timestep={index} length={props.state.length} key={index}/>
               ))}
             </TableRow>
             {/* timesteps row */}

@@ -4,117 +4,129 @@ export default function reducer(state=[], action) {
   switch(action.type) {
     default : return state;
 
+    case 'adc/samples':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['adc'][action.channel]['samples'] = action.value
+      })
+
     case 'adc/toggle':
       let checked = state['sequence'][action.timestep]['adc'][action.channel]['on']
       return produce(state, draft => {
         draft['sequence'][action.timestep]['adc'][action.channel]['on'] = !checked
       })
 
-    case 'adc/updateSamples':
+    case 'dac/mode':
       return produce(state, draft => {
-        draft['sequence'][action.timestep]['adc'][action.channel]['samples'] = action.value
+        draft['sequence'][action.timestep]['dac'][action.channel]['mode'] = action.value
       })
 
-    case 'ttl/check':
+    case 'dac/setpoint':
       return produce(state, draft => {
-        draft['sequence'][action.timestep]['ttl'][action.channel] = true
+        draft['sequence'][action.timestep]['dac'][action.channel]['setpoint'] = action.value
       })
 
-      case 'ttl/uncheck':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['ttl'][action.channel] = false
-        })
+    case 'dac/start':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dac'][action.channel]['start'] = action.value
+      })
 
-      case 'ttl/toggle':
-        let ttlChecked = state['sequence'][action.timestep]['ttl'][action.channel]
-        if (ttlChecked) {
-          return reducer(state=state, action={'type': 'ttl/uncheck', 'channel': action.channel, 'timestep': action.timestep})
+    case 'dac/stop':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dac'][action.channel]['stop'] = action.value
+      })
+
+    case 'dds/attenuation/mode':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['mode'] = action.value
+      })
+
+    case 'dds/attenuation/setpoint':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['setpoint'] = action.value
+      })
+
+    case 'dds/attenuation/start':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['start'] = action.value
+      })
+
+    case 'dds/attenuation/stop':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['stop'] = action.value
+      })
+
+    case 'dds/frequency/mode':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['mode'] = action.value
+      })
+
+    case 'dds/frequency/setpoint':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['setpoint'] = action.value
+      })
+
+    case 'dds/frequency/start':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['start'] = action.value
+      })
+
+    case 'dds/frequency/stop':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['stop'] = action.value
+      })
+
+    case 'dds/toggle':
+      const ddsChecked = state['sequence'][action.timestep]['dds'][action.channel]['on']
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['dds'][action.channel]['on'] = !ddsChecked
+      })
+
+    case 'sequence/retrieve':
+      return produce(state, draft => {
+        draft['sequence'] = draft['sequences'][action.name]
+        draft['active_sequence'] = action.name
+      })
+
+    case 'sequence/store':
+      return produce(state, draft => {
+        draft['sequences'][action.name] = draft['sequence']
+        draft['active_sequence'] = action.name
+      })
+
+    case 'timestep/delete':
+      return produce(state, draft => {
+        draft['sequence'].splice(action.timestep, 1)
+      })
+
+    case 'timestep/duration':
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['duration'] = action.duration
+      })
+
+    case 'timestep/insert':
+      return produce(state, draft => {
+        const newStep = {'ttl': {}, 'dac': {}, 'dds': {}, 'adc': {}, 'duration': '1'}
+
+        for (let channel of state['channels'].TTL) {
+          newStep['ttl'][channel] = false
         }
-        else {
-          return reducer(state=state, action={'type': 'ttl/check', 'channel': action.channel, 'timestep': action.timestep})
+        for (let channel of state['channels'].DAC) {
+          newStep['dac'][channel] = {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''}
+        }
+        for (let channel of state['channels'].DDS) {
+          newStep['dds'][channel] = {'frequency': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
+                                     'attenuation': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
+                                     'on': false}
+        }
+        for (let channel of state['channels'].ADC) {
+          newStep['adc'][channel] = {'samples': '', 'on': false}
         }
 
-      case 'dac/update':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dac'][action.channel]['setpoint'] = action.value
-        })
+        draft['sequence'].splice(action.timestep+1, 0, newStep)
+        draft['timestep_scales'].splice(action.timestep+1, 0, 1)
+      })
 
-      case 'dac/updateStart':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dac'][action.channel]['start'] = action.value
-        })
-
-      case 'dac/updateStop':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dac'][action.channel]['stop'] = action.value
-        })
-
-      case 'dac/setMode':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dac'][action.channel]['mode'] = action.value
-        })
-
-      case 'dds/updateAttenuation':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['setpoint'] = action.value
-        })
-
-      case 'dds/attenuation/start':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['start'] = action.value
-        })
-
-      case 'dds/attenuation/stop':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['stop'] = action.value
-        })
-
-      case 'dds/updateFrequency':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['setpoint'] = action.value
-        })
-
-        case 'dds/frequency/start':
-          return produce(state, draft => {
-            draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['start'] = action.value
-          })
-
-        case 'dds/frequency/stop':
-          return produce(state, draft => {
-            draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['stop'] = action.value
-          })
-
-      case 'dds/setFrequencyMode':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['mode'] = action.value
-        })
-
-      case 'dds/setAttenuationMode':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['mode'] = action.value
-        })
-
-      case 'dds/check':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dds'][action.channel]['on'] = true
-        })
-
-      case 'dds/uncheck':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['dds'][action.channel]['on'] = false
-        })
-
-      case 'dds/toggle':
-        const ddsChecked = state['sequence'][action.timestep]['dds'][action.channel]['on']
-
-        if (ddsChecked) {
-          return reducer(state=state, action={'type': 'dds/uncheck', 'channel': action.channel, 'timestep': action.timestep})
-        }
-        else {
-          return reducer(state=state, action={'type': 'dds/check', 'channel': action.channel, 'timestep': action.timestep})
-        }
-
-      case 'timing/moveLeft':
+    case 'timestep/moveLeft':
       return produce(state, draft => {
         let t = action.timestep
         let prev = action.timestep - 1
@@ -128,7 +140,7 @@ export default function reducer(state=[], action) {
 
       })
 
-      case 'timing/moveRight':
+    case 'timestep/moveRight':
       return produce(state, draft => {
         let t = action.timestep
         let next = action.timestep + 1
@@ -142,160 +154,16 @@ export default function reducer(state=[], action) {
 
       })
 
-      case 'timing/delete':
-        return produce(state, draft => {
-          draft['sequence'].splice(action.timestep, 1)
-        })
+    case 'timestep/scale':
+      return produce(state, draft => {
+        draft['timestep_scales'][action.timestep] = action.value
+      })
 
-      case 'timing/update':
-        return produce(state, draft => {
-          draft['sequence'][action.timestep]['duration'] = action.duration
-        })
+    case 'ttl/toggle':
+      let ttlChecked = state['sequence'][action.timestep]['ttl'][action.channel]
+      return produce(state, draft => {
+        draft['sequence'][action.timestep]['ttl'][action.channel] = !ttlChecked
+      })
 
-      case 'timing/insert':
-        return produce(state, draft => {
-          const newStep = {'ttl': {}, 'dac': {}, 'dds': {}, 'adc': {}, 'duration': '1'}
-
-          for (let channel of state['channels'].TTL) {
-            newStep['ttl'][channel] = false
-          }
-          for (let channel of state['channels'].DAC) {
-            newStep['dac'][channel] = {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''}
-          }
-          for (let channel of state['channels'].DDS) {
-            newStep['dds'][channel] = {'frequency': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
-                                       'attenuation': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
-                                       'on': false}
-          }
-          for (let channel of state['channels'].ADC) {
-            newStep['adc'][channel] = {'samples': '', 'on': false}
-          }
-
-          draft['sequence'].splice(action.timestep+1, 0, newStep)
-          draft['timestep_scales'].splice(action.timestep+1, 0, 1)
-        })
-
-      case 'scale/update':
-        return produce(state, draft => {
-          draft['timestep_scales'][action.timestep] = action.value
-        })
     }
 }
-
-
-function toggleADC(timestep, channel) {
-  return {type: 'adc/toggle', timestep: timestep, channel: channel}
-}
-
-function updateADCSamples(timestep, channel, value) {
-  return {type: 'adc/updateSamples', timestep: timestep, channel: channel, value: value}
-}
-
-function updateScale(timestep, value) {
-  return {type: 'scale/update', timestep: timestep, value: value}
-}
-
-function toggleTTL(timestep, channel) {
-  return {type: 'ttl/toggle', timestep: timestep, channel: channel}
-}
-
-function updateDAC(timestep, channel, value) {
-  return {type: 'dac/update', timestep: timestep, channel: channel, value: value}
-}
-
-function updateDACStart(timestep, channel, value) {
-  return {type: 'dac/updateStart', timestep: timestep, channel: channel, value: value}
-}
-
-function updateDACStop(timestep, channel, value) {
-  return {type: 'dac/updateStop', timestep: timestep, channel: channel, value: value}
-}
-
-function setDACMode(timestep, channel, value) {
-  return {type: 'dac/setMode', timestep: timestep, channel: channel, value: value}
-}
-
-function setFrequencyMode(timestep, channel, value) {
-  return {type: 'dds/setFrequencyMode', timestep: timestep, channel: channel, value: value}
-}
-
-function setAttenuationMode(timestep, channel, value) {
-  return {type: 'dds/setAttenuationMode', timestep: timestep, channel: channel, value: value}
-}
-
-export function toggleDDS(timestep, channel) {
-  return {type: 'dds/toggle', timestep: timestep, channel: channel}
-}
-
-export function updateAttenuation(timestep, channel, value) {
-  return {type: 'dds/updateAttenuation', timestep: timestep, channel: channel, value: value}
-}
-
-export function updateAttenuationStart(timestep, channel, value) {
-  return {type: 'dds/attenuation/start', timestep: timestep, channel: channel, value: value}
-}
-
-export function updateAttenuationStop(timestep, channel, value) {
-  return {type: 'dds/attenuation/stop', timestep: timestep, channel: channel, value: value}
-}
-
-export function updateFrequency(timestep, channel, value) {
-  return {type: 'dds/updateFrequency', timestep: timestep, channel: channel, value: value}
-}
-
-export function updateFrequencyStart(timestep, channel, value) {
-  return {type: 'dds/frequency/start', timestep: timestep, channel: channel, value: value}
-}
-
-export function updateFrequencyStop(timestep, channel, value) {
-  return {type: 'dds/frequency/stop', timestep: timestep, channel: channel, value: value}
-}
-
-export function updateTimestep(timestep, duration) {
-  return {type: 'timing/update', timestep: timestep, duration: duration}
-}
-
-export function insertTimestep(timestep) {
-  return {type: 'timing/insert', timestep: timestep}
-}
-
-export function deleteTimestep(timestep) {
-  return {type: 'timing/delete', timestep: timestep}
-}
-
-export function moveLeft(timestep) {
-  return {type: 'timing/moveLeft', timestep: timestep}
-}
-
-export function moveRight(timestep) {
-  return {type: 'timing/moveRight', timestep: timestep}
-}
-
-const actions = {'adc': {'toggle': toggleADC,
-                         'samples': {'update': updateADCSamples}
-                        },
-                'ttl': {'toggle': toggleTTL},
-                 'dac': {'update': updateDAC,
-                         'updateStart': updateDACStart,
-                         'updateStop': updateDACStop,
-                         'setMode': setDACMode},
-                 'dds': {'frequency': {'update': updateFrequency,
-                                       'updateStart': updateFrequencyStart,
-                                       'updateStop': updateFrequencyStop,
-                                       'setMode': setFrequencyMode},
-                         'attenuation': {'update': updateAttenuation,
-                                         'updateStart': updateAttenuationStart,
-                                         'updateStop': updateAttenuationStop,
-                                         'setMode': setAttenuationMode},
-                         'toggle': toggleDDS,
-                       },
-                 'timing': {'update': updateTimestep,
-                            'insert': insertTimestep,
-                            'delete': deleteTimestep,
-                            'moveLeft': moveLeft,
-                            'moveRight': moveRight
-                          },
-                'scale': {'update': updateScale}
-               }
-
-export {actions}

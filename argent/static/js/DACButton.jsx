@@ -2,16 +2,12 @@ import React from 'react';
 import Button from '@material-ui/core/Button';
 import Popover from '@material-ui/core/Popover';
 import TableCell from '@material-ui/core/TableCell';
-import Typography from '@material-ui/core/Typography';
-import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid'
 import Box from '@material-ui/core/Box'
 import ScaledInput from './ScaledInput.jsx'
 import ModeSelector from './ModeSelector.jsx'
 import {gradient} from './colors.js'
 import {connect} from 'react-redux'
-import {actions} from './reducers/reducer.js'
-
 
 function getColor(value) {
   let color = "#D3D3D3"
@@ -30,10 +26,12 @@ function getColor(value) {
 function DACButton(props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
 
-  const handleModeChange = event => {
-    props.dispatch(actions.dac.setMode(props.timestep, props.channel, event.target.value))
-  };
-
+  function dispatch(type, value) {
+    props.dispatch({type: type,
+                    timestep: props.timestep,
+                    channel: props.channel,
+                    value: value})
+  }
 
   const handleClick = event => {
     setAnchorEl(event.currentTarget)
@@ -43,17 +41,7 @@ function DACButton(props) {
   }
   const open = Boolean(anchorEl);
 
-  function updateVoltage(value) {
-    props.dispatch(actions.dac.update(props.timestep, props.channel, value))
-  }
-  function updateStart(value) {
-    props.dispatch(actions.dac.updateStart(props.timestep, props.channel, value))
-  }
-  function updateStop(value) {
-    props.dispatch(actions.dac.updateStop(props.timestep, props.channel, value))
-  }
-
-  let color = getColor(props.value)
+  let color = getColor(props.setpoint)
   let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`} // changing gradient to uniform color is faster than setting backgroundColor
   let ramp = `linear-gradient(90deg, ${getColor(props.start)} 0%, ${getColor(props.stop)} 100%)`
   let rampStyle = {background: ramp}
@@ -78,54 +66,51 @@ function DACButton(props) {
           horizontal: 'left',
         }}
       >
-      <Box m={1}>
-        <ModeSelector label={"Voltage"}
-                      value={props.mode}
-                      onChange={handleModeChange}
-        />
-      </Box>
-      {props.mode=='constant'? (
         <Box m={1}>
-          <ScaledInput value={props.value}
-                         onChange = {updateVoltage}
+          <ModeSelector label={"Voltage"}
+                        value={props.mode}
+                        onChange = {(event) => dispatch('dac/mode', event.target.value)}
+          />
+        </Box>
+        {props.mode=='constant'? (
+          <Box m={1}>
+            <ScaledInput value={props.setpoint}
+                         onChange = {(value) => dispatch('dac/setpoint', value)}
                          units = {{'V': 1, 'mV': 1e-3, 'uV': 1e-6}}
                          label = 'Setpoint'
                          variant = 'outlined'
-          />
-        </Box>
-      ):
-      null}
-      {props.mode=='ramp'? (
-        <React.Fragment>
-        <Box m={1}>
-          <ScaledInput value={props.start}
-                         onChange = {updateStart}
-                         units = {{'V': 1, 'mV': 1e-3, 'uV': 1e-6}}
-                         label = 'Start'
-                         variant = 'outlined'
-          />
-        </Box>
-        <Box m={1}>
-          <ScaledInput value={props.stop}
-                         onChange = {updateStop}
+            />
+          </Box>
+        ):
+        null}
+        {props.mode=='ramp'? (
+          <React.Fragment>
+          <Box m={1}>
+            <ScaledInput value={props.start}
+                           onChange = {(value) => dispatch('dac/start', value)}
+                           units = {{'V': 1, 'mV': 1e-3, 'uV': 1e-6}}
+                           label = 'Start'
+                           variant = 'outlined'
+            />
+          </Box>
+          <Box m={1}>
+            <ScaledInput value={props.stop}
+                         onChange = {(value) => dispatch('dac/stop', value)}
                          units = {{'V': 1, 'mV': 1e-3, 'uV': 1e-6}}
                          label = 'Stop'
                          variant = 'outlined'
-          />
-        </Box>
-        </React.Fragment>
-      ):
-      null}
-
-
+            />
+          </Box>
+          </React.Fragment>
+        ):
+        null}
       </Popover>
     </TableCell>
-)
-}
+)}
 
 function mapStateToProps(state, ownProps){
   let dict = state['sequence'][ownProps.timestep]['dac'][ownProps.channel]
-  return {value: dict.setpoint,
+  return {setpoint: dict.setpoint,
           start: dict.start,
           stop: dict.stop,
           mode: dict.mode
