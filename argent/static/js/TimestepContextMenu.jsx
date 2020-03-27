@@ -25,6 +25,14 @@ function TimestepContextMenu(props) {
     setAnchorEl(null);
   }
 
+  function moveLeft() {
+    props.dispatch({type: 'timestep/swap', a: props.timestep, b: props.timestep-1})
+  }
+
+  function moveRight() {
+    props.dispatch({type: 'timestep/swap', a: props.timestep, b: props.timestep+1})
+  }
+
   function insertTimestep(timestep) {
     props.dispatch({type: 'timestep/insert', timestep: timestep})
     setAnchorEl(null);
@@ -49,11 +57,11 @@ function TimestepContextMenu(props) {
       onClose={handleClose}
     >
       {props.timestep>0?
-        <MenuItem onClick={() => dispatch('timestep/moveLeft')}>
+        <MenuItem onClick={moveLeft}>
           Move left
         </MenuItem> : null}
       {props.timestep<props.length-1?
-        <MenuItem onClick={() => dispatch('timestep/moveRight')}>
+        <MenuItem onClick={moveRight}>
           Move right
         </MenuItem> : null}
       <MenuItem onClick={() => insertTimestep(props.timestep-1)}>

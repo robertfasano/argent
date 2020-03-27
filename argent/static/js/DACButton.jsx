@@ -25,38 +25,53 @@ function getColor(value) {
 
 function DACButton(props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
-
+  const open = Boolean(anchorEl);
   function dispatch(type, value) {
     props.dispatch({type: type,
                     timestep: props.timestep,
                     channel: props.channel,
                     value: value})
   }
+  function getImplicitValues() {
+    let implicitSetpoint = props.setpoint
+    let i = props.timestep-1
+    while (i >= 0 & implicitSetpoint == '') {
+      let voltage = props.sequence[i]
+      implicitSetpoint = voltage.mode == 'constant'? voltage.setpoint : voltage.stop
+      i -= 1
+    }
 
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
-  const open = Boolean(anchorEl);
 
-  let color = getColor(props.setpoint)
+    let implicitStart = props.start
+    i = props.timestep-1
+    while (i >= 0 & implicitStart == '') {
+      let voltage = props.sequence[i]
+      implicitStart = voltage.mode == 'constant'? voltage.setpoint : voltage.stop
+      i -= 1
+    }
+
+    let implicitStop = props.stop == ''? implicitStart: props.stop
+
+    return {setpoint: implicitSetpoint, start: implicitStart, stop: implicitStop}
+  }
+  let implicit = getImplicitValues()
+
+  let color = getColor(implicit.setpoint)
   let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`} // changing gradient to uniform color is faster than setting backgroundColor
-  let ramp = `linear-gradient(90deg, ${getColor(props.start)} 0%, ${getColor(props.stop)} 100%)`
+  let ramp = `linear-gradient(90deg, ${getColor(implicit.start)} 0%, ${getColor(implicit.stop)} 100%)`
   let rampStyle = {background: ramp}
   return (
     <TableCell component="th" scope="row" key={props.timestep}>
       <Button variant="contained"
               disableRipple={true}
               style={props.mode=='constant'? constantStyle: rampStyle}
-              onClick={(event) => handleClick(event)}
+              onClick={(event) => setAnchorEl(event.currentTarget)}
               > <div/>
       </Button>
       <Popover
         open={open}
         anchorEl={anchorEl}
-        onClose={handleClose}
+        onClose={(event) => setAnchorEl(null)}
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'right',
@@ -75,6 +90,7 @@ function DACButton(props) {
         {props.mode=='constant'? (
           <Box m={1}>
             <ScaledInput value={props.setpoint}
+                         placeholder={implicit.setpoint}
                          onChange = {(value) => dispatch('dac/setpoint', value)}
                          units = {{'V': 1, 'mV': 1e-3, 'uV': 1e-6}}
                          label = 'Setpoint'
@@ -87,6 +103,7 @@ function DACButton(props) {
           <React.Fragment>
           <Box m={1}>
             <ScaledInput value={props.start}
+                         placeholder={implicit.start}
                            onChange = {(value) => dispatch('dac/start', value)}
                            units = {{'V': 1, 'mV': 1e-3, 'uV': 1e-6}}
                            label = 'Start'
@@ -95,6 +112,7 @@ function DACButton(props) {
           </Box>
           <Box m={1}>
             <ScaledInput value={props.stop}
+                         placeholder={implicit.stop}
                          onChange = {(value) => dispatch('dac/stop', value)}
                          units = {{'V': 1, 'mV': 1e-3, 'uV': 1e-6}}
                          label = 'Stop'
@@ -108,12 +126,15 @@ function DACButton(props) {
     </TableCell>
 )}
 
+
 function mapStateToProps(state, ownProps){
-  let dict = state['sequence'][ownProps.timestep]['dac'][ownProps.channel]
+  let dict = state['dac'][ownProps.channel][ownProps.timestep]
+  let sequence = state['dac'][ownProps.channel]
   return {setpoint: dict.setpoint,
           start: dict.start,
           stop: dict.stop,
-          mode: dict.mode
+          mode: dict.mode,
+          sequence: sequence
         }
 }
 export default connect(mapStateToProps)(DACButton)

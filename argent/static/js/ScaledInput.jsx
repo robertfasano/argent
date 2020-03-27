@@ -115,6 +115,8 @@ function ScaledInput(props) {
              label={(props.label || '')}
              variant={(props.variant) || 'standard'}
              size={(props.size) || 'medium'}
+             placeholder={props.placeholder}
+             InputLabelProps={{ shrink: true }}
              InputProps={{
                endAdornment: <InputAdornment position="end">
                               <Select disableUnderline value={scale} onChange={(event) => changeUnits(event.target.value)}>

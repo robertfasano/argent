@@ -46,16 +46,16 @@ function TTLTable(props) {
             {/* timestep control icons */}
             <TableRow>
               <TableCell />
-              {props.state.map((i, index) => (
-                <TimestepContextMenu timestep={index} length={props.state.length} key={index}/>
+              {props.duration.map((dt, index) => (
+                <TimestepContextMenu timestep={index} length={props.duration.length} key={index}/>
               ))}
             </TableRow>
             {/* timesteps row */}
             <TableRow>
               <TableCell/>
-              {props.state.map((i, index) => (
+              {props.duration.map((dt, index) => (
                 <TableCell key={index}>
-                  <ScaledInput value={props.state[index]['duration']}
+                  <ScaledInput value={dt}
                                  onChange = {(value) => updateTimestep(index, value)}
                                  units = {{'s': 1, 'ms': 1e-3, 'us': 1e-6}}
                                  scale = {props.timestep_scales[index]}
@@ -80,7 +80,7 @@ function TTLTable(props) {
               {props.channels.TTL.map(i => (
                 <TableRow key={i}>
                   <TableCell> TTL{i} </TableCell>
-                  {props.state.map((t, index) => (
+                  {props.duration.map((dt, index) => (
                     <TTLButton timestep={index} channel={i} key={'ttl-'+i+index}/>
                   ))}
 
@@ -105,7 +105,7 @@ function TTLTable(props) {
         {props.channels.DAC.map(i => (
           <TableRow key={i}>
             <TableCell> DAC{i} </TableCell>
-            {props.state.map((t, index) => (
+            {props.duration.map((t, index) => (
               <DACButton timestep={index} channel={i} key={'dac-'+i+index}/>
             ))}
           </TableRow>
@@ -128,7 +128,7 @@ function TTLTable(props) {
         {props.channels.DDS.map(i => (
           <TableRow key={i}>
             <TableCell> DDS{i} </TableCell>
-            {props.state.map((t, index) => (
+            {props.duration.map((t, index) => (
               <DDSButton timestep={index} channel={i} key={'dds-'+i+index}/>
             ))}
           </TableRow>
@@ -151,7 +151,7 @@ function TTLTable(props) {
     {props.channels.ADC.map(i => (
       <TableRow key={i}>
         <TableCell> ADC{i} </TableCell>
-        {props.state.map((t, index) => (
+        {props.duration.map((t, index) => (
           <ADCButton timestep={index} channel={i} key={'adc-'+i+index}/>
         ))}
       </TableRow>
@@ -166,9 +166,10 @@ function TTLTable(props) {
   );
 }
 
+
 function mapStateToProps(state, ownProps){
   return {channels: state['channels'],
-          state: state['sequence'],
+          duration: state['duration'],
           timestep_scales: state['timestep_scales']
         }
 }

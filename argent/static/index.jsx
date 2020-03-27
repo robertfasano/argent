@@ -32,40 +32,59 @@ const theme = createMuiTheme({
     },
 });
 
-function initialState(channels) {
-  const state = {'duration': '1',
-                 'ttl': {},
-                 'dac': {},
-                 'dds': {},
-                 'adc': {}
-               }
+function initializeState(channels) {
+  let state = {'channels': channels}
+  state['duration'] = ['1']
+  state['timestep_scales'] = [1]
+
+  state['ttl'] = {}
   for (let channel of channels.TTL) {
-    state['ttl'][channel] = false
+    state['ttl'][channel] = [false]
   }
+
+  state['dac'] = {}
   for (let channel of channels.DAC) {
-    state['dac'][channel] = {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''}
+    state['dac'][channel] = [{'mode': 'constant',
+                                   'setpoint': '',
+                                   'start': '',
+                                   'stop': ''
+                                 }]
   }
+
+  state['dds'] = {}
   for (let channel of channels.DDS) {
-    state['dds'][channel] = {'attenuation': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
-                               'frequency': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
-                               'on': false
-                              }
+    state['dds'][channel] = [{'attenuation': {'mode': 'constant',
+                                                   'setpoint': '',
+                                                   'start': '',
+                                                   'stop': ''
+                                                  },
+                                    'frequency': {'mode': 'constant',
+                                                  'setpoint': '',
+                                                  'start': '',
+                                                  'stop': '',
+                                                 },
+                                    'on': false
+                                  }]
   }
+
+  state['adc'] = {}
   for (let channel of channels.ADC) {
-    state['adc'][channel] = {'samples': '',
-                             'on': false
-                              }
+    state['adc'][channel] = [{'samples': '',
+                                   'on': false
+                                 }]
   }
-  return {'sequence': [state], 'channels': channels, 'timestep_scales': [1]}
+
+  return state
+
 }
 
 export function createGUI(parameters) {
   const channels =  {'TTL': [0, 1, 2, 3],
                'DAC': [0, 1],
                'DDS': [0, 1],
-               'ADC': [0]}
+               'ADC': [0, 1]}
 
-  const state = initialState(channels)
+  const state = initializeState(channels)
 
   const store = createStore(reducer, state)
   ReactDOM.render(<Provider store={store}>

@@ -10,6 +10,7 @@ import FixedUnitInput from './FixedUnitInput.jsx'
 import ModeSelector from './ModeSelector.jsx'
 import {connect} from 'react-redux'
 import {gradient} from './colors.js'
+import { createSelector } from 'reselect'
 
 function getColor(value) {
   if (value == "") {
@@ -20,23 +21,62 @@ function getColor(value) {
 
 function DDSButton(props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
+  const open = Boolean(anchorEl);
+  function getImplicitFrequencyValues() {
+    let implicitSetpoint = props.frequency.setpoint
+    let i = props.timestep-1
+    while (i >= 0 & implicitSetpoint == '') {
+      let state = props.sequence[i].frequency
+      implicitSetpoint = state.mode == 'constant'? state.setpoint : state.stop
+      i -= 1
+    }
+
+    let implicitStart = props.frequency.start
+    i = props.timestep-1
+    while (i >= 0 & implicitStart == '') {
+      let state = props.sequence[i].frequency
+      implicitStart = state.mode == 'constant'? state.setpoint : state.stop
+      i -= 1
+    }
+
+    let implicitStop = props.frequency.stop == ''? implicitStart: props.frequency.stop
+
+    return {setpoint: implicitSetpoint, start: implicitStart, stop: implicitStop}
+  }
+  let implicitFrequency = getImplicitFrequencyValues()
+
+  function getImplicitAttenuationValues() {
+    let implicitSetpoint = props.attenuation.setpoint
+    let i = props.timestep-1
+    while (i >= 0 & implicitSetpoint == '') {
+      let state = props.sequence[i].attenuation
+      implicitSetpoint = state.mode == 'constant'? state.setpoint : state.stop
+      i -= 1
+    }
+
+    let implicitStart = props.attenuation.start
+    i = props.timestep-1
+    while (i >= 0 & implicitStart == '') {
+      let state = props.sequence[i].attenuation
+      implicitStart = state.mode == 'constant'? state.setpoint : state.stop
+      i -= 1
+    }
+
+    let implicitStop = props.attenuation.stop == ''? implicitStart: props.attenuation.stop
+
+    return {setpoint: implicitSetpoint, start: implicitStart, stop: implicitStop}
+  }
+  let implicitAttenuation = getImplicitAttenuationValues()
 
   let color = "#D3D3D3"
   if (props.on) {
-    color = getColor(props.attenuation.setpoint)
+    color = getColor(implicitAttenuation.setpoint)
   }
   let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`}  // changing gradient to uniform color is faster than setting backgroundColor
-  let ramp = `linear-gradient(90deg, ${getColor(props.attenuation.start)} 0%, ${getColor(props.attenuation.stop)} 100%)`
+  let ramp = `linear-gradient(90deg, ${getColor(implicitAttenuation.start)} 0%, ${getColor(implicitAttenuation.stop)} 100%)`
   let rampStyle = props.on? {background: ramp}: constantStyle
   let style = props.attenuation.mode=='constant'? constantStyle: rampStyle
 
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
-  const open = Boolean(anchorEl);
 
   function dispatch(type, value) {
     props.dispatch({type: type,
@@ -56,14 +96,14 @@ function DDSButton(props) {
       <Button variant="contained"
               disableRipple={true}
               style={style}
-              onClick={(event) => handleClick(event)}
+              onClick={(event) => setAnchorEl(event.currentTarget)}
               >
         {''}
       </Button>
       <Popover
         open={open}
         anchorEl={anchorEl}
-        onClose={handleClose}
+        onClose={() => setAnchorEl(null)}
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'right',
@@ -86,6 +126,7 @@ function DDSButton(props) {
         {props.frequency.mode=='constant'? (
           <Box m={1}>
             <ScaledInput value={props.frequency.setpoint}
+                         placeholder={implicitFrequency.setpoint}
                            onChange = {(value) => dispatch('dds/frequency/setpoint', value)}
                            units = {{'Hz': 1, 'kHz': 1e3, 'MHz': 1e6}}
                            label = 'Setpoint'
@@ -98,6 +139,7 @@ function DDSButton(props) {
           <React.Fragment>
           <Box m={1}>
             <ScaledInput value={props.frequency.start}
+                           placeholder={implicitFrequency.start}
                            onChange = {(value) => dispatch('dds/frequency/start', value)}
                            units = {{'Hz': 1, 'kHz': 1e3, 'MHz': 1e6}}
                            label = 'Start'
@@ -106,6 +148,7 @@ function DDSButton(props) {
           </Box>
           <Box m={1}>
             <ScaledInput value={props.frequency.stop}
+                         placeholder={implicitFrequency.stop}
                            onChange = {(value) => dispatch('dds/frequency/stop', value)}
                            units = {{'Hz': 1, 'kHz': 1e3, 'MHz': 1e6}}
                            label = 'Stop'
@@ -124,6 +167,7 @@ function DDSButton(props) {
         {props.attenuation.mode=='constant'? (
           <Box m={1}>
             <FixedUnitInput value={props.attenuation.setpoint}
+                            placeholder={implicitAttenuation.setpoint}
                             onChange = {(event) => dispatch('dds/attenuation/setpoint', event.target.value)}
                             label = 'Setpoint'
                             unit = 'dB'
@@ -134,6 +178,7 @@ function DDSButton(props) {
           <React.Fragment>
           <Box m={1}>
             <FixedUnitInput value={props.attenuation.start}
+                            placeholder={implicitAttenuation.start}
                             onChange = {(event) => dispatch('dds/attenuation/start', event.target.value)}
                             label = 'Start'
                             unit = 'dB'
@@ -141,6 +186,7 @@ function DDSButton(props) {
           </Box>
           <Box m={1}>
             <FixedUnitInput value={props.attenuation.stop}
+                            placeholder={implicitAttenuation.stop}
                             onChange = {(event) => dispatch('dds/attenuation/stop', event.target.value)}
                             label = 'Stop'
                             unit = 'dB'
@@ -154,11 +200,13 @@ function DDSButton(props) {
     </TableCell>
 )}
 
+
 function mapStateToProps(state, ownProps){
-  let dict = state['sequence'][ownProps.timestep]['dds'][ownProps.channel]
+  let dict = state['dds'][ownProps.channel][ownProps.timestep]
   return {frequency: dict.frequency,
           attenuation: dict.attenuation,
-          on: dict.on
+          on: dict.on,
+          sequence: state['dds'][ownProps.channel]
         }
 }
 
