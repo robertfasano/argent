@@ -36,17 +36,62 @@ export default function reducer(state=[], action) {
 
       case 'dac/update':
         return produce(state, draft => {
-          draft['sequence'][action.timestep]['dac'][action.channel] = action.value
+          draft['sequence'][action.timestep]['dac'][action.channel]['setpoint'] = action.value
+        })
+
+      case 'dac/updateStart':
+        return produce(state, draft => {
+          draft['sequence'][action.timestep]['dac'][action.channel]['start'] = action.value
+        })
+
+      case 'dac/updateStop':
+        return produce(state, draft => {
+          draft['sequence'][action.timestep]['dac'][action.channel]['stop'] = action.value
+        })
+
+      case 'dac/setMode':
+        return produce(state, draft => {
+          draft['sequence'][action.timestep]['dac'][action.channel]['mode'] = action.value
         })
 
       case 'dds/updateAttenuation':
         return produce(state, draft => {
-          draft['sequence'][action.timestep]['dds'][action.channel]['attenuation'] = action.value
+          draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['setpoint'] = action.value
+        })
+
+      case 'dds/attenuation/start':
+        return produce(state, draft => {
+          draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['start'] = action.value
+        })
+
+      case 'dds/attenuation/stop':
+        return produce(state, draft => {
+          draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['stop'] = action.value
         })
 
       case 'dds/updateFrequency':
         return produce(state, draft => {
-          draft['sequence'][action.timestep]['dds'][action.channel]['frequency'] = action.value
+          draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['setpoint'] = action.value
+        })
+
+        case 'dds/frequency/start':
+          return produce(state, draft => {
+            draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['start'] = action.value
+          })
+
+        case 'dds/frequency/stop':
+          return produce(state, draft => {
+            draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['stop'] = action.value
+          })
+
+      case 'dds/setFrequencyMode':
+        return produce(state, draft => {
+          draft['sequence'][action.timestep]['dds'][action.channel]['frequency']['mode'] = action.value
+        })
+
+      case 'dds/setAttenuationMode':
+        return produce(state, draft => {
+          draft['sequence'][action.timestep]['dds'][action.channel]['attenuation']['mode'] = action.value
         })
 
       case 'dds/check':
@@ -101,7 +146,7 @@ export default function reducer(state=[], action) {
         return produce(state, draft => {
           draft['sequence'].splice(action.timestep, 1)
         })
-        
+
       case 'timing/update':
         return produce(state, draft => {
           draft['sequence'][action.timestep]['duration'] = action.duration
@@ -115,10 +160,12 @@ export default function reducer(state=[], action) {
             newStep['ttl'][channel] = false
           }
           for (let channel of state['channels'].DAC) {
-            newStep['dac'][channel] = ''
+            newStep['dac'][channel] = {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''}
           }
           for (let channel of state['channels'].DDS) {
-            newStep['dds'][channel] = {'frequency': '', 'attenuation': '', 'on': false}
+            newStep['dds'][channel] = {'frequency': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
+                                       'attenuation': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
+                                       'on': false}
           }
           for (let channel of state['channels'].ADC) {
             newStep['adc'][channel] = {'samples': '', 'on': false}
@@ -156,6 +203,26 @@ function updateDAC(timestep, channel, value) {
   return {type: 'dac/update', timestep: timestep, channel: channel, value: value}
 }
 
+function updateDACStart(timestep, channel, value) {
+  return {type: 'dac/updateStart', timestep: timestep, channel: channel, value: value}
+}
+
+function updateDACStop(timestep, channel, value) {
+  return {type: 'dac/updateStop', timestep: timestep, channel: channel, value: value}
+}
+
+function setDACMode(timestep, channel, value) {
+  return {type: 'dac/setMode', timestep: timestep, channel: channel, value: value}
+}
+
+function setFrequencyMode(timestep, channel, value) {
+  return {type: 'dds/setFrequencyMode', timestep: timestep, channel: channel, value: value}
+}
+
+function setAttenuationMode(timestep, channel, value) {
+  return {type: 'dds/setAttenuationMode', timestep: timestep, channel: channel, value: value}
+}
+
 export function toggleDDS(timestep, channel) {
   return {type: 'dds/toggle', timestep: timestep, channel: channel}
 }
@@ -164,8 +231,24 @@ export function updateAttenuation(timestep, channel, value) {
   return {type: 'dds/updateAttenuation', timestep: timestep, channel: channel, value: value}
 }
 
+export function updateAttenuationStart(timestep, channel, value) {
+  return {type: 'dds/attenuation/start', timestep: timestep, channel: channel, value: value}
+}
+
+export function updateAttenuationStop(timestep, channel, value) {
+  return {type: 'dds/attenuation/stop', timestep: timestep, channel: channel, value: value}
+}
+
 export function updateFrequency(timestep, channel, value) {
   return {type: 'dds/updateFrequency', timestep: timestep, channel: channel, value: value}
+}
+
+export function updateFrequencyStart(timestep, channel, value) {
+  return {type: 'dds/frequency/start', timestep: timestep, channel: channel, value: value}
+}
+
+export function updateFrequencyStop(timestep, channel, value) {
+  return {type: 'dds/frequency/stop', timestep: timestep, channel: channel, value: value}
 }
 
 export function updateTimestep(timestep, duration) {
@@ -192,10 +275,19 @@ const actions = {'adc': {'toggle': toggleADC,
                          'samples': {'update': updateADCSamples}
                         },
                 'ttl': {'toggle': toggleTTL},
-                 'dac': {'update': updateDAC},
-                 'dds': {'frequency': {'update': updateFrequency},
-                         'attenuation': {'update': updateAttenuation},
-                         'toggle': toggleDDS
+                 'dac': {'update': updateDAC,
+                         'updateStart': updateDACStart,
+                         'updateStop': updateDACStop,
+                         'setMode': setDACMode},
+                 'dds': {'frequency': {'update': updateFrequency,
+                                       'updateStart': updateFrequencyStart,
+                                       'updateStop': updateFrequencyStop,
+                                       'setMode': setFrequencyMode},
+                         'attenuation': {'update': updateAttenuation,
+                                         'updateStart': updateAttenuationStart,
+                                         'updateStop': updateAttenuationStop,
+                                         'setMode': setAttenuationMode},
+                         'toggle': toggleDDS,
                        },
                  'timing': {'update': updateTimestep,
                             'insert': insertTimestep,

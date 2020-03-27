@@ -43,11 +43,11 @@ function initialState(channels) {
     state['ttl'][channel] = false
   }
   for (let channel of channels.DAC) {
-    state['dac'][channel] = ''
+    state['dac'][channel] = {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''}
   }
   for (let channel of channels.DDS) {
-    state['dds'][channel] = {'attenuation': '',
-                               'frequency': '',
+    state['dds'][channel] = {'attenuation': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
+                               'frequency': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
                                'on': false
                               }
   }
