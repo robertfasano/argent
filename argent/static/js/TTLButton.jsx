@@ -24,7 +24,7 @@ function TTLButton(props) {
 
 function mapStateToProps(state, ownProps){
   return {
-          on: state['ttl'][ownProps.channel][ownProps.timestep]
+          on: state['sequence']['ttl'][ownProps.channel][ownProps.timestep]
         }
 }
 export default connect(mapStateToProps)(TTLButton)

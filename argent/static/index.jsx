@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import TTL from './js/TTL.jsx'
+import RTIOTable from './js/RTIOTable.jsx'
 import reducer from './js/reducers/reducer.js'
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
@@ -33,27 +33,26 @@ const theme = createMuiTheme({
 });
 
 function initializeState(channels) {
-  let state = {'channels': channels}
-  state['duration'] = ['1']
-  state['timestep_scales'] = [1]
+  let state = {}
+  state['sequence'] = {'ttl': {}, 'dac': {}, 'dds': {}, 'adc': {}}
+  state['sequence']['duration'] = ['1']
+  state['sequence']['timestep_scales'] = [1]
+  state['channels'] = channels
 
-  state['ttl'] = {}
   for (let channel of channels.TTL) {
-    state['ttl'][channel] = [false]
+    state['sequence']['ttl'][channel] = [false]
   }
 
-  state['dac'] = {}
   for (let channel of channels.DAC) {
-    state['dac'][channel] = [{'mode': 'constant',
+    state['sequence']['dac'][channel] = [{'mode': 'constant',
                                    'setpoint': '',
                                    'start': '',
                                    'stop': ''
                                  }]
   }
 
-  state['dds'] = {}
   for (let channel of channels.DDS) {
-    state['dds'][channel] = [{'attenuation': {'mode': 'constant',
+    state['sequence']['dds'][channel] = [{'attenuation': {'mode': 'constant',
                                                    'setpoint': '',
                                                    'start': '',
                                                    'stop': ''
@@ -67,12 +66,14 @@ function initializeState(channels) {
                                   }]
   }
 
-  state['adc'] = {}
   for (let channel of channels.ADC) {
-    state['adc'][channel] = [{'samples': '',
+    state['sequence']['adc'][channel] = [{'samples': '',
                                    'on': false
                                  }]
   }
+
+  state['sequences'] = {'default': state['sequence']}
+  state['active_sequence'] = 'default'
 
   return state
 
@@ -90,6 +91,7 @@ export function createGUI(parameters) {
   ReactDOM.render(<Provider store={store}>
                     <ThemeProvider theme={theme}>
                       <TTL/>
+                      <RTIOTable/>
                     </ThemeProvider>
                   </Provider>, document.getElementById("root"))
 }

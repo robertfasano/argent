@@ -23,7 +23,7 @@ import ScaledInput from './ScaledInput.jsx'
 
 import TimestepContextMenu from './TimestepContextMenu.jsx'
 
-function TTLTable(props) {
+function RTIOTable(props) {
   const [expanded, setExpanded] = React.useState({'ttl': true, 'dac': true, 'dds': true, 'adc': true})
 
   function expand(name) {
@@ -169,8 +169,8 @@ function TTLTable(props) {
 
 function mapStateToProps(state, ownProps){
   return {channels: state['channels'],
-          duration: state['duration'],
-          timestep_scales: state['timestep_scales']
+          duration: state['sequence']['duration'],
+          timestep_scales: state['sequence']['timestep_scales']
         }
 }
-export default connect(mapStateToProps)(TTLTable)
+export default connect(mapStateToProps)(RTIOTable)

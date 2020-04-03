@@ -128,8 +128,8 @@ function DACButton(props) {
 
 
 function mapStateToProps(state, ownProps){
-  let dict = state['dac'][ownProps.channel][ownProps.timestep]
-  let sequence = state['dac'][ownProps.channel]
+  let dict = state['sequence']['dac'][ownProps.channel][ownProps.timestep]
+  let sequence = state['sequence']['dac'][ownProps.channel]
   return {setpoint: dict.setpoint,
           start: dict.start,
           stop: dict.stop,

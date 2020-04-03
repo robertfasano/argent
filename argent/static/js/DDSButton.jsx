@@ -202,11 +202,11 @@ function DDSButton(props) {
 
 
 function mapStateToProps(state, ownProps){
-  let dict = state['dds'][ownProps.channel][ownProps.timestep]
+  let dict = state['sequence']['dds'][ownProps.channel][ownProps.timestep]
   return {frequency: dict.frequency,
           attenuation: dict.attenuation,
           on: dict.on,
-          sequence: state['dds'][ownProps.channel]
+          sequence: state['sequence']['dds'][ownProps.channel]
         }
 }
 

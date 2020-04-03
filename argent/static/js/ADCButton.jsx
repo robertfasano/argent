@@ -58,8 +58,8 @@ function ADCButton(props) {
 )}
 
 function mapStateToProps(state, ownProps){
-  return {samples: state['adc'][ownProps.channel][ownProps.timestep]['samples'],
-          on: state['adc'][ownProps.channel][ownProps.timestep]['on']
+  return {samples: state['sequence']['adc'][ownProps.channel][ownProps.timestep]['samples'],
+          on: state['sequence']['adc'][ownProps.channel][ownProps.timestep]['on']
         }
 }
 export default connect(mapStateToProps)(ADCButton)
