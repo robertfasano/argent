@@ -1,5 +1,7 @@
 from flask import Flask, request
 from flask import render_template, send_from_directory
+from argent.scripts import find_scripts
+import json
 import os
 
 def host(addr='127.0.0.1', port=8051):
@@ -13,6 +15,10 @@ def host(addr='127.0.0.1', port=8051):
     @app.route("/")
     def hello():
         return render_template('index.html')
+
+    @app.route("/scripts/list")
+    def scripts():
+        return json.dumps(find_scripts())
 
     app.run(debug=True, host=addr, port=port)
 

@@ -25,7 +25,7 @@ function getColor(value) {
 
 function DACButton(props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
-  const open = Boolean(anchorEl);
+  const open = Boolean(Boolean(anchorEl) & Boolean(!props.reserved));
   function dispatch(type, value) {
     props.dispatch({type: type,
                     timestep: props.timestep,
@@ -57,9 +57,9 @@ function DACButton(props) {
   let implicit = getImplicitValues()
 
   let color = getColor(implicit.setpoint)
-  let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`} // changing gradient to uniform color is faster than setting backgroundColor
+  let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`, opacity: props.reserved? 0.15: 1} // changing gradient to uniform color is faster than setting backgroundColor
   let ramp = `linear-gradient(90deg, ${getColor(implicit.start)} 0%, ${getColor(implicit.stop)} 100%)`
-  let rampStyle = {background: ramp}
+  let rampStyle = {background: ramp, opacity: props.reserved? 0.15: 1}
   return (
     <TableCell component="th" scope="row" key={props.timestep}>
       <Button variant="contained"
@@ -134,7 +134,8 @@ function mapStateToProps(state, ownProps){
           start: dict.start,
           stop: dict.stop,
           mode: dict.mode,
-          sequence: sequence
+          sequence: sequence,
+          reserved: dict.reserved
         }
 }
 export default connect(mapStateToProps)(DACButton)

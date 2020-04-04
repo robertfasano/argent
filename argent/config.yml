@@ -4,6 +4,8 @@ devices:
   dac: [zotinoA]
   dds: [urukulA]
   ttl: [ttlA]
+scripts:
+  - test_scripts.py
 sequence_format: yml
 sequences_path: ./sequences
 timestep_unit: ms

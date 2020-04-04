@@ -5,6 +5,9 @@ import {connect} from 'react-redux'
 
 function TTLButton(props) {
   function toggle() {
+    if (props.reserved) {
+      return
+    }
     props.dispatch({type: 'ttl/toggle',
                     timestep: props.timestep,
                     channel: props.channel})
@@ -14,7 +17,7 @@ function TTLButton(props) {
     <TableCell component="th" scope="row" key={props.timestep}>
       <Button variant="contained"
               disableRipple={true}
-              style={{backgroundColor: props.on? '#ffff00': '#D3D3D3'}}
+              style={{backgroundColor: props.on? '#ffff00': '#D3D3D3', opacity: props.reserved? 0.15: 1}}
               onClick={() => toggle()}
               >
       <React.Fragment/>
@@ -24,7 +27,8 @@ function TTLButton(props) {
 
 function mapStateToProps(state, ownProps){
   return {
-          on: state['sequence']['ttl'][ownProps.channel][ownProps.timestep]
+          on: state['sequence']['ttl'][ownProps.channel][ownProps.timestep].state,
+          reserved: state['sequence']['ttl'][ownProps.channel][ownProps.timestep].reserved
         }
 }
 export default connect(mapStateToProps)(TTLButton)

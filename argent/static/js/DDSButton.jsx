@@ -21,7 +21,7 @@ function getColor(value) {
 
 function DDSButton(props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
-  const open = Boolean(anchorEl);
+  const open = Boolean(Boolean(anchorEl) & Boolean(!props.reserved));
   function getImplicitFrequencyValues() {
     let implicitSetpoint = props.frequency.setpoint
     let i = props.timestep-1
@@ -72,9 +72,9 @@ function DDSButton(props) {
   if (props.on) {
     color = getColor(implicitAttenuation.setpoint)
   }
-  let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`}  // changing gradient to uniform color is faster than setting backgroundColor
+  let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`, opacity: props.reserved? 0.15: 1}  // changing gradient to uniform color is faster than setting backgroundColor
   let ramp = `linear-gradient(90deg, ${getColor(implicitAttenuation.start)} 0%, ${getColor(implicitAttenuation.stop)} 100%)`
-  let rampStyle = props.on? {background: ramp}: constantStyle
+  let rampStyle = props.on? {background: ramp, opacity: props.reserved? 0.15: 1}: constantStyle
   let style = props.attenuation.mode=='constant'? constantStyle: rampStyle
 
 
@@ -206,7 +206,8 @@ function mapStateToProps(state, ownProps){
   return {frequency: dict.frequency,
           attenuation: dict.attenuation,
           on: dict.on,
-          sequence: state['sequence']['dds'][ownProps.channel]
+          sequence: state['sequence']['dds'][ownProps.channel],
+          reserved: dict.reserved
         }
 }
 

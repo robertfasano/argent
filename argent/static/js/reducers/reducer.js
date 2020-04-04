@@ -11,6 +11,11 @@ export default function reducer(state=[], action) {
   switch(action.type) {
     default : return state;
 
+    case 'adc/reserve':
+      return produce(state, draft => {
+        draft['sequence']['adc'][action.channel][action.timestep]['reserved'] = action.value
+      })
+
     case 'adc/samples':
       return produce(state, draft => {
         draft['sequence']['adc'][action.channel][action.timestep]['samples'] = action.value
@@ -22,9 +27,19 @@ export default function reducer(state=[], action) {
         draft['sequence']['adc'][action.channel][action.timestep]['on'] = !checked
       })
 
+    case 'adc/variable':
+      return produce(state, draft => {
+        draft['sequence']['adc'][action.channel][action.timestep]['variable'] = action.value
+      })
+
     case 'dac/mode':
       return produce(state, draft => {
         draft['sequence']['dac'][action.channel][action.timestep]['mode'] = action.value
+      })
+
+    case 'dac/reserve':
+      return produce(state, draft => {
+        draft['sequence']['dac'][action.channel][action.timestep]['reserved'] = action.value
       })
 
     case 'dac/setpoint':
@@ -82,11 +97,31 @@ export default function reducer(state=[], action) {
         draft['sequence']['dds'][action.channel][action.timestep]['frequency']['stop'] = action.value
       })
 
+    case 'dds/reserve':
+      return produce(state, draft => {
+        draft['sequence']['dds'][action.channel][action.timestep]['reserved'] = action.value
+      })
+
     case 'dds/toggle':
       const ddsChecked = state['sequence']['dds'][action.channel][action.timestep]['on']
       return produce(state, draft => {
         draft['sequence']['dds'][action.channel][action.timestep]['on'] = !ddsChecked
       })
+
+    case 'scripts/function':
+      return produce(state, draft => {
+        draft['sequence']['script'][action.timestep]['function'] = action.value
+      })
+
+    case 'scripts/list':
+    return produce(state, draft => {
+      draft['scripts'] = action.scripts
+    })
+
+    case 'scripts/module':
+    return produce(state, draft => {
+      draft['sequence']['script'][action.timestep]['module'] = action.value
+    })
 
     case 'sequence/retrieve':
       return produce(state, draft => {
@@ -127,19 +162,22 @@ export default function reducer(state=[], action) {
     case 'timestep/insert':
       return produce(state, draft => {
         for (let channel of state['channels'].TTL) {
-          draft['sequence']['ttl'][channel].splice(action.timestep+1, 0, false)
+          draft['sequence']['ttl'][channel].splice(action.timestep+1, 0, {'state': false, 'reserved': false})
         }
         for (let channel of state['channels'].DAC) {
-          draft['sequence']['dac'][channel].splice(action.timestep+1, 0, {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''})
+          draft['sequence']['dac'][channel].splice(action.timestep+1, 0, {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': '', 'reserved': false})
         }
         for (let channel of state['channels'].DDS) {
           draft['sequence']['dds'][channel].splice(action.timestep+1, 0, {'frequency': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
                                      'attenuation': {'mode': 'constant', 'setpoint': '', 'start': '', 'stop': ''},
-                                     'on': false})
+                                     'on': false,
+                                     'reserved': false})
         }
         for (let channel of state['channels'].ADC) {
-          draft['sequence']['adc'][channel].splice(action.timestep+1, 0, {'samples': '', 'on': false})
+          draft['sequence']['adc'][channel].splice(action.timestep+1, 0, {'samples': '', 'on': false, 'reserved': false})
         }
+
+        draft['sequence']['script'].splice(action.timestep+1, 0, {'module': '', 'function': ''})
 
         draft['sequence']['duration'].splice(action.timestep+1, 0, '1')
         draft['sequence']['timestep_scales'].splice(action.timestep+1, 0, 1)
@@ -171,11 +209,16 @@ export default function reducer(state=[], action) {
         draft['sequence']['timestep_scales'][action.timestep] = action.value
       })
 
+    case 'ttl/reserve':
+      return produce(state, draft => {
+        draft['sequence']['ttl'][action.channel][action.timestep]['reserved'] = action.value
+      })
+
     case 'ttl/toggle':
-      let ttlChecked = state['sequence']['ttl'][action.channel][action.timestep]
+      let ttlChecked = state['sequence']['ttl'][action.channel][action.timestep].state
 
       return produce(state, draft => {
-        draft['sequence']['ttl'][action.channel][action.timestep] = !ttlChecked
+        draft['sequence']['ttl'][action.channel][action.timestep]['state'] = !ttlChecked
       })
 
     }

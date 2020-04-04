@@ -18,13 +18,14 @@ import TTLButton from './TTLButton.jsx'
 import DACButton from './DACButton.jsx'
 import DDSButton from './DDSButton.jsx'
 import ADCButton from './ADCButton.jsx'
+import ScriptButton from './ScriptButton.jsx'
 import AddIcon from '@material-ui/icons/Add';
 import ScaledInput from './ScaledInput.jsx'
 
 import TimestepContextMenu from './TimestepContextMenu.jsx'
 
 function RTIOTable(props) {
-  const [expanded, setExpanded] = React.useState({'ttl': true, 'dac': true, 'dds': true, 'adc': true})
+  const [expanded, setExpanded] = React.useState({'ttl': true, 'dac': true, 'dds': true, 'adc': true, 'script': true})
 
   function expand(name) {
     setExpanded({...expanded, [name]: !expanded[name]})
@@ -79,7 +80,7 @@ function RTIOTable(props) {
               <React.Fragment>
               {props.channels.TTL.map(i => (
                 <TableRow key={i}>
-                  <TableCell> TTL{i} </TableCell>
+                  <TableCell> {i} </TableCell>
                   {props.duration.map((dt, index) => (
                     <TTLButton timestep={index} channel={i} key={'ttl-'+i+index}/>
                   ))}
@@ -104,7 +105,7 @@ function RTIOTable(props) {
         <React.Fragment>
         {props.channels.DAC.map(i => (
           <TableRow key={i}>
-            <TableCell> DAC{i} </TableCell>
+            <TableCell> {i} </TableCell>
             {props.duration.map((t, index) => (
               <DACButton timestep={index} channel={i} key={'dac-'+i+index}/>
             ))}
@@ -127,7 +128,7 @@ function RTIOTable(props) {
         <React.Fragment>
         {props.channels.DDS.map(i => (
           <TableRow key={i}>
-            <TableCell> DDS{i} </TableCell>
+            <TableCell> {i} </TableCell>
             {props.duration.map((t, index) => (
               <DDSButton timestep={index} channel={i} key={'dds-'+i+index}/>
             ))}
@@ -150,7 +151,7 @@ function RTIOTable(props) {
     <React.Fragment>
     {props.channels.ADC.map(i => (
       <TableRow key={i}>
-        <TableCell> ADC{i} </TableCell>
+        <TableCell> {i} </TableCell>
         {props.duration.map((t, index) => (
           <ADCButton timestep={index} channel={i} key={'adc-'+i+index}/>
         ))}
@@ -159,6 +160,26 @@ function RTIOTable(props) {
     </React.Fragment>
   ): null
   }
+
+  <TableRow>
+    <TableCell>
+      <IconButton onClick={()=>expand('script')} >
+        {expanded['script']?
+        <ExpandLessIcon/>: <ExpandMoreIcon /> }
+      </IconButton>
+    </TableCell>
+    <TableCell><Typography> <b> Scripts </b> </Typography></TableCell>
+  </TableRow>
+  {expanded['script']? (
+    <TableRow>
+      <TableCell> </TableCell>
+      {props.duration.map((t, index) => (
+        <ScriptButton timestep={index} key={'script-'+index}/>
+      ))}
+    </TableRow>
+): null
+}
+
           </TableBody>
         </Table>
       </TableContainer>
