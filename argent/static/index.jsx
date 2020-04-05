@@ -64,7 +64,8 @@ function initializeState(channels) {
                                    'setpoint': '',
                                    'start': '',
                                    'stop': '',
-                                   'reserved': ''
+                                   'reserved': '',
+                                   'steps': '10'
                                  }]
   }
 
@@ -73,12 +74,14 @@ function initializeState(channels) {
     state['sequence']['dds'][channel] = [{'attenuation': {'mode': 'constant',
                                                    'setpoint': '',
                                                    'start': '',
-                                                   'stop': ''
+                                                   'stop': '',
+                                                   'steps': '10'
                                                   },
                                     'frequency': {'mode': 'constant',
                                                   'setpoint': '',
                                                   'start': '',
                                                   'stop': '',
+                                                  'steps': '10'
                                                  },
                                     'on': false,
                                     'reserved': false

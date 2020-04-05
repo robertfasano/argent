@@ -6,6 +6,7 @@ import Grid from '@material-ui/core/Grid'
 import Box from '@material-ui/core/Box'
 import ScaledInput from './ScaledInput.jsx'
 import ModeSelector from './ModeSelector.jsx'
+import TextField from '@material-ui/core/TextField'
 import {gradient} from './colors.js'
 import {connect} from 'react-redux'
 
@@ -119,6 +120,14 @@ function DACButton(props) {
                          variant = 'outlined'
             />
           </Box>
+          <Box m={1}>
+            <TextField label='Steps'
+                       value={props.steps}
+                       onChange={(event) => dispatch('dac/steps', event.target.value)}
+                       variant='outlined'
+                       InputLabelProps={{ shrink: true }}
+            />
+          </Box>
           </React.Fragment>
         ):
         null}
@@ -135,7 +144,8 @@ function mapStateToProps(state, ownProps){
           stop: dict.stop,
           mode: dict.mode,
           sequence: sequence,
-          reserved: dict.reserved
+          reserved: dict.reserved,
+          steps: dict.steps
         }
 }
 export default connect(mapStateToProps)(DACButton)

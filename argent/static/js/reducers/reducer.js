@@ -52,6 +52,11 @@ export default function reducer(state=[], action) {
         draft['sequence']['dac'][action.channel][action.timestep]['start'] = action.value
       })
 
+    case 'dac/steps':
+      return produce(state, draft => {
+        draft['sequence']['dac'][action.channel][action.timestep]['steps'] = action.value
+      })
+
     case 'dac/stop':
       return produce(state, draft => {
         draft['sequence']['dac'][action.channel][action.timestep]['stop'] = action.value
@@ -72,6 +77,11 @@ export default function reducer(state=[], action) {
         draft['sequence']['dds'][action.channel][action.timestep]['attenuation']['start'] = action.value
       })
 
+    case 'dds/attenuation/steps':
+      return produce(state, draft => {
+        draft['sequence']['dds'][action.channel][action.timestep]['attenuation']['steps'] = action.value
+      })
+
     case 'dds/attenuation/stop':
       return produce(state, draft => {
         draft['sequence']['dds'][action.channel][action.timestep]['attenuation']['stop'] = action.value
@@ -90,6 +100,11 @@ export default function reducer(state=[], action) {
     case 'dds/frequency/start':
       return produce(state, draft => {
         draft['sequence']['dds'][action.channel][action.timestep]['frequency']['start'] = action.value
+      })
+
+    case 'dds/frequency/steps':
+      return produce(state, draft => {
+        draft['sequence']['dds'][action.channel][action.timestep]['frequency']['steps'] = action.value
       })
 
     case 'dds/frequency/stop':

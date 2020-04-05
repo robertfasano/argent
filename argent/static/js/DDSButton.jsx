@@ -5,12 +5,12 @@ import TableCell from '@material-ui/core/TableCell';
 import Grid from '@material-ui/core/Grid'
 import Box from '@material-ui/core/Box'
 import Switch from '@material-ui/core/Switch';
+import TextField from '@material-ui/core/TextField'
 import ScaledInput from './ScaledInput.jsx'
 import FixedUnitInput from './FixedUnitInput.jsx'
 import ModeSelector from './ModeSelector.jsx'
 import {connect} from 'react-redux'
 import {gradient} from './colors.js'
-import { createSelector } from 'reselect'
 
 function getColor(value) {
   if (value == "") {
@@ -155,6 +155,14 @@ function DDSButton(props) {
                            variant = 'outlined'
             />
           </Box>
+          <Box m={1}>
+            <TextField label='Steps'
+                       value={props.frequency.steps}
+                       onChange={(event) => dispatch('dds/frequency/steps', event.target.value)}
+                       variant='outlined'
+                       InputLabelProps={{ shrink: true }}
+            />
+          </Box>
           </React.Fragment>
         ):
         null}
@@ -190,6 +198,14 @@ function DDSButton(props) {
                             onChange = {(event) => dispatch('dds/attenuation/stop', event.target.value)}
                             label = 'Stop'
                             unit = 'dB'
+            />
+          </Box>
+          <Box m={1}>
+            <TextField label='Steps'
+                       value={props.attenuation.steps}
+                       onChange={(event) => dispatch('dac/attenuation/steps', event.target.value)}
+                       variant='outlined'
+                       InputLabelProps={{ shrink: true }}
             />
           </Box>
           </React.Fragment>
