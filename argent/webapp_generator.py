@@ -217,9 +217,10 @@ def generate_experiment(sequence):
     run += '\tself.init()\n'
     run += '\twhile True:\n'
     run += '\t\twith parallel:\n'
-    run += textwrap.indent(adc_run, '\t\t\t')
     run += textwrap.indent(dac_run, '\t\t\t')
     run += textwrap.indent(script_run, '\t\t\t')
+    run += textwrap.indent(adc_run, '\t\t\t')
+
     run += '\n'
 
     ## write experiment
