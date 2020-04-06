@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask import render_template, send_from_directory
 from argent.scripts import find_scripts
+from argent import Configurator
 import json
 import os
 
@@ -19,6 +20,13 @@ def host(addr='127.0.0.1', port=8051):
     @app.route("/scripts/list")
     def scripts():
         return json.dumps(find_scripts())
+
+    @app.route("/config", methods=['GET', 'POST'])
+    def config():
+        if request.method == 'POST':
+            for key, value in request.json.items():
+                Configurator.update(key, value)
+        return json.dumps(Configurator.load())
 
     app.run(debug=True, host=addr, port=port)
 
