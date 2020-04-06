@@ -1,5 +1,6 @@
 from flask import Flask, request
 from flask import render_template, send_from_directory
+from argent.webapp_generator import generate_experiment
 from argent.scripts import find_scripts
 from argent import Configurator
 import json
@@ -20,6 +21,16 @@ def host(addr='127.0.0.1', port=8051):
     @app.route("/scripts/list")
     def scripts():
         return json.dumps(find_scripts())
+
+    @app.route("/submit", methods=['POST'])
+    def submit():
+        sequence = request.json
+        print(sequence)
+        code = generate_experiment(sequence)
+        with open('generated_experiment.py', 'w') as file:
+            file.write(code)
+
+        return json.dumps(code)
 
     @app.route("/config", methods=['GET', 'POST'])
     def config():
