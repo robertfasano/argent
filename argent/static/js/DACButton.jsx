@@ -4,6 +4,7 @@ import Popover from '@material-ui/core/Popover';
 import TableCell from '@material-ui/core/TableCell';
 import Grid from '@material-ui/core/Grid'
 import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 import ScaledInput from './ScaledInput.jsx'
 import ModeSelector from './ModeSelector.jsx'
 import TextField from '@material-ui/core/TextField'
@@ -58,23 +59,32 @@ function DACButton(props) {
   let implicit = getImplicitValues()
 
   let color = getColor(implicit.setpoint)
-  let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`, opacity: props.reserved? 0.15: 1} // changing gradient to uniform color is faster than setting backgroundColor
+  let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
+                       opacity: props.reserved? 0.15: 1,
+                       color: 'white'} // changing gradient to uniform color is faster than setting backgroundColor
   let ramp = `linear-gradient(90deg, ${getColor(implicit.start)} 0%, ${getColor(implicit.stop)} 100%)`
-  let rampStyle = {background: ramp, opacity: props.reserved? 0.15: 1}
+  let rampStyle = {background: ramp, opacity: props.reserved? 0.15: 1, color: 'white'}
+
+  let text = props.mode == 'constant'? props.setpoint: props.start + '→' + props.stop
   return (
     <TableCell component="th" scope="row" key={props.timestep}>
       <Button variant="contained"
               disableRipple={true}
               style={props.mode=='constant'? constantStyle: rampStyle}
               onClick={(event) => setAnchorEl(event.currentTarget)}
-              > <div/>
+              >
+        <Typography>
+          <Box fontSize={11}>
+            {text}
+          </Box>
+        </Typography>
       </Button>
       <Popover
         open={open}
         anchorEl={anchorEl}
         onClose={(event) => setAnchorEl(null)}
         anchorOrigin={{
-          vertical: 'bottom',
+          vertical: 'top',
           horizontal: 'right',
         }}
         transformOrigin={{
