@@ -16,7 +16,7 @@ def host(addr='127.0.0.1', port=8051):
 
     @app.route("/")
     def hello():
-        return render_template('index.html')
+        return render_template('index.html', sequences=load())
 
     @app.route("/scripts/list")
     def scripts():
@@ -37,6 +37,23 @@ def host(addr='127.0.0.1', port=8051):
             for key, value in request.json.items():
                 Configurator.update(key, value)
         return json.dumps(Configurator.load())
+
+    @app.route("/save", methods=['POST'])
+    def save():
+        path = Configurator.load('sequences_path')[0]
+        with open(path, 'w') as file:
+            json.dump(request.json, file, indent=2)
+        return ''
+
+    @app.route("/load")
+    def load():
+        path = Configurator.load('sequences_path')[0]
+        try:
+            with open(path, 'r') as file:
+                sequence = json.load(file)
+        except:
+            sequence = {}
+        return json.dumps(sequence)
 
     app.run(debug=True, host=addr, port=port)
 

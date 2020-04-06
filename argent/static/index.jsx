@@ -36,62 +36,76 @@ const theme = createMuiTheme({
     },
 });
 
-function initializeState(channels) {
+function initializeState(channels, sequences) {
   let state = {}
-  state['scripts'] = {}
-  state['sequence'] = {}
-  state['sequence']['duration'] = ['1']
-  state['sequence']['variables'] = []
-  state['sequence']['timestep_scales'] = [1]
   state['channels'] = channels
 
-  state['sequence']['script'] = [{'module': '', 'function': ''}]
-  state['sequence']['ttl'] = {}
-  for (let channel of channels.TTL) {
-    state['sequence']['ttl'][channel] = [{'state': false,
-                                          'reserved': false}]
+
+  state['scripts'] = {}
+  state['sequences'] = sequences
+
+  if (Object.keys(state['sequences']).includes('default')) {
+    console.log('Loading sequences from file.')
+    state['sequence'] = state['sequences']['default']
+    console.log(state['sequence'])
+  }
+  else {
+    console.log('No saved sequences found. Generating default sequence.')
+    state['sequence'] = {}
+    state['sequence']['duration'] = ['1']
+    state['sequence']['variables'] = []
+    state['sequence']['timestep_scales'] = [1]
+
+
+    state['sequence']['script'] = [{'module': '', 'function': ''}]
+    state['sequence']['ttl'] = {}
+    for (let channel of channels.TTL) {
+      state['sequence']['ttl'][channel] = [{'state': false,
+                                            'reserved': false}]
+    }
+
+    state['sequence']['dac'] = {}
+    for (let channel of channels.DAC) {
+      state['sequence']['dac'][channel] = [{'mode': 'constant',
+                                     'setpoint': '',
+                                     'start': '',
+                                     'stop': '',
+                                     'reserved': '',
+                                     'steps': '10'
+                                   }]
+    }
+
+    state['sequence']['dds'] = {}
+    for (let channel of channels.DDS) {
+      state['sequence']['dds'][channel] = [{'attenuation': {'mode': 'constant',
+                                                     'setpoint': '',
+                                                     'start': '',
+                                                     'stop': '',
+                                                     'steps': '10'
+                                                    },
+                                      'frequency': {'mode': 'constant',
+                                                    'setpoint': '',
+                                                    'start': '',
+                                                    'stop': '',
+                                                    'steps': '10'
+                                                   },
+                                      'on': false,
+                                      'reserved': false
+                                    }]
+    }
+
+    state['sequence']['adc'] = {}
+    for (let channel of channels.ADC) {
+      state['sequence']['adc'][channel] = [{'samples': '',
+                                     'on': false,
+                                     'variable': '',
+                                     'reserved': false,
+                                   }]
+    }
+
+    state['sequences'] = {'default': state['sequence']}
   }
 
-  state['sequence']['dac'] = {}
-  for (let channel of channels.DAC) {
-    state['sequence']['dac'][channel] = [{'mode': 'constant',
-                                   'setpoint': '',
-                                   'start': '',
-                                   'stop': '',
-                                   'reserved': '',
-                                   'steps': '10'
-                                 }]
-  }
-
-  state['sequence']['dds'] = {}
-  for (let channel of channels.DDS) {
-    state['sequence']['dds'][channel] = [{'attenuation': {'mode': 'constant',
-                                                   'setpoint': '',
-                                                   'start': '',
-                                                   'stop': '',
-                                                   'steps': '10'
-                                                  },
-                                    'frequency': {'mode': 'constant',
-                                                  'setpoint': '',
-                                                  'start': '',
-                                                  'stop': '',
-                                                  'steps': '10'
-                                                 },
-                                    'on': false,
-                                    'reserved': false
-                                  }]
-  }
-
-  state['sequence']['adc'] = {}
-  for (let channel of channels.ADC) {
-    state['sequence']['adc'][channel] = [{'samples': '',
-                                   'on': false,
-                                   'variable': '',
-                                   'reserved': false,
-                                 }]
-  }
-
-  state['sequences'] = {'default': state['sequence']}
   state['active_sequence'] = 'default'
 
   return state
@@ -99,13 +113,14 @@ function initializeState(channels) {
 }
 
 
-export function createGUI(parameters) {
+export function createGUI(sequences) {
+  sequences = JSON.parse(sequences)
   const channels =  {'TTL': ['A0', 'A1', 'A2', 'A3'],
                'DAC': ['A0', 'A1'],
                'DDS': ['A0', 'A1'],
                'ADC': ['A']}
 
-  const state = initializeState(channels)
+  const state = initializeState(channels, sequences)
 
   const store = createStore(reducer, state)
   console.log(state)
