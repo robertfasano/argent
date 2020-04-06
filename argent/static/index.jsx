@@ -41,6 +41,7 @@ function initializeState(channels) {
   state['scripts'] = {}
   state['sequence'] = {}
   state['sequence']['duration'] = ['1']
+  state['sequence']['variables'] = []
   state['sequence']['timestep_scales'] = [1]
   state['channels'] = channels
 

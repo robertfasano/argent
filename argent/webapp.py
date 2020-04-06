@@ -25,11 +25,10 @@ def host(addr='127.0.0.1', port=8051):
     @app.route("/submit", methods=['POST'])
     def submit():
         sequence = request.json
-        print(sequence)
         code = generate_experiment(sequence)
         with open('generated_experiment.py', 'w') as file:
             file.write(code)
-
+        os.system('artiq_run generated_experiment.py')
         return json.dumps(code)
 
     @app.route("/config", methods=['GET', 'POST'])

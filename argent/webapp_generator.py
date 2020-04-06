@@ -1,6 +1,7 @@
 import numpy as np
 import re
 import textwrap
+from argent import Configurator
 
 def generate_custom_scripts(sequence):
     imports = ''
@@ -11,14 +12,14 @@ def generate_custom_scripts(sequence):
 
     for i, event in enumerate(sequence['script']):
         if event['function'] == '':
-            run += f'\tdelay({float(sequence["duration"][i])})\n'
+            run += '\tdelay({})\n'.format(float(sequence["duration"][i]))
             continue
 
         run += '\twith parallel:\n'
-        run += f'\t\t{event["module"]}.{event["function"]}()\n'
-        run += f'\t\tdelay({float(sequence["duration"][i])})\n'
+        run += '\t\t{}.{}(self)\n'.format(event["module"], event["function"])
+        run += '\t\tdelay({})\n'.format(float(sequence["duration"][i]))
 
-        imports += f'import {event["module"]}\n'
+        imports += 'import {}\n'.format(event["module"])
 
     return imports, run
 
@@ -34,11 +35,11 @@ def generate_dac_events(sequence):
 
     build = ''
     for dev in devs:
-        build += f'self.setattr_device("zotino{dev}")\n'
+        build += 'self.setattr_device("zotino{}")\n'.format(dev)
 
     init = ''
     for dev in devs:
-        init += f'self.zotino{dev}.init()\n'
+        init += 'self.zotino{}.init()\n'.format(dev)
 
 
     ## order and group events
@@ -107,12 +108,11 @@ def generate_dac_events(sequence):
 
     delays = np.append(delays, time - np.sum(delays) - times[0])
 
-    print(times, events)
     ## write code
     code = '## DAC\n'
     code += 'with sequential:\n'
     if times[0] != 0:
-        code += f'\tdelay({times[0]})\n'
+        code += '\tdelay({})\n'.format(times[0])
     for i, event in enumerate(events):
         devs = np.array([])
         nums = np.array([], dtype=int)
@@ -127,23 +127,23 @@ def generate_dac_events(sequence):
             ids = list(np.array(nums)[np.where(devs == dev)])
             vals = list(np.array(values[i])[np.where(devs == dev)])
 
-            code += f'\t\tself.zotino{dev}.set_dac({vals}, {ids})\n'
+            code += '\t\tself.zotino{}.set_dac({}, {})\n'.format(dev, vals, ids)
         if i < len(times):
-            code += f'\t\tdelay({np.round(delays[i], 9)})\n'
+            code += '\t\tdelay({})\n'.format(np.round(delays[i], 9))
 
     return build, init, code
 
 def generate_adc_events(sequence):
     build = ''
     init = ''
-    for ch in sequence['adc']:
-        build += f'self.setattr_device("sampler{ch}")\n'
-        init += f'self.sampler{ch}.init()\n'
+    # for ch in sequence['adc']:
+    #     build += 'self.setattr_device("sampler{}")\n'.format(ch)
+    #     init += 'self.sampler{}.init()\n'.format(ch)
     for ch in sequence['adc']:
         for event in sequence['adc'][ch]:
             if event['reserved'] or not event['on']:
                 continue
-            build += f'self.{event["variable"]} = {[[0 for ch in range(8)] for n in range(int(event["samples"]))]}\n'
+            build += 'self.{} = {}\n'.format(event['variable'], [[0 for ch in range(8)] for n in range(int(event["samples"]))])
 
     run = '## ADC\n'
     run += 'with sequential:\n'
@@ -152,17 +152,17 @@ def generate_adc_events(sequence):
         for i, event in enumerate(sequence['adc'][ch]):
             duration = float(sequence['duration'][i])
             if event['reserved'] or not event['on']:
-                run += f'\tdelay({duration})\n'
+                run += '\tdelay({})\n'.format(duration)
                 continue
             try:
                 samples = int(event['samples'])
                 for n in range(samples):
                     run += '\twith parallel:\n'
-                    run += f'\t\tself.sampler{ch}.sample_mu(self.{event["variable"]}[{n}])\n'
+                    run += '\t\tself.sampler{}.sample_mu(self.{}[{}])\n'.format(ch, event["variable"], n)
                     dt = np.round(duration / samples, 9)
-                    run += f'\t\tdelay({dt})\n'
+                    run += '\t\tdelay({})\n'.format(dt)
             except ValueError:
-                run += f'\tdelay({duration})\n'
+                run += '\tdelay({})\n'.format(duration)
     if run == run_prefix:
         run = ''
 
@@ -175,9 +175,24 @@ def generate_experiment(sequence):
 
 
     ## write build
+    devs = Configurator.load('devices')[0]
     build = 'def build(self):\n'
+    build += '\tself.setattr_device("core")\n'
+    for adc in devs['adc']:
+        build += '\tself.setattr_device("{}")\n'.format(adc)
+    for dac in devs['dac']:
+        build += '\tself.setattr_device("{}")\n'.format(dac)
+
+    for var in sequence['variables']:
+        if var['type'] == 'float':
+            value = float(var['value'])
+            build += '\tself.{} = {}\n'.format(var['name'], value)
+
+        elif var['type'] == 'int':
+            value = int(var['value'])
+            build += '\tself.{} = {}\n'.format(var['name'], value)
     build += textwrap.indent(adc_build, '\t')
-    build += textwrap.indent(dac_build, '\t')
+    # build += textwrap.indent(dac_build, '\t')
     build += '\n'
 
     ## write init
@@ -185,9 +200,15 @@ def generate_experiment(sequence):
     init += 'def init(self):\n'
     init += '\tself.core.reset()\n'
     init += '\tself.core.break_realtime()\n'
-    init += textwrap.indent(adc_init, '\t')
-    init += textwrap.indent(dac_init, '\t')
+    for adc in devs['adc']:
+        init += '\tself.{}.init()\n'.format(adc)
+    for dac in devs['dac']:
+        init += '\tself.{}.init()\n'.format(dac)
+
+    # init += textwrap.indent(adc_init, '\t')
+    # init += textwrap.indent(dac_init, '\t')
     init += '\tself.core.break_realtime()\n'
+    init += '\tdelay(10e-3)\n'
     init += '\n'
 
     ## write run

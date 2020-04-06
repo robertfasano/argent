@@ -13,8 +13,8 @@ function LoadPopover(props) {
       open={open}
       anchorEl={props.anchorEl}
       onClose={(event) => props.setAnchorEl(null)}
-      anchorOrigin={{vertical: 'center', horizontal: 'right'}}
-      transformOrigin={{vertical: 'center', horizontal: 'left'}}
+      anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+      transformOrigin={{vertical: 'top', horizontal: 'left'}}
     >
     <Box m={1}>
       <Select value={props.active_sequence}

@@ -22,8 +22,8 @@ function SavePopover(props) {
       open={open}
       anchorEl={props.anchorEl}
       onClose={(event) => props.setAnchorEl(null)}
-      anchorOrigin={{vertical: 'center', horizontal: 'right'}}
-      transformOrigin={{vertical: 'center', horizontal: 'left'}}
+      anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+      transformOrigin={{vertical: 'top', horizontal: 'left'}}
     >
     <Box mt={1} ml={1}>
       <TextField onChange = {(event) => setNewName(event.target.value)}

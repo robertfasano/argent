@@ -236,5 +236,11 @@ export default function reducer(state=[], action) {
         draft['sequence']['ttl'][action.channel][action.timestep]['state'] = !ttlChecked
       })
 
+    case 'variables/add':
+    return produce(state, draft => {
+      let newVariable = {name: action.name, value: action.value, type: action.kind}
+      draft['sequence']['variables'] = draft['sequence']['variables'].concat(newVariable)
+    })
+
     }
 }

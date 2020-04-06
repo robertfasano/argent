@@ -40,7 +40,7 @@ export default function App(props) {
       <AppBar position="fixed" color="primary" className={classes.appBar} style={{background: 'linear-gradient(45deg, #67001a 30%, #004e67 90%)'}}>
         <Toolbar>
           <AppMenu />
-          <Typography style={{flexGrow: 1}}> ARTIQ </Typography>
+          <Typography style={{flexGrow: 1}}>  </Typography>
           <IconButton onClick={(event) => handleConfigPopover(event)}>
             <SettingsIcon style={{color: 'white'}}/>
           </IconButton>

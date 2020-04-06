@@ -11,6 +11,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 
 import {connect} from 'react-redux'
 
+import InputLabel from '@material-ui/core/InputLabel';
 
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
@@ -73,12 +74,19 @@ function ADCButton(props) {
         </Box>
 
         <Box m={1}>
-          <TextField onChange = {(event) => updateVariable(event.target.value)}
-                     value = {props.variable}
-                     variant = "outlined"
-                     size = "small"
-                     label="Variable"
-          />
+          <FormControl style={{minWidth: 120}}>
+            <InputLabel id='variable-select' shrink={true}> Variable </InputLabel>
+            <Select value={props.variable}
+                    variant='outlined'
+                    labelId='variable-select'
+                    autoWidth
+                    onChange={(event) => updateVariable(event.target.value)}
+            >
+              {props.variables.map(v => (
+                v.type=='data'? <MenuItem key={v.name} value={v.name}>{v.name}</MenuItem>: null
+              ))}
+            </Select>
+          </FormControl>
         </Box>
 
       </Popover>
@@ -89,7 +97,8 @@ function mapStateToProps(state, ownProps){
   return {samples: state['sequence']['adc'][ownProps.channel][ownProps.timestep]['samples'],
           on: state['sequence']['adc'][ownProps.channel][ownProps.timestep]['on'],
           variable: state['sequence']['adc'][ownProps.channel][ownProps.timestep]['variable'],
-          reserved: state['sequence']['adc'][ownProps.channel][ownProps.timestep]['reserved']
+          reserved: state['sequence']['adc'][ownProps.channel][ownProps.timestep]['reserved'],
+          variables: state['sequence']['variables']
         }
 }
 export default connect(mapStateToProps)(ADCButton)
