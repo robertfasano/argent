@@ -183,14 +183,14 @@ def generate_experiment(sequence):
     for dac in devs['dac']:
         build += '\tself.setattr_device("{}")\n'.format(dac)
 
-    for var in sequence['variables']:
+    for name, var in sequence['variables'].items():
         if var['type'] == 'float':
             value = float(var['value'])
-            build += '\tself.{} = {}\n'.format(var['name'], value)
+            build += '\tself.{} = {}\n'.format(name, value)
 
         elif var['type'] == 'int':
             value = int(var['value'])
-            build += '\tself.{} = {}\n'.format(var['name'], value)
+            build += '\tself.{} = {}\n'.format(name, value)
     build += textwrap.indent(adc_build, '\t')
     # build += textwrap.indent(dac_build, '\t')
     build += '\n'

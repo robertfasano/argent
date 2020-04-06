@@ -82,8 +82,8 @@ function ADCButton(props) {
                     autoWidth
                     onChange={(event) => updateVariable(event.target.value)}
             >
-              {props.variables.map(v => (
-                v.type=='data'? <MenuItem key={v.name} value={v.name}>{v.name}</MenuItem>: null
+              {Object.keys(props.variables).map(name => (
+                props.variables[name].type=='data'? <MenuItem key={name} value={name}>{name}</MenuItem>: null
               ))}
             </Select>
           </FormControl>

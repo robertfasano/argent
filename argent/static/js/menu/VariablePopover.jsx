@@ -64,6 +64,20 @@ function VariablePopover(props) {
 
   const types = ['float', 'int']
 
+  function editVariable(event, name) {
+    setNameFieldAnchor(event.currentTarget)
+    console.log(event, name, props.variables[name])
+    setNewName(name)
+
+    setNewVariableType(props.variables[name]['type'])
+    if (props.variables[name]['type'] == 'data') {
+      setRadioType('Data')
+    }
+    else {
+      setRadioType('Script')
+    }
+    setNewVariableValue(props.variables[name]['value'])
+  }
   return (
     <React.Fragment>
       <Popover
@@ -74,9 +88,9 @@ function VariablePopover(props) {
         transformOrigin={{vertical: 'top', horizontal: 'left'}}
       >
         <List>
-          {props.variables.map(v => (
-            <ListItem button key={v.name}>
-              <ListItemText primary={v.name} />
+          {Object.keys(props.variables).map(name => (
+            <ListItem button key={name} value={name} onClick={(event) => editVariable(event, name)}>
+              <ListItemText primary={name} />
             </ListItem>
           ))}
           <ListItem button>
@@ -90,8 +104,8 @@ function VariablePopover(props) {
         open={Boolean(nameFieldAnchor)}
         anchorEl={nameFieldAnchor}
         onClose={(event) => setNameFieldAnchor(null)}
-        anchorOrigin={{vertical: 'center', horizontal: 'right'}}
-        transformOrigin={{vertical: 'center', horizontal: 'left'}}
+        anchorOrigin={{vertical: 'top', horizontal: 'right'}}
+        transformOrigin={{vertical: 'top', horizontal: 'left'}}
       >
       <Box m={1}>
         <FormControl component="fieldset">
@@ -139,7 +153,7 @@ function VariablePopover(props) {
         ): null}
 
       <Box m={1}>
-        <Button variant="text" onClick={addVariable}> Add </Button>
+        <Button variant="text" onClick={addVariable}> Confirm </Button>
       </Box>
       </Popover>
     </React.Fragment>

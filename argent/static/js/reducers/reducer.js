@@ -238,8 +238,7 @@ export default function reducer(state=[], action) {
 
     case 'variables/add':
     return produce(state, draft => {
-      let newVariable = {name: action.name, value: action.value, type: action.kind}
-      draft['sequence']['variables'] = draft['sequence']['variables'].concat(newVariable)
+      draft['sequence']['variables'][action.name] = {value: action.value, type: action.kind}
     })
 
     }

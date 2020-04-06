@@ -53,7 +53,7 @@ function initializeState(channels, sequences) {
     console.log('No saved sequences found. Generating default sequence.')
     state['sequence'] = {}
     state['sequence']['duration'] = ['1']
-    state['sequence']['variables'] = []
+    state['sequence']['variables'] = {}
     state['sequence']['timestep_scales'] = [1]
 
 
