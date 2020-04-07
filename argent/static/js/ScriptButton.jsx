@@ -32,16 +32,7 @@ function ScriptButton(props) {
 
   function clear() {
     setModule('')
-
-    props.dispatch({type: 'scripts/function',
-                    timestep: props.timestep,
-                    value: ''
-                  })
-
-    props.dispatch({type: 'scripts/reserved',
-                    timestep: props.timestep,
-                    value: {'adc': [], 'dac': [], 'dds': [], 'ttl': []}
-                  })
+    setFunction('')
   }
 
   function setModule(name) {
@@ -56,13 +47,15 @@ function ScriptButton(props) {
                     timestep: props.timestep,
                     value: name
                   })
-
-    setReserved(name)
+    if (name == '') {
+      setReserved({'ttl': [], 'adc': [], 'dac': [], 'dds': []})
+    }
+    else {
+      setReserved(functions[name].reserved)
+    }
   }
 
-  function setReserved(name) {
-    let devs = functions[name].reserved
-
+  function setReserved(devs) {
     for (let adc of props.channels.ADC) {
       props.dispatch({type: 'adc/reserve',
                       timestep: props.timestep,
