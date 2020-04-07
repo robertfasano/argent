@@ -9,18 +9,19 @@ def generate_custom_scripts(sequence):
     run = '## custom scripts\n'
     run += 'with sequential:\n'
     run_prefix = run
-
+    no_events = True
     for i, event in enumerate(sequence['script']):
         if event['function'] == '':
             run += '\tdelay({})\n'.format(float(sequence["duration"][i]))
             continue
-
+        no_events = False
         run += '\twith parallel:\n'
         run += '\t\t{}.{}(self)\n'.format(event["module"], event["function"])
         run += '\t\tdelay({})\n'.format(float(sequence["duration"][i]))
 
         imports += 'import {}\n'.format(event["module"])
-
+    if no_events:
+        run = ''
     return imports, run
 
 def generate_dac_events(sequence):
@@ -133,6 +134,26 @@ def generate_dac_events(sequence):
 
     return build, init, code
 
+def generate_ttl_events(sequence):
+    run = '## TTL\n'
+    no_events = True
+    for ch in sequence['ttl']:
+        no_channel_events= True
+        run_ch = 'with sequential:\n'
+        for i, event in enumerate(sequence['ttl'][ch]):
+            duration = float(sequence['duration'][i])
+            if event['state']:
+                no_events = False
+                no_channel_events = False
+                run_ch += '\tself.ttl{}.pulse({})\n'.format(ch, duration)
+            else:
+                run_ch += '\tdelay({})\n'.format(duration)
+        if not no_channel_events:
+            run += run_ch
+    if no_events:
+        run = ''
+    return run
+
 def generate_adc_events(sequence):
     build = ''
     init = ''
@@ -147,6 +168,7 @@ def generate_adc_events(sequence):
 
     run = '## ADC\n'
     run += 'with sequential:\n'
+    no_events = True
     run_prefix = run
     for ch in sequence['adc']:
         for i, event in enumerate(sequence['adc'][ch]):
@@ -155,6 +177,7 @@ def generate_adc_events(sequence):
                 run += '\tdelay({})\n'.format(duration)
                 continue
             try:
+                no_events = False
                 samples = int(event['samples'])
                 for n in range(samples):
                     run += '\twith parallel:\n'
@@ -163,7 +186,7 @@ def generate_adc_events(sequence):
                     run += '\t\tdelay({})\n'.format(dt)
             except ValueError:
                 run += '\tdelay({})\n'.format(duration)
-    if run == run_prefix:
+    if no_events:
         run = ''
 
     return build, init, run
@@ -171,6 +194,7 @@ def generate_adc_events(sequence):
 def generate_experiment(sequence):
     adc_build, adc_init, adc_run = generate_adc_events(sequence)
     dac_build, dac_init, dac_run = generate_dac_events(sequence)
+    ttl_run = generate_ttl_events(sequence)
     script_imports, script_run = generate_custom_scripts(sequence)
 
 
@@ -182,6 +206,9 @@ def generate_experiment(sequence):
         build += '\tself.setattr_device("{}")\n'.format(adc)
     for dac in devs['dac']:
         build += '\tself.setattr_device("{}")\n'.format(dac)
+    for ttl in devs['ttl']:
+        for i in range(8):
+            build += '\tself.setattr_device("{}{}")\n'.format(ttl, i)
 
     for name, var in sequence['variables'].items():
         if var['type'] == 'float':
@@ -215,12 +242,17 @@ def generate_experiment(sequence):
     run = '@kernel\n'
     run += 'def run(self):\n'
     run += '\tself.init()\n'
-    run += '\twhile True:\n'
-    run += '\t\twith parallel:\n'
-    run += textwrap.indent(dac_run, '\t\t\t')
-    run += textwrap.indent(script_run, '\t\t\t')
-    run += textwrap.indent(adc_run, '\t\t\t')
+    prefix = '\twhile True:\n'
+    prefix += '\t\twith parallel:\n'
 
+    run_body = ''
+    run_body += textwrap.indent(ttl_run, '\t\t\t')
+    run_body += textwrap.indent(dac_run, '\t\t\t')
+    run_body += textwrap.indent(script_run, '\t\t\t')
+    run_body += textwrap.indent(adc_run, '\t\t\t')
+    if run_body != '':
+        run += prefix
+        run += run_body
     run += '\n'
 
     ## write experiment
