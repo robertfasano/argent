@@ -22,6 +22,15 @@ def host(addr='127.0.0.1', port=8051):
     def scripts():
         return json.dumps(find_scripts())
 
+    @app.route("/generate", methods=['POST'])
+    def generate():
+        sequence = request.json
+        code = generate_experiment(sequence)
+        with open('generated_experiment.py', 'w') as file:
+            file.write(code)
+
+        return json.dumps(code)
+
     @app.route("/submit", methods=['POST'])
     def submit():
         sequence = request.json

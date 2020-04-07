@@ -14,6 +14,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import SaveIcon from '@material-ui/icons/Save';
 import FolderOpenIcon from '@material-ui/icons/FolderOpen';
 import AddIcon from '@material-ui/icons/Add';
+import CodeIcon from '@material-ui/icons/Code';
 import {post} from '../utilities.js'
 import {connect} from 'react-redux'
 
@@ -72,6 +73,11 @@ function AppMenu(props) {
     setAnchorEl(null)
   }
 
+  function generate() {
+    post('/generate', props.sequence)
+    setAnchorEl(null)
+  }
+
   return (
     <React.Fragment>
       <List style={flexContainer}>
@@ -80,6 +86,12 @@ function AppMenu(props) {
             <PlayArrowIcon/>
           </Box>
           <Typography>Run</Typography>
+        </ListItem>
+        <ListItem button onClick={generate}>
+          <Box mr={1} mt={0.5}>
+            <CodeIcon/>
+          </Box>
+          <Typography>Generate</Typography>
         </ListItem>
         <ListItem button onClick={handleStorePopover}>
           <Box mr={1} mt={0.5}>
