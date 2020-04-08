@@ -33,14 +33,14 @@ function VariablePopover(props) {
   const [radioType, setRadioType] = React.useState('Data')
 
   function addVariable() {
-    let kind = radioType == 'Script'? newVariableType: 'data'
     props.dispatch({type: 'variables/add',
                     name: newName,
                     value: newVariableValue,
-                    kind: kind})
+                    kind: radioType,
+                    datatype: newVariableType})
 
     let newVariables = JSON.parse(JSON.stringify(props.variables))
-    newVariables[newName] = {'value': newVariableValue, 'type': kind}
+    newVariables[newName] = {'value': newVariableValue, 'kind': radioType, 'datatype': newVariableType}
     post('/variables', newVariables)
 
     setNameFieldAnchor(null)
@@ -75,13 +75,8 @@ function VariablePopover(props) {
     console.log(event, name, props.variables[name])
     setNewName(name)
 
-    setNewVariableType(props.variables[name]['type'])
-    if (props.variables[name]['type'] == 'data') {
-      setRadioType('Data')
-    }
-    else {
-      setRadioType('Script')
-    }
+    setNewVariableType(props.variables[name].datatype)
+    setRadioType(props.variables[name].kind)
     setNewVariableValue(props.variables[name]['value'])
   }
   return (
@@ -117,7 +112,8 @@ function VariablePopover(props) {
         <FormControl component="fieldset">
           <RadioGroup row value={radioType} onChange={(event) => setRadioType(event.target.value)}>
             <FormControlLabel value="Data" control={<Radio />} label="Data" />
-            <FormControlLabel value="Script" control={<Radio />} label="Script" />
+            <FormControlLabel value="Input" control={<Radio />} label="Input" />
+            <FormControlLabel value="Output" control={<Radio />} label="Output" />
           </RadioGroup>
         </FormControl>
       </Box>
@@ -130,7 +126,7 @@ function VariablePopover(props) {
                      InputLabelProps = {{shrink: true}}
           />
         </Box>
-        {radioType == 'Script'? (
+        {['Input', 'Output'].includes(radioType)? (
           <React.Fragment>
             <Box m={1}>
               <TextField onChange = {updateValue}

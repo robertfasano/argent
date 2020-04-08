@@ -238,7 +238,7 @@ export default function reducer(state=[], action) {
 
     case 'variables/add':
     return produce(state, draft => {
-      draft['sequence']['variables'][action.name] = {value: action.value, type: action.kind}
+      draft['sequence']['variables'][action.name] = {value: action.value, kind: action.kind, datatype: action.datatype}
     })
 
     }
