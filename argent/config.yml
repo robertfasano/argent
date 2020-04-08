@@ -1,13 +1,17 @@
-device_db: ./device_db.py
-devices:
-  adc: [samplerA]
-  dac: [zotinoA]
-  dds: [urukulA]
-  ttl: [ttlA]
-scripts:
-  - test_scripts.py
-sequence_format: yml
-sequences_path: ./sequences.json
-timestep_unit: ms
-control_port: 1107
 broadcast_port: 1205
+control_port: 1107
+device_db: './device_db.py'
+devices:
+  adc:
+  - samplerA
+  dac:
+  - zotinoA
+  dds:
+  - urukulA
+  ttl:
+  - ttlA
+scripts:
+- test_scripts.py
+sequence_format: yml
+sequence_library: './sequences.json'
+timestep_unit: ms
