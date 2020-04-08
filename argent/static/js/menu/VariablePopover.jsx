@@ -20,6 +20,7 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
+import {post} from '../utilities.js'
 
 function VariablePopover(props) {
   const open = Boolean(props.anchorEl)
@@ -37,6 +38,11 @@ function VariablePopover(props) {
                     name: newName,
                     value: newVariableValue,
                     kind: kind})
+
+    let newVariables = JSON.parse(JSON.stringify(props.variables))
+    newVariables[newName] = {'value': newVariableValue, 'type': kind}
+    post('/variables', newVariables)
+
     setNameFieldAnchor(null)
 
     setNewName('')

@@ -9,6 +9,7 @@ import AppMenu from './menu/AppMenu.jsx'
 import SettingsIcon from '@material-ui/icons/Settings';
 import IconButton from '@material-ui/core/IconButton'
 import ConfigPopover from './ConfigPopover.jsx'
+import {post} from './utilities.js'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -22,7 +23,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
-export default function App(props) {
+function App(props) {
   const classes = useStyles()
 
   const [configAnchor, setConfigAnchor] = React.useState(null)
@@ -34,6 +35,15 @@ export default function App(props) {
       setConfigAnchor(null)
     }
   }
+
+
+  function loadSequence(name) {
+    console.log('loadSequence', name)
+    props.dispatch({type: 'sequence/retrieve', name: name})
+    post('/variables', props.sequences[name].variables)
+  }
+
+  loadSequence(props.activeSequence)
 
   return (
     <React.Fragment>
@@ -54,3 +64,12 @@ export default function App(props) {
     </React.Fragment>
   )
 }
+
+
+function mapStateToProps(state, ownProps) {
+  return {activeSequence: state['active_sequence'],
+          sequences: state['sequences']
+        }
+}
+
+export default connect(mapStateToProps)(App)
