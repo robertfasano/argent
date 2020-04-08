@@ -189,7 +189,7 @@ export default function reducer(state=[], action) {
                                      'reserved': false})
         }
         for (let channel of state['channels'].ADC) {
-          draft['sequence']['adc'][channel].splice(action.timestep+1, 0, {'samples': '', 'on': false, 'reserved': false})
+          draft['sequence']['adc'][channel].splice(action.timestep+1, 0, {'samples': '', 'on': false, 'reserved': false, 'variable': ''})
         }
 
         draft['sequence']['script'].splice(action.timestep+1, 0, {'module': '', 'function': ''})
