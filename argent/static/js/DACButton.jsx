@@ -61,9 +61,10 @@ function DACButton(props) {
   let color = getColor(implicit.setpoint)
   let constantStyle = {background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
                        opacity: props.reserved? 0.15: 1,
-                       color: 'white'} // changing gradient to uniform color is faster than setting backgroundColor
+                       color: 'white',
+                       fontSize: 11} // changing gradient to uniform color is faster than setting backgroundColor
   let ramp = `linear-gradient(90deg, ${getColor(implicit.start)} 0%, ${getColor(implicit.stop)} 100%)`
-  let rampStyle = {background: ramp, opacity: props.reserved? 0.15: 1, color: 'white'}
+  let rampStyle = {background: ramp, opacity: props.reserved? 0.15: 1, color: 'white', fontSize: 11}
 
   let text = props.mode == 'constant'? props.setpoint: props.start + '→' + props.stop
   return (
@@ -73,11 +74,7 @@ function DACButton(props) {
               style={props.mode=='constant'? constantStyle: rampStyle}
               onClick={(event) => setAnchorEl(event.currentTarget)}
               >
-        <Typography>
-          <Box fontSize={11}>
-            {text}
-          </Box>
-        </Typography>
+        {text}
       </Button>
       <Popover
         open={open}
