@@ -13,21 +13,26 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import {get, post} from './utilities.js'
 
-export default function ConfigPopover(props) {
+function ConfigPopover(props) {
   const open = Boolean(props.anchorEl)
 
-  const [sequencePath, setSequencePath] = React.useState('')
-  const [deviceDBPath, setDeviceDBPath] = React.useState('')
+  function loadInitialConfig() {
+    get('config', (result) => {
+      updateSequencePath(result['sequence_library'])
+      updateDeviceDBPath(result['device_db'])
+      }
+    )
+  }
 
-  get('config', (result) => setSequencePath(result['sequences_path']))
-  get('config', (result) => setDeviceDBPath(result['device_db']))
+  React.useEffect(loadInitialConfig, [])
 
   function updateSequencePath(filename) {
-    post('config', {'sequences_path': filename}, (result) => setSequencePath(filename))
+    props.dispatch({type: 'config/sequence_library', value: filename})
   }
 
   function updateDeviceDBPath(filename) {
-    post('config', {'device_db': filename}, (result) => setDeviceDBPath(filename))
+    props.dispatch({type: 'config/device_db', value: filename})
+
   }
 
   return (
@@ -39,11 +44,21 @@ export default function ConfigPopover(props) {
       transformOrigin={{vertical: 'top', horizontal: 'left'}}
     >
     <Box m={1}>
-      <FileDialog label="Sequences path" value={sequencePath} setValue={updateSequencePath}/>
+      <FileDialog label="Sequences path"
+                  value={props.config.sequence_library}
+                  setValue={updateSequencePath}/>
     </Box>
     <Box m={1}>
-      <FileDialog label="device_db path" value={deviceDBPath} setValue={updateDeviceDBPath}/>
+      <FileDialog label="device_db path"
+                  value={props.config.device_db}
+                  setValue={updateDeviceDBPath}/>
     </Box>
     </Popover>
   )
 }
+
+function mapStateToProps(state, ownProps){
+  return {config: state['config']
+        }
+}
+export default connect(mapStateToProps)(ConfigPopover)

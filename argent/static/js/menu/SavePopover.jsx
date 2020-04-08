@@ -18,7 +18,6 @@ function SavePopover(props) {
     props.setAnchorEl(null)
     let newSequences = JSON.parse(JSON.stringify(props.sequences))
     newSequences[newName] = props.sequence
-    post('/save', newSequences)
   }
 
   return (

@@ -38,8 +38,9 @@ const theme = createMuiTheme({
 
 function initializeState(channels, sequences) {
   let state = {}
+  state['config'] = {'sequence_library': '', 'device_db': ''}
   state['channels'] = channels
-
+  state['controls'] = {paused: false}
 
   state['scripts'] = {}
   state['sequences'] = sequences
@@ -47,7 +48,6 @@ function initializeState(channels, sequences) {
   if (Object.keys(state['sequences']).includes('default')) {
     console.log('Loading sequences from file.')
     state['sequence'] = state['sequences']['default']
-    console.log(state['sequence'])
   }
   else {
     console.log('No saved sequences found. Generating default sequence.')
@@ -123,7 +123,6 @@ export function createGUI(sequences) {
   const state = initializeState(channels, sequences)
 
   const store = createStore(reducer, state)
-  console.log(state)
   ReactDOM.render(<Provider store={store}>
                     <ThemeProvider theme={theme}>
                       <App/>

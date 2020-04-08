@@ -32,6 +32,21 @@ export default function reducer(state=[], action) {
         draft['sequence']['adc'][action.channel][action.timestep]['variable'] = action.value
       })
 
+    case 'config/sequence_library':
+      return produce(state, draft => {
+        draft['config'].sequence_library = action.value
+      })
+
+    case 'config/device_db':
+      return produce(state, draft => {
+        draft['config'].device_db = action.value
+      })
+
+    case 'controls/paused':
+      return produce(state, draft => {
+        draft['controls'].paused = action.value
+      })
+
     case 'dac/mode':
       return produce(state, draft => {
         draft['sequence']['dac'][action.channel][action.timestep]['mode'] = action.value

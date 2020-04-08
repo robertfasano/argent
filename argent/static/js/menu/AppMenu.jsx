@@ -1,6 +1,8 @@
 import React from 'react'
 import IconButton from '@material-ui/core/IconButton';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import PauseIcon from '@material-ui/icons/Pause';
+import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
 import Box from '@material-ui/core/Box';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -73,11 +75,20 @@ function AppMenu(props) {
     setAnchorEl(null)
   }
 
+  function pause() {
+    if (props.controls['paused']) {
+      props.dispatch({type: 'controls/paused', value: false})
+    }
+    else {
+      props.dispatch({type: 'controls/paused', value: true})
+    }
+  }
+
   function generate() {
     post('/generate', props.sequence)
     setAnchorEl(null)
   }
-
+  let pauseText = props.controls.paused? "Resume": "Pause"
   return (
     <React.Fragment>
       <List style={flexContainer}>
@@ -86,6 +97,12 @@ function AppMenu(props) {
             <PlayArrowIcon/>
           </Box>
           <Typography>Run</Typography>
+        </ListItem>
+        <ListItem button onClick={pause}>
+          <Box mr={1} mt={0.5}>
+            {props.controls.paused? <PauseCircleFilledIcon/>: <PauseIcon/>}
+          </Box>
+          <Typography>{pauseText}</Typography>
         </ListItem>
         <ListItem button onClick={generate}>
           <Box mr={1} mt={0.5}>
@@ -122,7 +139,8 @@ function AppMenu(props) {
 
 function mapStateToProps(state, ownProps){
   return {
-          sequence: state['sequence']
+          sequence: state['sequence'],
+          controls: state['controls']
         }
 }
 export default connect(mapStateToProps)(AppMenu)

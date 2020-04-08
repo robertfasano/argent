@@ -15,12 +15,10 @@ import TextField from '@material-ui/core/TextField';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
-
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
-import {post} from '../utilities.js'
 
 function VariablePopover(props) {
   const open = Boolean(props.anchorEl)
@@ -29,7 +27,6 @@ function VariablePopover(props) {
   const [newVariableType, setNewVariableType] = React.useState('float')
   const [newName, setNewName] = React.useState('')
   const [newVariableValue, setNewVariableValue] = React.useState('')
-
   const [radioType, setRadioType] = React.useState('Data')
 
   function addVariable() {
@@ -38,10 +35,6 @@ function VariablePopover(props) {
                     value: newVariableValue,
                     kind: radioType,
                     datatype: newVariableType})
-
-    let newVariables = JSON.parse(JSON.stringify(props.variables))
-    newVariables[newName] = {'value': newVariableValue, 'kind': radioType, 'datatype': newVariableType}
-    post('/variables', newVariables)
 
     setNameFieldAnchor(null)
 
@@ -68,7 +61,7 @@ function VariablePopover(props) {
     setNewVariableValue(event.target.value)
   }
 
-  const types = ['float', 'int']
+  const types = ['float', 'int', 'bool']
 
   function editVariable(event, name) {
     setNameFieldAnchor(event.currentTarget)

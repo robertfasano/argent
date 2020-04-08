@@ -11,6 +11,7 @@ import os
 class App:
     def __init__(self):
         self.variables = {}
+        self.controls = {}
 
     def host(self, addr='127.0.0.1', port=8051):
         app = Flask(__name__)
@@ -56,14 +57,14 @@ class App:
 
         @app.route("/save", methods=['POST'])
         def save():
-            path = Configurator.load('sequences_path')[0]
+            path = Configurator.load('sequence_library')[0]
             with open(path, 'w') as file:
                 json.dump(request.json, file, indent=2)
             return ''
 
         @app.route("/load")
         def load():
-            path = Configurator.load('sequences_path')[0]
+            path = Configurator.load('sequence_library')[0]
             try:
                 with open(path, 'r') as file:
                     sequence = json.load(file)
@@ -77,6 +78,12 @@ class App:
                 self.variables = request.json
             print(self.variables)
             return json.dumps(self.variables)
+
+        @app.route("/controls", methods=['GET', 'POST'])
+        def controls():
+            if request.method == 'POST':
+                self.controls = request.json
+            return json.dumps(self.controls)
 
         app.run(debug=True, host=addr, port=port)
 

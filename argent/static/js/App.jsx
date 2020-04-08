@@ -10,6 +10,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import IconButton from '@material-ui/core/IconButton'
 import ConfigPopover from './ConfigPopover.jsx'
 import {post} from './utilities.js'
+import Synchronizer from './Synchronizer.jsx'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -23,7 +24,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
-function App(props) {
+export default function App(props) {
   const classes = useStyles()
 
   const [configAnchor, setConfigAnchor] = React.useState(null)
@@ -36,17 +37,9 @@ function App(props) {
     }
   }
 
-
-  function loadSequence(name) {
-    console.log('loadSequence', name)
-    props.dispatch({type: 'sequence/retrieve', name: name})
-    post('/variables', props.sequences[name].variables)
-  }
-
-  loadSequence(props.activeSequence)
-
   return (
     <React.Fragment>
+      <Synchronizer/>
       <AppBar position="fixed" color="primary" className={classes.appBar} style={{background: 'linear-gradient(45deg, #67001a 30%, #004e67 90%)'}}>
         <Toolbar>
           <AppMenu />
@@ -64,12 +57,3 @@ function App(props) {
     </React.Fragment>
   )
 }
-
-
-function mapStateToProps(state, ownProps) {
-  return {activeSequence: state['active_sequence'],
-          sequences: state['sequences']
-        }
-}
-
-export default connect(mapStateToProps)(App)

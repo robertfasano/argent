@@ -355,7 +355,7 @@ def generate_experiment(sequence):
     for ttl in devs['ttl']:
         for i in range(8):
             build += '\tself.setattr_device("{}{}")\n'.format(ttl, i)
-
+    build += '\tself.paused = False\n'
     for name, var in sequence['variables'].items():
         if var['kind'] == 'Data':
             continue
@@ -390,16 +390,26 @@ def generate_experiment(sequence):
     ## write run
     run = '@kernel\n'
     run += 'def run(self):\n'
-    run += '\tself.init()\n'
+    run += '\tself.init()\n\n'
+    run += '\tfirst=True\n'
     run += '\twhile True:\n'
-    run += textwrap.indent(generate(prepare(sequence)), '\t\t')
+    run += '\t\tif self.paused:\n'
+    run += '\t\t\tself.core.break_realtime()\n'
+    run += '\t\t\tself.__sync__(broadcast=False)\n'
+    run += '\t\t\tfirst=True\n'
 
+    run += '\t\telse:\n'
+    run += '\t\t\tif first:\n'
+    run += '\t\t\t\tself.core.break_realtime()\n'
+    run += '\t\t\t\tfirst=False\n'
+    run += textwrap.indent(generate(prepare(sequence)), '\t\t\t')
     run += '\n'
+
 
     ## write experiment
     experiment = 'from artiq.experiment import *\n'
     experiment += 'import zmq\n'
-    experiment += 'from argent.utilities import get_ints, get_floats\n'
+    experiment += 'from argent.utilities import get_ints, get_floats, get_bools, get_controls\n'
     experiment += script_imports
     experiment += '\n'
     experiment += 'class Experiment(EnvExperiment):\n'
@@ -412,10 +422,9 @@ def generate_experiment(sequence):
     return experiment
 
 def generate_sync(sequence):
-    if len(sequence['variables']) == 0:
-        return ''
     input_floats = {}
     input_ints = {}
+    input_bools = {}
     outputs = {}
 
     for name, var in sequence['variables'].items():
@@ -424,23 +433,28 @@ def generate_sync(sequence):
                 input_floats[name] = var
             elif var['datatype'] == 'int':
                 input_ints[name] = var
+            elif var['datatype'] == 'bool':
+                input_bools[name] = var
         elif var['kind'] == 'Output':
             outputs[name] = var
 
     self_dot_outputs = ['self.'+name for name in outputs.keys()]
     self_dot_input_floats = ['self.'+name for name in input_floats.keys()]
     self_dot_input_ints = ['self.'+name for name in input_ints.keys()]
-
+    self_dot_input_bools = ['self.'+name for name in input_ints.keys()]
     code = '@kernel\n'
-    code += 'def __sync__(self):\n'
+    code += 'def __sync__(self, broadcast=True):\n'
     # code += '\tentry_slack = now_mu() - self.core.get_rtio_counter_mu()\n'
-
+    code += '\t[self.paused] = get_controls(self, ["paused"])\n'
     if len(outputs) > 0:
-        code += '\tself.__broadcast__({})\n'.format(', '.join(self_dot_outputs))
+        code += '\tif broadcast:\n'
+        code += '\t\t\tself.__broadcast__({})\n'.format(', '.join(self_dot_outputs))
     if len(input_floats) > 0:
         code += '\t[{}] = get_floats(self, [{}])\n'.format(', '.join(self_dot_input_floats), ', '.join('"{}"'.format(i) for i in input_floats.keys()))
     if len(input_ints) > 0:
         code += '\t[{}] = get_ints(self, [{}])\n'.format(', '.join(self_dot_input_ints), ', '.join('"{}"'.format(i) for i in input_ints.keys()))
+    if len(input_bools) > 0:
+        code += '\t[{}] = get_ints(self, [{}])\n'.format(', '.join(self_dot_input_bools), ', '.join('"{}"'.format(i) for i in input_bools.keys()))
 
     # code += '\texit_slack = now_mu() - self.core.get_rtio_counter_mu()\n'
     # code += '\tprint("Synced to server. Slack cost: ", (exit_slack-entry_slack), " Remaining slack:", exit_slack)\n'
