@@ -83,7 +83,7 @@ function ADCButton(props) {
                     onChange={(event) => updateVariable(event.target.value)}
             >
               {Object.keys(props.variables).map(name => (
-                props.variables[name].type=='data'? <MenuItem key={name} value={name}>{name}</MenuItem>: null
+                props.variables[name].kind=='Data'? <MenuItem key={name} value={name}>{name}</MenuItem>: null
               ))}
             </Select>
           </FormControl>
