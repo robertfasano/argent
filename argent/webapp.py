@@ -1,8 +1,7 @@
 from flask import Flask, request
 from flask import render_template, send_from_directory
+from flask_socketio import SocketIO, emit
 from argent.webapp_generator import generate_experiment
-# from argent.generator_new import generate_experiment
-
 from argent.scripts import find_scripts
 from argent import Configurator
 import json
@@ -15,6 +14,7 @@ class App:
 
     def host(self, addr='127.0.0.1', port=8051):
         app = Flask(__name__)
+        socketio = SocketIO(app)
 
         @app.route('/favicon.ico')
         def favicon():
@@ -75,18 +75,27 @@ class App:
         @app.route("/variables", methods=['GET', 'POST'])
         def variables():
             if request.method == 'POST':
-                self.variables = request.json
-            print(self.variables)
+                for var, data in request.json.items():
+                    if var in self.variables:
+                        for key, field in data.items():
+                            self.variables[var][key] = field
+                    else:
+                        self.variables[var] = data
+                socketio.emit('variables', self.variables)
             return json.dumps(self.variables)
 
         @app.route("/controls", methods=['GET', 'POST'])
         def controls():
             if request.method == 'POST':
                 self.controls = request.json
+                socketio.emit('controls', self.controls)
             return json.dumps(self.controls)
 
-        app.run(debug=True, host=addr, port=port)
+        @socketio.on('connect')
+        def connect():
+            emit('connect', {'data': 'Connected'})
 
+        socketio.run(app, host=addr, port=port, debug=True)
 if __name__ == "__main__":
     app = App()
     app.host('127.0.0.1', 8051)

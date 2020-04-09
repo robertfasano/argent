@@ -9,6 +9,7 @@ import AppMenu from './menu/AppMenu.jsx'
 import SettingsIcon from '@material-ui/icons/Settings';
 import IconButton from '@material-ui/core/IconButton'
 import ConfigPopover from './ConfigPopover.jsx'
+import io from 'socket.io-client'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -22,7 +23,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
-export default function App(props) {
+function App(props) {
   const classes = useStyles()
 
   const [configAnchor, setConfigAnchor] = React.useState(null)
@@ -34,6 +35,15 @@ export default function App(props) {
       setConfigAnchor(null)
     }
   }
+
+  const socket = io('http://localhost:8051');
+  socket.on('connect', (data) => {
+    console.log('connected to socketIO link')
+  })
+
+  socket.on('variables', (data) => {
+    props.dispatch({type: 'variables/update', data: data})
+  })
 
   return (
     <React.Fragment>
@@ -54,3 +64,5 @@ export default function App(props) {
     </React.Fragment>
   )
 }
+
+export default connect()(App)
