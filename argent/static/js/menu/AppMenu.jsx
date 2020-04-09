@@ -19,6 +19,7 @@ import AddIcon from '@material-ui/icons/Add';
 import CodeIcon from '@material-ui/icons/Code';
 import {post} from '../utilities.js'
 import {connect} from 'react-redux'
+import PauseButton from './PauseButton.jsx'
 
 function AppMenu(props) {
   const flexContainer = {
@@ -75,20 +76,13 @@ function AppMenu(props) {
     setAnchorEl(null)
   }
 
-  function pause() {
-    if (props.controls['paused']) {
-      props.dispatch({type: 'controls/paused', value: false})
-    }
-    else {
-      props.dispatch({type: 'controls/paused', value: true})
-    }
-  }
+
 
   function generate() {
     post('/generate', props.sequence)
     setAnchorEl(null)
   }
-  let pauseText = props.controls.paused? "Resume": "Pause"
+
   return (
     <React.Fragment>
       <List style={flexContainer}>
@@ -98,12 +92,7 @@ function AppMenu(props) {
           </Box>
           <Typography>Run</Typography>
         </ListItem>
-        <ListItem button onClick={pause}>
-          <Box mr={1} mt={0.5}>
-            {props.controls.paused? <PauseCircleFilledIcon/>: <PauseIcon/>}
-          </Box>
-          <Typography>{pauseText}</Typography>
-        </ListItem>
+        <PauseButton />
         <ListItem button onClick={generate}>
           <Box mr={1} mt={0.5}>
             <CodeIcon/>
@@ -139,8 +128,7 @@ function AppMenu(props) {
 
 function mapStateToProps(state, ownProps){
   return {
-          sequence: state['sequence'],
-          controls: state['controls']
+          sequence: state['sequence']
         }
 }
 export default connect(mapStateToProps)(AppMenu)

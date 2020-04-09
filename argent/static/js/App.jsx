@@ -9,8 +9,6 @@ import AppMenu from './menu/AppMenu.jsx'
 import SettingsIcon from '@material-ui/icons/Settings';
 import IconButton from '@material-ui/core/IconButton'
 import ConfigPopover from './ConfigPopover.jsx'
-import {post} from './utilities.js'
-import Synchronizer from './Synchronizer.jsx'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -39,7 +37,6 @@ export default function App(props) {
 
   return (
     <React.Fragment>
-      <Synchronizer/>
       <AppBar position="fixed" color="primary" className={classes.appBar} style={{background: 'linear-gradient(45deg, #67001a 30%, #004e67 90%)'}}>
         <Toolbar>
           <AppMenu />

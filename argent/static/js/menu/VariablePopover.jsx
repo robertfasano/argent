@@ -19,6 +19,7 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
+import {post} from '../utilities.js'
 
 function VariablePopover(props) {
   const open = Boolean(props.anchorEl)
@@ -29,8 +30,14 @@ function VariablePopover(props) {
   const [newVariableValue, setNewVariableValue] = React.useState('')
   const [radioType, setRadioType] = React.useState('Data')
 
+  post('/variables', props.variables)   // synchronize with backend when variables change
+
   function addVariable() {
-    props.dispatch({type: 'variables/add',
+    let type = 'variables/add'
+    if (Object.keys(props.variables).includes(newName)) {
+      type = 'variables/edit'
+    }
+    props.dispatch({type: type,
                     name: newName,
                     value: newVariableValue,
                     kind: radioType,

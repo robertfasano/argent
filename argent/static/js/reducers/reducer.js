@@ -256,5 +256,24 @@ export default function reducer(state=[], action) {
       draft['sequence']['variables'][action.name] = {value: action.value, kind: action.kind, datatype: action.datatype}
     })
 
+    case 'variables/edit':
+    return produce(state, draft => {
+      draft['sequence']['variables'][action.name].value = action.value
+      draft['sequence']['variables'][action.name].kind = action.kind
+      draft['sequence']['variables'][action.name].datatype = action.datatype
+    })
+
+    case 'variables/update':
+    return produce(state, draft => {
+      for (let name of Object.keys(action.data)) {
+        if (state['sequence']['variables'][name] == null) {
+          draft['sequence']['variables'][name] = {}
+        }
+        draft['sequence']['variables'][name].value = action.data[name].value
+        draft['sequence']['variables'][name].kind = action.data[name].kind
+        draft['sequence']['variables'][name].datatype = action.data[name].datatype
+      }
+    })
+
     }
 }
