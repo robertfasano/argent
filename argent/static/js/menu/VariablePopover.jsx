@@ -19,7 +19,6 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
-import {post} from '../utilities.js'
 
 function VariablePopover(props) {
   const open = Boolean(props.anchorEl)
@@ -29,8 +28,6 @@ function VariablePopover(props) {
   const [newName, setNewName] = React.useState('')
   const [newVariableValue, setNewVariableValue] = React.useState('')
   const [radioType, setRadioType] = React.useState('Data')
-
-  post('/variables', props.variables)   // synchronize with backend when variables change
 
   function addVariable() {
     let type = 'variables/add'
@@ -79,6 +76,16 @@ function VariablePopover(props) {
     setRadioType(props.variables[name].kind)
     setNewVariableValue(props.variables[name]['value'])
   }
+
+  let variableLabels = {}
+  for (name in props.variables) {
+    if (props.variables[name].kind == 'Data') {
+      variableLabels[name] = name + ' (data)'
+    }
+    else {
+      variableLabels[name] = name + ' (' + props.variables[name].datatype + ', ' + props.variables[name].value + ')'
+    }
+  }
   return (
     <React.Fragment>
       <Popover
@@ -91,7 +98,7 @@ function VariablePopover(props) {
         <List>
           {Object.keys(props.variables).map(name => (
             <ListItem button key={name} value={name} onClick={(event) => editVariable(event, name)}>
-              <ListItemText primary={name} />
+              <ListItemText primary={variableLabels[name]} />
             </ListItem>
           ))}
           <ListItem button>

@@ -72,15 +72,24 @@ class App:
                 sequence = {}
             return json.dumps(sequence)
 
-        @app.route("/variables", methods=['GET', 'POST'])
+        @app.route("/variables", methods=['GET', 'POST', 'PATCH'])
         def variables():
             if request.method == 'POST':
+                self.variables = request.json
+            if request.method == 'PATCH':
                 for var, data in request.json.items():
                     if var in self.variables:
                         for key, field in data.items():
                             self.variables[var][key] = field
                     else:
                         self.variables[var] = data
+            socketio.emit('variables', self.variables)
+            return json.dumps(self.variables)
+
+        @app.route("/variables/<name>", methods=['GET', 'POST'])
+        def variable(name):
+            if request.method == 'POST':
+                self.variables[name]['value'] = request.json['value']
                 socketio.emit('variables', self.variables)
             return json.dumps(self.variables)
 
