@@ -314,7 +314,7 @@ def generate(sequence):
             all_code += 'with parallel:\n'
             all_code += textwrap.indent(code, '\t')
 
-    all_code += '\nself.__sync__()\n'
+    all_code += '\nself.__sync__(handle_latch=True)\n'
     return all_code
 
 def generate_script_imports(sequence):
@@ -356,6 +356,8 @@ def generate_experiment(sequence):
         for i in range(8):
             build += '\tself.setattr_device("{}{}")\n'.format(ttl, i)
     build += '\tself.paused = False\n'
+    build += '\tself.latch = False\n'
+
     for name, var in sequence['variables'].items():
         if var['kind'] == 'Data':
             continue
@@ -443,9 +445,9 @@ def generate_sync(sequence):
     self_dot_input_ints = ['self.'+name for name in input_ints.keys()]
     self_dot_input_bools = ['self.'+name for name in input_ints.keys()]
     code = '@kernel\n'
-    code += 'def __sync__(self, broadcast=True):\n'
+    code += 'def __sync__(self, broadcast=True, handle_latch=False):\n'
     # code += '\tentry_slack = now_mu() - self.core.get_rtio_counter_mu()\n'
-    code += '\t[self.paused] = get_controls(self, ["paused"])\n'
+    code += '\t[self.paused, self.latch] = get_controls(self, ["paused", "latch"], handle_latch=handle_latch)\n'
     if len(outputs) > 0:
         code += '\tif broadcast:\n'
         code += '\t\t\tself.__broadcast__({})\n'.format(', '.join(self_dot_outputs))

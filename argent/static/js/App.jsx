@@ -10,6 +10,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import IconButton from '@material-ui/core/IconButton'
 import ConfigPopover from './ConfigPopover.jsx'
 import VariableSync from './VariableSync.jsx'
+import ControlsSync from './ControlsSync.jsx'
 import io from 'socket.io-client'
 
 const useStyles = makeStyles(theme => ({
@@ -47,9 +48,15 @@ function App(props) {
     props.dispatch({type: 'variables/update', data: data})
   })
 
+  socket.on('controls', (data) => {
+    console.log('Received socket.IO controls update.')
+    props.dispatch({type: 'controls/update', data: data})
+  })
+
   return (
     <React.Fragment>
       <VariableSync/>
+      <ControlsSync/>
       <AppBar position="fixed" color="primary" className={classes.appBar} style={{background: 'linear-gradient(45deg, #67001a 30%, #004e67 90%)'}}>
         <Toolbar>
           <AppMenu />

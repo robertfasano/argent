@@ -76,6 +76,8 @@ class App:
         def variables():
             if request.method == 'POST':
                 self.variables = request.json
+                socketio.emit('variables', self.variables)
+
             if request.method == 'PATCH':
                 for var, data in request.json.items():
                     if var in self.variables:
@@ -83,7 +85,7 @@ class App:
                             self.variables[var][key] = field
                     else:
                         self.variables[var] = data
-            socketio.emit('variables', self.variables)
+                socketio.emit('variables', self.variables)
             return json.dumps(self.variables)
 
         @app.route("/variables/<name>", methods=['GET', 'POST'])
@@ -93,11 +95,16 @@ class App:
                 socketio.emit('variables', self.variables)
             return json.dumps(self.variables)
 
-        @app.route("/controls", methods=['GET', 'POST'])
+        @app.route("/controls", methods=['GET', 'POST', 'PATCH'])
         def controls():
             if request.method == 'POST':
                 self.controls = request.json
                 socketio.emit('controls', self.controls)
+            elif request.method == 'PATCH':
+                for name, value in request.json.items():
+                    self.controls[name] = value
+                socketio.emit('controls', self.controls)
+
             return json.dumps(self.controls)
 
         @socketio.on('connect')

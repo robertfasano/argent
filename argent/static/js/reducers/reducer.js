@@ -47,6 +47,13 @@ export default function reducer(state=[], action) {
         draft['controls'].paused = action.value
       })
 
+      case 'controls/update':
+      return produce(state, draft => {
+        for (let name of Object.keys(action.data)) {
+          draft['controls'][name] = action.data[name]
+        }
+      })
+
     case 'dac/mode':
       return produce(state, draft => {
         draft['sequence']['dac'][action.channel][action.timestep]['mode'] = action.value

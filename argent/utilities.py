@@ -1,14 +1,20 @@
 from artiq.language.types import TList, TFloat, TInt32, TBool
 import requests
 
-def get_controls(self, names) -> TList(TBool):
+def get_controls(self, names, handle_latch=False) -> TList(TBool):
     controls = requests.get('http://127.0.0.1:8051/controls').json()
+
+    if handle_latch:
+        if controls['latch'] and not controls['paused']:
+            controls['paused'] = True
+            requests.post('http://127.0.0.1:8051/controls', json=controls)
 
     results = []
     for name in names:
         value = bool(controls[name])
         results.append(value)
         setattr(self, name, value)
+
     return results
 
 def get_bools(self, names) -> TList(TBool):

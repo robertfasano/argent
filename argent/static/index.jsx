@@ -40,7 +40,7 @@ function initializeState(channels, sequences) {
   let state = {}
   state['config'] = {'sequence_library': '', 'device_db': ''}
   state['channels'] = channels
-  state['controls'] = {paused: false}
+  state['controls'] = {paused: false, latch: false}
 
   state['scripts'] = {}
   state['sequences'] = sequences

@@ -11,14 +11,13 @@ function PauseButton(props) {
   function pause() {
     if (props.controls['paused']) {
       props.dispatch({type: 'controls/paused', value: false})
+      props.dispatch({type: 'controls/update', data: {latch: false}})
     }
     else {
       props.dispatch({type: 'controls/paused', value: true})
     }
   }
   let pauseText = props.controls.paused? "Resume": "Pause"
-  
-  post('/controls', props.controls)
 
   return (
     <ListItem button onClick={pause}>
