@@ -21,6 +21,6 @@ class Configurator:
             yaml.dump(config, file)
 
     def update(self, field, new_value):
-        config = Configurator.load()
+        config = self.load()
         config[field] = new_value
         self.save(config)
