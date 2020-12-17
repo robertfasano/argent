@@ -160,6 +160,13 @@ export default function reducer(state=[], action) {
       draft['sequence']['script'][action.timestep]['module'] = action.value
     })
 
+    case 'sequence/load':
+      return produce(state, draft => {
+        draft['sequences'][action.name] = action.sequence
+        draft['active_sequence'] = action.name
+        draft['sequence'] = action.sequence
+      })
+
     case 'sequence/retrieve':
       return produce(state, draft => {
         draft['sequence'] = draft['sequences'][action.name]

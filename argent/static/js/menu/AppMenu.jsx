@@ -10,16 +10,15 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Typography from '@material-ui/core/Typography';
 import LoadPopover from './LoadPopover.jsx'
-import SavePopover from './SavePopover.jsx'
+import SaveButton from './SaveButton.jsx'
 import VariablePopover from './VariablePopover.jsx'
 import MenuIcon from '@material-ui/icons/Menu';
-import SaveIcon from '@material-ui/icons/Save';
-import FolderOpenIcon from '@material-ui/icons/FolderOpen';
 import AddIcon from '@material-ui/icons/Add';
 import CodeIcon from '@material-ui/icons/Code';
 import {post} from '../utilities.js'
 import {connect} from 'react-redux'
 import PauseButton from './PauseButton.jsx'
+import LoadButton from './LoadButton.jsx'
 
 function AppMenu(props) {
   const flexContainer = {
@@ -83,6 +82,7 @@ function AppMenu(props) {
     setAnchorEl(null)
   }
 
+
   return (
     <React.Fragment>
       <List style={flexContainer}>
@@ -99,18 +99,8 @@ function AppMenu(props) {
           </Box>
           <Typography>Generate</Typography>
         </ListItem>
-        <ListItem button onClick={handleStorePopover}>
-          <Box mr={1} mt={0.5}>
-            <SaveIcon/>
-          </Box>
-          <Typography>Save</Typography>
-        </ListItem>
-        <ListItem button onClick={handleLoadPopover}>
-          <Box mr={1} mt={0.5}>
-            <FolderOpenIcon/>
-          </Box>
-          <Typography>Load</Typography>
-        </ListItem>
+        <SaveButton/>
+        <LoadButton/>
         <ListItem button onClick={handleVariablePopover}>
           <Box mr={1} mt={0.5}>
             <AddIcon/>
@@ -118,7 +108,6 @@ function AppMenu(props) {
           <Typography>Variables</Typography>
         </ListItem>
         <LoadPopover anchorEl={loadAnchor} setAnchorEl={setLoadAnchor} />
-        <SavePopover anchorEl={storeAnchor} setAnchorEl={setStoreAnchor}/>
         <VariablePopover anchorEl={variableAnchor} setAnchorEl={setVariableAnchor}/>
 
       </List>
