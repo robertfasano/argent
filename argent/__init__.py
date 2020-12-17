@@ -3,8 +3,9 @@ import re
 import os
 
 class Configurator:
-    def __init__(self, config_path):
+    def __init__(self, config_path, device_db_path):
         self.config_path = config_path
+        self.device_db_path = device_db_path
 
     def load(self, *fields):
         ''' Loads and returns the configuration file. If fields are specified,

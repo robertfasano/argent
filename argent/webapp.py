@@ -12,7 +12,7 @@ import sys
 class App:
     def __init__(self, device_db, config):
         self.device_db = device_db
-        self.config = Configurator(config).load()
+        self.config = Configurator(config, device_db).load()
         self.variables = {}
         self.controls = {}
 
@@ -36,7 +36,7 @@ class App:
         @app.route("/generate", methods=['POST'])
         def generate():
             sequence = request.json
-            code = generate_experiment(sequence)
+            code = generate_experiment(sequence, channels())
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
 

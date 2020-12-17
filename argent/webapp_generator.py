@@ -1,7 +1,6 @@
 import numpy as np
 import re
 import textwrap
-from argent import Configurator
 import collections
 
 def merge_dicts(dct, merge_dct):
@@ -272,34 +271,39 @@ def generate(sequence):
                     if ch_dev == dev:
                         output_channels.append(ch_num)
                         output_values.append(step['dac'][ch])
-                code += 'self.zotino{}.set_dac({}, {})\n'.format(dev, output_values, output_channels)
+                code += 'self.{}.set_dac({}, {})\n'.format(dev, output_values, output_channels)
 
         if 'dds' in step:
             dds_code = ''
             for ch in step['dds']:
                 ch_dev = re.split('(\d+)', ch)[0]
                 ch_num = int(re.split('(\d+)', ch)[1])
+                if 'on' in step['dds'][ch]:
+                    if step['dds'][ch]['on']:
+                        dds_code += '\tself.{}.sw.pulse({})\n'.format(ch, duration)
+                        dds_code += '\tdelay(10*ns)\n'
                 if 'frequency' in step['dds'][ch]:
                     val = step['dds'][ch]['frequency']
-                    dds_code += '\tself.urukul{}_ch{}.set({})\n'.format(ch_dev, ch_num, val)
+                    dds_code += '\tself.{}.set({})\n'.format(ch, val)
                     dds_code += '\tdelay(10*ns)\n'
                 if 'attenuation' in step['dds'][ch]:
                     val = step['dds'][ch]['attenuation']
-                    dds_code += '\tself.urukul{}_ch{}.set_att({})\n'.format(ch_dev, ch_num, val)
+                    dds_code += '\tself.{}.set_att({})\n'.format(ch, val)
                     dds_code += '\tdelay(10*ns)\n'
+
             if dds_code != '':
                 code += 'with sequential:\n'
                 code += dds_code
 
         if 'ttl' in step:
             for ch in step['ttl']:
-                code += 'self.ttl{}.pulse({})\n'.format(ch, duration)
+                code += 'self.{}.pulse({})\n'.format(ch, duration)
 
         if 'adc' in step:
             for ch in step['adc']:
                 var = step['adc'][ch]['variable']
                 index = step['adc'][ch]['index']
-                code += 'self.sampler{}.sample_mu(self.{}[{}])\n'.format(ch, var, index)
+                code += 'self.{}.sample_mu(self.{}[{}])\n'.format(ch, var, index)
 
         timesteps.append(code)
 
@@ -339,22 +343,28 @@ def build_adc_variables(sequence):
 
     return build
 
-def generate_experiment(sequence):
+def generate_experiment(sequence, channels):
     adc_build = build_adc_variables(sequence)
     script_imports = generate_script_imports(sequence)
 
 
     ## write build
-    devs = Configurator.load('devices')[0]
+    devs = channels
     build = 'def build(self):\n'
     build += '\tself.setattr_device("core")\n'
-    for adc in devs['adc']:
+    for adc in devs['ADC']:
         build += '\tself.setattr_device("{}")\n'.format(adc)
-    for dac in devs['dac']:
-        build += '\tself.setattr_device("{}")\n'.format(dac)
-    for ttl in devs['ttl']:
-        for i in range(8):
-            build += '\tself.setattr_device("{}{}")\n'.format(ttl, i)
+    for dac in devs['DAC']:
+        if '31' in dac:
+            build += '\tself.setattr_device("{}")\n'.format(dac.split('31')[0])
+    for dds in devs['DDS']:
+        build += '\tself.setattr_device("{}")\n'.format(dds)
+        if '3' in dds:
+            build += '\tself.setattr_device("{}_cpld")\n'.format('_'.join(dds.split('_')[0:-1]))
+
+
+    for ttl in devs['TTL']:
+        build += '\tself.setattr_device("{}")\n'.format(ttl)
     build += '\tself.paused = False\n'
     build += '\tself.latch = False\n'
 
@@ -379,10 +389,15 @@ def generate_experiment(sequence):
     init += 'def init(self):\n'
     init += '\tself.core.reset()\n'
     init += '\tself.core.break_realtime()\n'
-    for adc in devs['adc']:
+    for adc in devs['ADC']:
         init += '\tself.{}.init()\n'.format(adc)
-    for dac in devs['dac']:
-        init += '\tself.{}.init()\n'.format(dac)
+    for dac in devs['DAC']:
+        if '31' in dac:
+            init += '\tself.{}.init()\n'.format(dac.split('31')[0])
+    for dds in devs['DDS']:
+        init += '\tself.{}.init()\n'.format(dds)
+        if '3' in dds:
+            init += '\tself.{}_cpld.init()\n'.format('_'.join(dds.split('_')[0:-1]))
 
 
     init += '\tself.core.break_realtime()\n'
