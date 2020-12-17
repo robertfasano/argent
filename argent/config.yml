@@ -1,17 +1,6 @@
-broadcast_port: 1205
-control_port: 1107
-device_db: './device_db.py'
-devices:
-  adc:
-  - samplerA
-  dac:
-  - zotinoA
-  dds:
-  - urukulA
-  ttl:
-  - ttlA
 scripts:
-- test_scripts.py
-sequence_format: yml
+  - test_scripts.py
 sequence_library: './sequences.json'
-timestep_unit: ms
+control_port: 1107
+broadcast_port: 1205
+environment_name: artiq4

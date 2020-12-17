@@ -113,15 +113,9 @@ function initializeState(channels, sequences) {
 }
 
 
-export function createGUI(sequences) {
+export function createGUI(sequences, channels) {
   sequences = JSON.parse(sequences)
-  const channels =  {'TTL': ['A0', 'A1', 'A2', 'A3'],
-               'DAC': ['A0', 'A1'],
-               'DDS': ['A0', 'A1'],
-               'ADC': ['A']}
-
   const state = initializeState(channels, sequences)
-
   const store = createStore(reducer, state)
   ReactDOM.render(<Provider store={store}>
                     <ThemeProvider theme={theme}>

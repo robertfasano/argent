@@ -20,5 +20,9 @@ setup(
     license='MIT',
     long_description=open('README.md').read(),
     package_data={'': extra_files},
-    install_requires=['pyyaml>=5.1.1']
+    install_requires=['pyyaml', 'click', 'requests', 'pyzmq'],
+    entry_points='''
+        [console_scripts]
+        argent_run=argent.webapp:main
+        ''',
 )

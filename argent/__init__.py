@@ -1,31 +1,26 @@
 import yaml
 import re
 import os
-path = os.path.dirname(__file__)
 
 class Configurator:
-    @staticmethod
-    def load(*fields):
+    def __init__(self, config_path):
+        self.config_path = config_path
+
+    def load(self, *fields):
         ''' Loads and returns the configuration file. If fields are specified,
             returns only the corresponding values. '''
-        config_path = os.path.join(path, 'config.yml')
-        with open(config_path) as file:
+        with open(self.config_path) as file:
             config = yaml.load(file, Loader=yaml.SafeLoader)
         if len(fields) == 0:
             return config
         else:
             return [config[f] for f in fields]
 
-    @staticmethod
-    def save(config):
-        with open(os.path.join(path, 'config.yml'), 'w') as file:
+    def save(self, config):
+        with open(self.config_path, 'w') as file:
             yaml.dump(config, file)
 
-
-    @staticmethod
-    def update(field, new_value):
+    def update(self, field, new_value):
         config = Configurator.load()
         config[field] = new_value
-        Configurator.save(config)
-
-config = Configurator.load()
+        self.save(config)
