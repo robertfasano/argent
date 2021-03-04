@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask import render_template, send_from_directory
 from flask_socketio import SocketIO, emit
-from argent.webapp_generator import generate_experiment
+from argent.generator import generate_experiment
 from argent.scripts import find_scripts
 from argent import Configurator
 import json
@@ -10,7 +10,7 @@ import click
 import sys
 
 class App:
-    def __init__(self, device_db, config):
+    def __init__(self, device_db='./device_db.py', config='./config.yml'):
         self.device_db = device_db
         self.config = Configurator(config, device_db).load()
         self.variables = {}
@@ -62,7 +62,10 @@ class App:
             for key, info in device_db.items():
                 if 'module' not in info:
                     continue
-                if info['class'] == 'TTLInOut':
+                ignore = ['urukul', 'sampler', 'led', 'zotino']
+                if info['class'] == 'TTLInOut' or info['class'] == 'TTLOut':
+                    if any(x in key for x in ignore):
+                        continue
                     channel_dict['TTL'].append(key)
                 elif info['class'] == 'AD9912':
                     channel_dict['DDS'].append(key)

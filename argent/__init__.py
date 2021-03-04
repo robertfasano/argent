@@ -25,3 +25,5 @@ class Configurator:
         config = self.load()
         config[field] = new_value
         self.save(config)
+
+from .generator import run
