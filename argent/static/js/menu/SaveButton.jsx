@@ -9,7 +9,7 @@ function SaveButton(props) {
   return (
     <ListItem button component="a"
               href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(props.sequence))}`}
-              download="sequence.json"
+              download={`${props.sequence_name}.json`}
     >
       <Box mr={1} mt={0.5}>
         <SaveIcon/>
@@ -20,7 +20,8 @@ function SaveButton(props) {
 }
 
 function mapStateToProps(state, ownProps){
-  return {sequence: state['sequence'],
+  return {sequence: state['sequences'][state['active_sequence']],
+          sequence_name: state['active_sequence']
           }
 }
 

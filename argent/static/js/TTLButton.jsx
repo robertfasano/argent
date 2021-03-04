@@ -10,7 +10,8 @@ function TTLButton(props) {
     }
     props.dispatch({type: 'ttl/toggle',
                     timestep: props.timestep,
-                    channel: props.channel})
+                    channel: props.channel,
+                    sequence_name: props.sequence_name})
   }
 
   return (
@@ -27,8 +28,11 @@ function TTLButton(props) {
 
 function mapStateToProps(state, ownProps){
   return {
-          on: state['sequence']['ttl'][ownProps.channel][ownProps.timestep].state,
-          reserved: state['sequence']['ttl'][ownProps.channel][ownProps.timestep].reserved
+          // on: state['sequence']['ttl'][ownProps.channel][ownProps.timestep].state,
+          // reserved: state['sequence']['ttl'][ownProps.channel][ownProps.timestep].reserved
+          // on: state['sequence_v2'][ownProps.timestep]['ttl'][ownProps.channel].state,
+          // on: state['sequences'][state['active_sequence']][ownProps.timestep]['ttl'][ownProps.channel].state
+          // reserved: false
         }
 }
 export default connect(mapStateToProps)(TTLButton)

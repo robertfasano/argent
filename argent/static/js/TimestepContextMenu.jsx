@@ -21,20 +21,20 @@ function TimestepContextMenu(props) {
 
   function dispatch(type) {
     // send a store update and close the menu
-    props.dispatch({type: type, timestep: props.timestep})
+    props.dispatch({type: type, timestep: props.timestep, sequence_name: props.sequence_name})
     setAnchorEl(null);
   }
 
   function moveLeft() {
-    props.dispatch({type: 'timestep/swap', a: props.timestep, b: props.timestep-1})
+    props.dispatch({type: 'timestep/swap', a: props.timestep, b: props.timestep-1, sequence_name: props.sequence_name})
   }
 
   function moveRight() {
-    props.dispatch({type: 'timestep/swap', a: props.timestep, b: props.timestep+1})
+    props.dispatch({type: 'timestep/swap', a: props.timestep, b: props.timestep+1, sequence_name: props.sequence_name})
   }
 
   function insertTimestep(timestep) {
-    props.dispatch({type: 'timestep/insert', timestep: timestep})
+    props.dispatch({type: 'timestep/insert', timestep: timestep, sequence_name: props.sequence_name})
     setAnchorEl(null);
   }
 

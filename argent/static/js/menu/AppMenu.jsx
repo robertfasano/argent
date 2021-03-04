@@ -9,15 +9,12 @@ import MenuItem from '@material-ui/core/MenuItem';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Typography from '@material-ui/core/Typography';
-import LoadPopover from './LoadPopover.jsx'
 import SaveButton from './SaveButton.jsx'
-import VariablePopover from './VariablePopover.jsx'
 import MenuIcon from '@material-ui/icons/Menu';
 import AddIcon from '@material-ui/icons/Add';
 import CodeIcon from '@material-ui/icons/Code';
 import {post} from '../utilities.js'
 import {connect} from 'react-redux'
-import PauseButton from './PauseButton.jsx'
 import LoadButton from './LoadButton.jsx'
 
 function AppMenu(props) {
@@ -92,7 +89,6 @@ function AppMenu(props) {
           </Box>
           <Typography>Run</Typography>
         </ListItem>
-        <PauseButton />
         <ListItem button onClick={generate}>
           <Box mr={1} mt={0.5}>
             <CodeIcon/>
@@ -101,15 +97,6 @@ function AppMenu(props) {
         </ListItem>
         <SaveButton/>
         <LoadButton/>
-        <ListItem button onClick={handleVariablePopover}>
-          <Box mr={1} mt={0.5}>
-            <AddIcon/>
-          </Box>
-          <Typography>Variables</Typography>
-        </ListItem>
-        <LoadPopover anchorEl={loadAnchor} setAnchorEl={setLoadAnchor} />
-        <VariablePopover anchorEl={variableAnchor} setAnchorEl={setVariableAnchor}/>
-
       </List>
     </React.Fragment>
   )
@@ -117,7 +104,7 @@ function AppMenu(props) {
 
 function mapStateToProps(state, ownProps){
   return {
-          sequence: state['sequence']
+          sequence: state['sequences'][state['active_sequence']]
         }
 }
 export default connect(mapStateToProps)(AppMenu)

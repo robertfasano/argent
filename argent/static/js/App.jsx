@@ -3,20 +3,20 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import RTIOTable from './RTIOTable.jsx'
+import MacroTable from './MacroTable.jsx'
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import {connect} from 'react-redux'
 import AppMenu from './menu/AppMenu.jsx'
-import SettingsIcon from '@material-ui/icons/Settings';
 import IconButton from '@material-ui/core/IconButton'
-import ConfigPopover from './ConfigPopover.jsx'
-import VariableSync from './VariableSync.jsx'
-import ControlsSync from './ControlsSync.jsx'
-import io from 'socket.io-client'
+import SequenceSelector from './SequenceSelector.jsx'
+import Macrosequencer from './Macrosequencer.jsx'
+import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 
 const useStyles = makeStyles(theme => ({
   content: {
     padding: theme.spacing(3),
-    marginRight: 500
+    // marginRight: 500
   },
   appBar: {
     minHeight: 36
@@ -38,38 +38,29 @@ function App(props) {
     }
   }
 
-  const socket = io('http://localhost:8051');
-  socket.on('connect', (data) => {
-    console.log('connected to socketIO link')
-  })
-
-  socket.on('variables', (data) => {
-    console.log('Received socket.IO variable update.')
-    props.dispatch({type: 'variables/update', data: data})
-  })
-
-  socket.on('controls', (data) => {
-    console.log('Received socket.IO controls update.')
-    props.dispatch({type: 'controls/update', data: data})
-  })
+  const [tableChoice, setTableChoice] = React.useState('master')
 
   return (
     <React.Fragment>
-      <VariableSync/>
-      <ControlsSync/>
       <AppBar position="fixed" color="primary" className={classes.appBar} style={{background: 'linear-gradient(45deg, #67001a 30%, #004e67 90%)'}}>
         <Toolbar>
           <AppMenu />
           <Typography style={{flexGrow: 1}}>  </Typography>
-          <IconButton onClick={(event) => handleConfigPopover(event)}>
-            <SettingsIcon style={{color: 'white'}}/>
-          </IconButton>
-          <ConfigPopover anchorEl={configAnchor} setAnchorEl={setConfigAnchor} />
         </Toolbar>
       </AppBar>
       <div className={classes.appBarSpacer} />
       <main className={classes.content}>
-          <RTIOTable/>
+        <Grid container spacing={2}>
+          <Grid container item xs={12} direction='column' spacing={2} justify='space-evenly'>
+            <Grid item xs={12}>
+              <SequenceSelector tableChoice={tableChoice} setTableChoice={setTableChoice}/>
+            </Grid>
+            <Grid item xs={12}>
+              {tableChoice == 'master'? <MacroTable/>: <RTIOTable/>}
+            </Grid>
+          </Grid>
+        </Grid>
+
       </main>
     </React.Fragment>
   )

@@ -106,8 +106,22 @@ function initializeState(channels, sequences) {
     state['sequences'] = {'default': state['sequence']}
   }
 
-  state['active_sequence'] = 'default'
+  // state['active_sequence'] = 'default'
 
+  // sequence_v2 endpoints for unnormalized sequence
+  const default_timestep = {'duration': '1',
+                            'ttl': {},
+                            'time_scale': 1
+                           }
+
+  for (let channel of channels.TTL) {
+    default_timestep['ttl'][channel] = {'state': false}
+  }
+
+  state['sequence_v2'] = [default_timestep]
+  state['sequences'] = {default: [default_timestep]}
+  state['active_sequence'] = 'default'
+  state['macrosequence'] = [{name: 'default', reps: 1}]
   return state
 
 }

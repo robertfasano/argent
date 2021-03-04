@@ -9,12 +9,18 @@ function LoadButton(props) {
 
   const onInputClick = (event) => event.target.value = ''
 
-  function uploadState(e) {
+  function loadFile(file) {
     const fileReader = new FileReader()
-    fileReader.readAsText(e.target.files[0], 'UTF-8')
-    const name = e.target.files[0].name.split('.json')[0]
+    fileReader.readAsText(file, 'UTF-8')
+    const name = file.name.split('.json')[0]
     fileReader.onload = e => {
       props.dispatch({type: 'sequence/load', sequence: JSON.parse(e.target.result), name: name})
+    }
+  }
+
+  function uploadState(e) {
+    for (let file of e.target.files) {
+      loadFile(file)
     }
   }
 
@@ -27,6 +33,7 @@ function LoadButton(props) {
       onChange={uploadState}
       onClick={onInputClick}
       id="button-file"
+      multiple
     />
     <label htmlFor="button-file">
     <ListItem button>
@@ -39,12 +46,10 @@ function LoadButton(props) {
     </label>
     </>
   )
-
 }
 
 function mapStateToProps(state, ownProps){
-  return {sequence: state['sequence'],
-          }
+  return {}
 }
 
 export default connect(mapStateToProps)(LoadButton)
