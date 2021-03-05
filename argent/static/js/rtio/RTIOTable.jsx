@@ -8,17 +8,14 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography'
+import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import {connect} from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import TTLButton from './TTLButton.jsx'
-import DACButton from './DACButton.jsx'
-import DDSButton from './DDSButton.jsx'
-import ADCButton from './ADCButton.jsx'
-import ScriptButton from './ScriptButton.jsx'
 import AddIcon from '@material-ui/icons/Add';
-import ScaledInput from './ScaledInput.jsx'
+import ScaledInput from '../components/ScaledInput.jsx'
 import TimestepContextMenu from './TimestepContextMenu.jsx'
 
 function RTIOTable(props) {
@@ -34,6 +31,10 @@ function RTIOTable(props) {
 
   function setScale(timestep, value) {
     props.dispatch({type: 'timestep/scale', timestep: timestep, value: value, sequence_name: props.sequence_name})
+  }
+
+  function addTimestep(timestep) {
+    props.dispatch({type: 'timestep/insert', timestep: props.sequence.length, sequence_name: props.sequence_name})
   }
 
   return (
@@ -64,6 +65,11 @@ function RTIOTable(props) {
                   />
                 </TableCell>
               ))}
+              <TableCell>
+                <Button onClick={addTimestep}>
+                  <AddIcon/>
+                </Button>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

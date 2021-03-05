@@ -16,6 +16,8 @@ import CodeIcon from '@material-ui/icons/Code';
 import {post} from '../utilities.js'
 import {connect} from 'react-redux'
 import LoadButton from './LoadButton.jsx'
+import CreateIcon from '@material-ui/icons/Create';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 function AppMenu(props) {
   const flexContainer = {
@@ -83,6 +85,8 @@ function AppMenu(props) {
   return (
     <React.Fragment>
       <List style={flexContainer}>
+      {props.tableChoice == 'master'? (
+        <>
         <ListItem button onClick={submit}>
           <Box mr={1} mt={0.5}>
             <PlayArrowIcon/>
@@ -95,9 +99,12 @@ function AppMenu(props) {
           </Box>
           <Typography>Generate</Typography>
         </ListItem>
-        <SaveButton/>
-        <LoadButton/>
-      </List>
+        </>
+      )
+        :
+      null}
+    </List>
+
     </React.Fragment>
   )
 }

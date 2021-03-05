@@ -36,79 +36,7 @@ const theme = createMuiTheme({
     },
 });
 
-function initializeState(channels, sequences) {
-  let state = {}
-  state['config'] = {'sequence_library': '', 'device_db': ''}
-  state['channels'] = channels
-  state['controls'] = {paused: false, latch: false}
-
-  state['scripts'] = {}
-  state['sequences'] = sequences
-
-  if (Object.keys(state['sequences']).includes('default')) {
-    console.log('Loading sequences from file.')
-    state['sequence'] = state['sequences']['default']
-  }
-  else {
-    console.log('No saved sequences found. Generating default sequence.')
-    state['sequence'] = {}
-    state['sequence']['duration'] = ['1']
-    state['sequence']['variables'] = {}
-    state['sequence']['timestep_scales'] = [1]
-
-
-    state['sequence']['script'] = [{'module': '', 'function': ''}]
-    state['sequence']['ttl'] = {}
-    for (let channel of channels.TTL) {
-      state['sequence']['ttl'][channel] = [{'state': false,
-                                            'reserved': false}]
-    }
-
-    state['sequence']['dac'] = {}
-    for (let channel of channels.DAC) {
-      state['sequence']['dac'][channel] = [{'mode': 'constant',
-                                     'setpoint': '',
-                                     'start': '',
-                                     'stop': '',
-                                     'reserved': '',
-                                     'steps': '10'
-                                   }]
-    }
-
-    state['sequence']['dds'] = {}
-    for (let channel of channels.DDS) {
-      state['sequence']['dds'][channel] = [{'attenuation': {'mode': 'constant',
-                                                     'setpoint': '',
-                                                     'start': '',
-                                                     'stop': '',
-                                                     'steps': '10'
-                                                    },
-                                      'frequency': {'mode': 'constant',
-                                                    'setpoint': '',
-                                                    'start': '',
-                                                    'stop': '',
-                                                    'steps': '10'
-                                                   },
-                                      'on': false,
-                                      'reserved': false
-                                    }]
-    }
-
-    state['sequence']['adc'] = {}
-    for (let channel of channels.ADC) {
-      state['sequence']['adc'][channel] = [{'samples': '',
-                                     'on': false,
-                                     'variable': '',
-                                     'reserved': false,
-                                   }]
-    }
-
-    state['sequences'] = {'default': state['sequence']}
-  }
-
-  // state['active_sequence'] = 'default'
-
-  // sequence_v2 endpoints for unnormalized sequence
+export function defaultSequence(channels) {
   const default_timestep = {'duration': '1',
                             'ttl': {},
                             'time_scale': 1
@@ -118,10 +46,19 @@ function initializeState(channels, sequences) {
     default_timestep['ttl'][channel] = {'state': false}
   }
 
-  state['sequence_v2'] = [default_timestep]
-  state['sequences'] = {default: [default_timestep]}
-  state['active_sequence'] = 'default'
-  state['macrosequence'] = [{name: 'default', reps: 1}]
+  return [default_timestep]
+}
+
+function initializeState(channels, sequences) {
+  let state = {}
+  state['channels'] = channels
+  state['sequences'] = sequences
+
+
+
+  state['sequences'] = {'New sequence': defaultSequence(channels)}
+  state['active_sequence'] = 'New sequence'
+  state['macrosequence'] = [{name: 'New sequence', reps: 1}]
   return state
 
 }

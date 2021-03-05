@@ -6,21 +6,19 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton';
 import {connect} from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
-import TTLButton from './TTLButton.jsx'
-import DACButton from './DACButton.jsx'
-import DDSButton from './DDSButton.jsx'
-import ADCButton from './ADCButton.jsx'
-import ScriptButton from './ScriptButton.jsx'
-import AddIcon from '@material-ui/icons/Add';
-import ScaledInput from './ScaledInput.jsx'
-import TimestepContextMenu from './TimestepContextMenu.jsx'
+import TTLButton from './rtio/TTLButton.jsx'
+import ScaledInput from './components/ScaledInput.jsx'
+import MacroContextMenu from './MacroContextMenu.jsx'
 import Button from '@material-ui/core/Button';
+import AddIcon from '@material-ui/icons/Add';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 
@@ -28,7 +26,7 @@ function MacroTable(props) {
   const [expanded, setExpanded] = React.useState({'ttl': true, 'dac': true, 'dds': true, 'adc': true, 'script': true})
 
   function add() {
-    props.dispatch({type: 'macrosequence/add', sequence: props.macrosequence[props.macrosequence.length-1]})
+    props.dispatch({type: 'macrosequence/append', sequence: props.macrosequence[props.macrosequence.length-1]})
   }
 
   function expand(name) {
@@ -57,7 +55,11 @@ function MacroTable(props) {
             <TableCell/>
             {
               props.macrosequence.map((stage, i) => (
-              <TableCell colSpan={stage.sequence.length} align='center'>
+              <TableCell key={i} colSpan={stage.sequence.length} align='center'>
+                <List style={{        display: 'flex',
+                        flexDirection: 'row',
+                        padding: 0}}>
+                <ListItem>
                 <Select value={stage.name}
                         width='100%'
                         onChange={(event) => chooseSequence(i, event.target.value)}
@@ -70,6 +72,15 @@ function MacroTable(props) {
                     )
                   }
                 </Select>
+                </ListItem>
+                {stage.reps>1?
+                <ListItem>
+                <Typography>
+                  {`(x${stage.reps})`}
+                </Typography>
+                </ListItem>
+                : null }
+                </List>
               </TableCell>
               ))
 
@@ -78,10 +89,8 @@ function MacroTable(props) {
             <TableRow>
               <TableCell/>
               {
-                props.macrosequence.map((stage) => (
-                  stage.sequence.map((step, index) => (
-                    <TimestepContextMenu timestep={index} length={stage.sequence.length} key={index} sequence_name={stage.name}/>
-                  ))
+                props.macrosequence.map((stage, index) => (
+                    <MacroContextMenu colSpan={stage.sequence.length} timestep={index} length={props.macrosequence.length} key={index} sequence_name={stage.name}/>
                 ))
               }
             </TableRow>

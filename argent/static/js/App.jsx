@@ -2,14 +2,13 @@ import React from 'react'
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import RTIOTable from './RTIOTable.jsx'
+import RTIOTable from './rtio/RTIOTable.jsx'
 import MacroTable from './MacroTable.jsx'
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import {connect} from 'react-redux'
 import AppMenu from './menu/AppMenu.jsx'
 import IconButton from '@material-ui/core/IconButton'
 import SequenceSelector from './SequenceSelector.jsx'
-import Macrosequencer from './Macrosequencer.jsx'
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 
@@ -42,13 +41,15 @@ function App(props) {
 
   return (
     <React.Fragment>
+
       <AppBar position="fixed" color="primary" className={classes.appBar} style={{background: 'linear-gradient(45deg, #67001a 30%, #004e67 90%)'}}>
         <Toolbar>
-          <AppMenu />
+          <AppMenu tableChoice={tableChoice}/>
           <Typography style={{flexGrow: 1}}>  </Typography>
         </Toolbar>
       </AppBar>
       <div className={classes.appBarSpacer} />
+
       <main className={classes.content}>
         <Grid container spacing={2}>
           <Grid container item xs={12} direction='column' spacing={2} justify='space-evenly'>
