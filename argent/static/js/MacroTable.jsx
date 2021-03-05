@@ -21,6 +21,7 @@ import Button from '@material-ui/core/Button';
 import AddIcon from '@material-ui/icons/Add';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
+import VisibilityButton from './VisibilityButton.jsx'
 
 function MacroTable(props) {
   const [expanded, setExpanded] = React.useState({'ttl': true, 'dac': true, 'dds': true, 'adc': true, 'script': true})
@@ -52,7 +53,9 @@ function MacroTable(props) {
           <TableHead>
             {/* timestep control icons */}
             <TableRow>
-            <TableCell/>
+            <TableCell>
+              <VisibilityButton/>
+            </TableCell>
             {
               props.macrosequence.map((stage, i) => (
               <TableCell key={i} colSpan={stage.sequence.length} align='center'>
@@ -136,7 +139,7 @@ function MacroTable(props) {
                   {
                     props.macrosequence.map((stage) => (
                       stage.sequence.map((step, index) => (
-                        <TTLButton timestep={index} channel={i} key={'ttl-'+i+index} on={step['ttl'][i].state} sequence_name={stage.name}/>
+                        <TTLButton timestep={index} channel={i} key={'ttl-'+i+index} on={step['ttl'][i]} sequence_name={stage.name}/>
                       ))
                     ))
                   }
@@ -163,7 +166,7 @@ function mapStateToProps(state, ownProps){
   }
 
 
-  return {channels: state['channels'],
+  return {channels: state.ui['channels'],
           macrosequence: macrosequence,
           sequences: state['sequences']
         }

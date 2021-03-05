@@ -42,7 +42,9 @@ function MacroContextMenu(props) {
 
   function updateReps(index) {
     const reps = prompt('Enter number of repetitions:')
-    props.dispatch({type: 'macrosequence/updateReps', index: index, reps: reps})
+    if (reps != '') {
+      props.dispatch({type: 'macrosequence/updateReps', index: index, reps: reps})
+    }
     setAnchorEl(null);
 
   }

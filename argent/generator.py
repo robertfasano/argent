@@ -61,8 +61,12 @@ def generate_run(macrosequence):
     code += '\tself.init()\n\n'
     code += '\twhile True:\n'
     for stage in macrosequence:
-        code += f"\t\tself.{stage['name']}({Arguments(stage.get('variables', {}))})\n"
-
+        function_call = f"\t\tself.{stage['name'].replace(' ', '_')}({Arguments(stage.get('variables', {}))})\n"
+        if int(stage['reps']) == 1:
+            code += function_call
+        else:
+            code += f'\t\tfor i in range({stage["reps"]}):\n'
+            code += '\t' + function_call
     code += '\n'
 
     loops = []
@@ -75,7 +79,7 @@ def generate_run(macrosequence):
     return code
 
 def generate_loop(stage):
-    name = stage['name']
+    name = stage['name'].replace(' ', '_')
     sequence = stage['sequence']
     variables = stage.get('variables', {})
     timesteps = []
@@ -125,6 +129,8 @@ def generate_init(sequence):
     return code + '\n'
 
 def generate_experiment(macrosequence):
+    print('Generating macrosequence')
+    print(macrosequence)
     code = 'from artiq.experiment import *\n\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
     code += textwrap.indent(generate_build(macrosequence), '\t')

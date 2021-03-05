@@ -36,7 +36,7 @@ class App:
         @app.route("/generate", methods=['POST'])
         def generate():
             sequence = request.json
-            code = generate_experiment(sequence, channels())
+            code = generate_experiment(sequence)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
 

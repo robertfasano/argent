@@ -46,11 +46,11 @@ function SequenceSelector(props) {
   };
 
   function newSequence() {
-    let name = 'New sequence'
+    let name = 'new sequence'
     let i = 0
     while (Object.keys(props.sequences).includes(name)) {
       i = i+1
-      name = `New sequence (${i})`
+      name = `new sequence (${i})`
     }
     props.dispatch({type: 'sequence/load', name: name, sequence: defaultSequence(props.channels)})
   }

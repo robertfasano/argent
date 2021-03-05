@@ -1,4 +1,7 @@
 import produce from 'immer'
+import omitDeep from 'omit-deep-lodash'
+import flatten from 'flat'
+import _ from 'lodash'
 
 function swap(array, a, b) {
   // Swaps elements with indices a and b of a passed array in place
@@ -140,7 +143,7 @@ export default function reducer(state=[], action) {
         let sequence_name = getSequenceName(state, action)
         let new_timestep = {duration: '1', ttl: {}, time_scale: 1}
         for (let channel of state['channels'].TTL) {
-          new_timestep['ttl'][channel] = {'state': false}
+          new_timestep['ttl'][channel] = false
         }
 
         draft['sequences'][sequence_name].splice(action.timestep+1, 0, new_timestep)
@@ -163,10 +166,45 @@ export default function reducer(state=[], action) {
 
     case 'ttl/toggle':
       let sequence_name = getSequenceName(state, action)
-      let ttlChecked = state['sequences'][sequence_name][action.timestep]['ttl'][action.channel].state
+      let ttlChecked = state['sequences'][sequence_name][action.timestep]['ttl'][action.channel]
       return produce(state, draft => {
-        draft['sequences'][sequence_name][action.timestep]['ttl'][action.channel]['state'] = !ttlChecked
+        draft['sequences'][sequence_name][action.timestep]['ttl'][action.channel] = !ttlChecked
       })
 
+    case 'ui/hideInactive':
+      return produce(state, draft => {
+        draft.ui.hideInactive = action.value
+
+        if (action.value) {
+          let inactiveTTLs = []
+          for (let ch of draft.channels.TTL) {
+            var states = _.filter(flatten(draft.sequences), function(v, k) {
+              return _.includes(k, ch)
+            })
+            if (!(states.some(item => item))) {
+              inactiveTTLs.push(ch)
+            }
+          }
+
+          draft.ui.channels.TTL = draft.channels.TTL.filter(e => !inactiveTTLs.includes(e))
+          draft.sequences = omitDeep(draft.sequences, ...inactiveTTLs)
+        }
+        else {
+          let newChannels = draft.channels.TTL.filter(e => !draft.ui.channels.TTL.includes(e))
+
+          draft.ui.channels.TTL = draft.channels.TTL
+
+          for (let [name, sequence] of Object.entries(draft.sequences)) {
+            for (let i=0; i<sequence.length; i++) {
+              let newState = draft.channels.TTL.reduce((acc,curr)=> (acc[curr]=false,acc),{});
+              _.merge(newState, draft.sequences[name][i].ttl)
+              draft.sequences[name][i].ttl = newState
+            }
+          }
+        }
+
+        }
+      )
     }
+
 }

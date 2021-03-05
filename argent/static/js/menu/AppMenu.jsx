@@ -70,14 +70,14 @@ function AppMenu(props) {
   }
 
   function submit() {
-    post('/submit', props.sequence)
+    post('/submit', props.macrosequence)
     setAnchorEl(null)
   }
 
 
 
   function generate() {
-    post('/generate', props.sequence)
+    post('/generate', props.macrosequence)
     setAnchorEl(null)
   }
 
@@ -110,8 +110,17 @@ function AppMenu(props) {
 }
 
 function mapStateToProps(state, ownProps){
+  // assemble macrosequence
+  const macrosequence = []
+  for (let stage of state['macrosequence']) {
+    macrosequence.push({name: stage.name,
+                        reps: stage.reps,
+                        sequence: state['sequences'][stage.name]
+                      })
+  }
   return {
-          sequence: state['sequences'][state['active_sequence']]
+          sequence: state['sequences'][state['active_sequence']],
+          macrosequence: macrosequence
         }
 }
 export default connect(mapStateToProps)(AppMenu)

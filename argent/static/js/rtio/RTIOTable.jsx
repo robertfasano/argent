@@ -17,6 +17,7 @@ import TTLButton from './TTLButton.jsx'
 import AddIcon from '@material-ui/icons/Add';
 import ScaledInput from '../components/ScaledInput.jsx'
 import TimestepContextMenu from './TimestepContextMenu.jsx'
+import VisibilityButton from '../VisibilityButton.jsx'
 
 function RTIOTable(props) {
   const [expanded, setExpanded] = React.useState({'ttl': true, 'dac': true, 'dds': true, 'adc': true, 'script': true})
@@ -44,7 +45,9 @@ function RTIOTable(props) {
           <TableHead>
             {/* timestep control icons */}
             <TableRow>
-              <TableCell/>
+              <TableCell>
+                <VisibilityButton/>
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell/>
@@ -88,7 +91,7 @@ function RTIOTable(props) {
                 <TableRow key={i}>
                   <TableCell> {i} </TableCell>
                   {props.sequence.map((step, index) => (
-                    <TTLButton timestep={index} channel={i} key={'ttl-'+i+index} on={props.sequence[index]['ttl'][i].state}/>
+                    <TTLButton timestep={index} channel={i} key={'ttl-'+i+index} on={props.sequence[index]['ttl'][i]}/>
                   ))}
 
                 </TableRow>
@@ -107,9 +110,7 @@ function RTIOTable(props) {
 
 function mapStateToProps(state, ownProps){
   let sequence = state['sequences'][state['active_sequence']]
-
-
-  return {channels: state['channels'],
+  return {channels: state.ui['channels'],
           sequence: sequence,
           sequence_name: state['active_sequence']
         }

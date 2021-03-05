@@ -43,7 +43,7 @@ export function defaultSequence(channels) {
                            }
 
   for (let channel of channels.TTL) {
-    default_timestep['ttl'][channel] = {'state': false}
+    default_timestep['ttl'][channel] = false
   }
 
   return [default_timestep]
@@ -56,9 +56,10 @@ function initializeState(channels, sequences) {
 
 
 
-  state['sequences'] = {'New sequence': defaultSequence(channels)}
-  state['active_sequence'] = 'New sequence'
-  state['macrosequence'] = [{name: 'New sequence', reps: 1}]
+  state['sequences'] = {'new sequence': defaultSequence(channels)}
+  state['active_sequence'] = 'new sequence'
+  state['macrosequence'] = [{name: 'new sequence', reps: 1}]
+  state['ui'] = {hideInactive: false, channels: channels}
   return state
 
 }
