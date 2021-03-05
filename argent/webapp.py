@@ -49,7 +49,7 @@ class App:
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             env_name = self.config['environment_name']
-            os.system(f'start "" cmd /k "call activate {env_name} & artiq_run generated_experiment.py --device_db {self.device_db}"')
+            os.system(f'start "" cmd /k "call activate {env_name} & artiq_run generated_experiment.py --device-db {self.device_db}"')
 
             return json.dumps(code)
 
