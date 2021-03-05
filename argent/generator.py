@@ -8,7 +8,7 @@ def Delay(step):
         duration = step['duration'].split('var: ')[1]
     else:
         duration = step['duration']
-    return f"delay({duration})\n"
+    return f"delay({float(duration)})\n"
 
 def Comment(step, i):
     name = step.get('name', f'Sequence timestep {i}')
@@ -26,6 +26,9 @@ class TTL:
     def build(self):
         return f'self.setattr_device("{self.ch}")\n'
 
+    def init(self):
+        return f'self.{self.ch}.off()\n'
+
     def run(self, step):
         if 'var' in str(step['duration']):
             duration = step['duration'].split('var: ')[1]
@@ -34,10 +37,10 @@ class TTL:
 
         if 'var' in str(step['ttl'][self.ch]):
             var_name = str(step['ttl'][self.ch]).split('var: ')[1]
-            return f"if {var_name}:\n\tself.{self.ch}.pulse({duration})\n"
+            return f"if {var_name}:\n\tself.{self.ch}.pulse({float(duration)})\n"
 
         if step['ttl'][self.ch]:
-            return f"self.{self.ch}.pulse({duration})\n"
+            return f"self.{self.ch}.pulse({float(duration)})\n"
         return ''
 
 class Core:
@@ -106,26 +109,37 @@ def generate_loop(stage):
     code += textwrap.indent(all_code, '\t')
     return code
 
-def generate_build(macrosequence):
-    code = ''
-    code += Core().build()
-
+def get_ttl_channels(macrosequence):
     ttls = []
     for stage in macrosequence:
         sequence = stage['sequence']
         for step in sequence:
             ttls.extend(step.get('ttl', {}).keys())
-    ttls = np.unique(ttls)
+    return np.unique(ttls)
+
+def generate_build(macrosequence):
+    code = ''
+    code += Core().build()
+
+    ttls = get_ttl_channels(macrosequence)
     for ch in ttls:
         code += TTL(ch).build()
 
     code = 'def build(self):\n' + textwrap.indent(code, '\t') + '\n'
     return code
 
-def generate_init(sequence):
+def generate_init(macrosequence):
     code = '@kernel\ndef init(self):\n'
     code += '\t' + Core().init()
     code += '\t' + Core().break_realtime()
+
+    # initialize TTLs to false
+    ttls = get_ttl_channels(macrosequence)
+    for ch in ttls:
+        code += '\t' + TTL(ch).init()
+
+    code += '\t' + Core().break_realtime()
+
     return code + '\n'
 
 def generate_experiment(macrosequence):
