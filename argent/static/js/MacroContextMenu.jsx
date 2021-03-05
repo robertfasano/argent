@@ -19,9 +19,9 @@ function MacroContextMenu(props) {
     setAnchorEl(null);
   };
 
-  function dispatch(type) {
+  function remove() {
     // send a store update and close the menu
-    props.dispatch({type: type, timestep: props.timestep, sequence_name: props.sequence_name})
+    props.dispatch({type: 'macrosequence/remove', index: props.timestep, sequence_name: props.sequence_name})
     setAnchorEl(null);
   }
 
@@ -35,15 +35,15 @@ function MacroContextMenu(props) {
     setAnchorEl(null);
   }
 
-  function insertTimestep(timestep) {
-    props.dispatch({type: 'macrosequence/insert', timestep: timestep, sequence_name: props.sequence_name})
+  function insertTimestep(index) {
+    props.dispatch({type: 'macrosequence/insert', timestep: index, sequence_name: props.sequence_name})
     setAnchorEl(null);
   }
 
-  function updateReps(index) {
+  function updateReps() {
     const reps = prompt('Enter number of repetitions:')
     if (reps != '') {
-      props.dispatch({type: 'macrosequence/updateReps', index: index, reps: reps})
+      props.dispatch({type: 'macrosequence/updateReps', index: props.timestep, reps: reps})
     }
     setAnchorEl(null);
 
@@ -82,7 +82,7 @@ function MacroContextMenu(props) {
         Insert right
       </MenuItem>
       {props.length>1?
-        <MenuItem onClick={() => dispatch('macrosequence/remove')}>
+        <MenuItem onClick={() => remove()}>
           Delete
         </MenuItem> : null}
       <MenuItem onClick={() => updateReps(props.timestep)}>
