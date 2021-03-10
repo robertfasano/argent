@@ -6,7 +6,7 @@
 	<script src="{{ url_for('static', filename='dist/bundle.js')}}" type="text/javascript"></script>
 
 </head>
-<body onload='index.createGUI({{sequences|tojson}}, {{channels|tojson}});'>
+<body onload='index.createGUI({{sequences|tojson}}, {{channels|tojson}}, {{aliases|tojson}});'>
 	<div id='root'>
 	</div>
 </body>

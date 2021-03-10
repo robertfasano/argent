@@ -15,27 +15,37 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import TTLButton from './TTLButton.jsx'
 import AddIcon from '@material-ui/icons/Add';
-import ScaledInput from '../components/ScaledInput.jsx'
 import TimestepContextMenu from './TimestepContextMenu.jsx'
-import VisibilityButton from '../VisibilityButton.jsx'
+import DACButton from './DACButton.jsx'
+import ChannelMenu from './ChannelMenu.jsx'
+import NewChannelButton from './NewChannelButton.jsx'
+import VariableUnitInput from '../components/VariableUnitInput.jsx'
 
 function RTIOTable(props) {
   const [expanded, setExpanded] = React.useState({'ttl': true, 'dac': true, 'dds': true, 'adc': true, 'script': true})
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorName, setAnchorName] = React.useState('');
+
+  function handleClick(event, name) {
+    event.preventDefault();
+    setAnchorEl(event.currentTarget);
+    setAnchorName(name)
+  }
 
   function expand(name) {
     setExpanded({...expanded, [name]: !expanded[name]})
   }
 
   function updateTimestep(timestep, duration) {
-    props.dispatch({type: 'timestep/duration', timestep: timestep, duration: duration, sequence_name: props.sequence_name})
+    props.dispatch({type: 'timestep/duration', timestep: timestep, duration: duration, sequenceName: props.sequenceName})
   }
 
   function setScale(timestep, value) {
-    props.dispatch({type: 'timestep/scale', timestep: timestep, value: value, sequence_name: props.sequence_name})
+    props.dispatch({type: 'timestep/scale', timestep: timestep, value: value, sequenceName: props.sequenceName})
   }
 
   function addTimestep(timestep) {
-    props.dispatch({type: 'timestep/insert', timestep: props.sequence.length, sequence_name: props.sequence_name})
+    props.dispatch({type: 'timestep/insert', timestep: props.sequence.length, sequenceName: props.sequenceName})
   }
 
   return (
@@ -44,11 +54,7 @@ function RTIOTable(props) {
         <Table>
           <TableHead>
             {/* timestep control icons */}
-            <TableRow>
-              <TableCell>
-                <VisibilityButton/>
-              </TableCell>
-            </TableRow>
+            <TableRow/>
             <TableRow>
               <TableCell/>
               {props.sequence.map((step, index) => (
@@ -60,15 +66,13 @@ function RTIOTable(props) {
               <TableCell/>
               {props.sequence.map((step, index) => (
                 <TableCell key={index}>
-                  <ScaledInput value={step.duration}
+                  <VariableUnitInput value={step.duration}
                                  onChange = {(value) => updateTimestep(index, value)}
-                                 units = {{'s': 1, 'ms': 1e-3, 'us': 1e-6}}
-                                 scale = {props.sequence[index].time_scale}
-                                 setScale = {(value) => setScale(index, value)}
+                                 units = {['s', 'ms', 'us']}
                   />
                 </TableCell>
               ))}
-              <TableCell>
+              <TableCell align="left">
                 <Button onClick={addTimestep}>
                   <AddIcon/>
                 </Button>
@@ -76,6 +80,8 @@ function RTIOTable(props) {
             </TableRow>
           </TableHead>
           <TableBody>
+
+            {/* TTL header */}
             <TableRow>
               <TableCell>
                 <IconButton onClick={()=>expand('ttl')} >
@@ -85,20 +91,70 @@ function RTIOTable(props) {
               </TableCell>
               <TableCell><Typography> <b>TTL</b> </Typography></TableCell>
             </TableRow>
+
+            {/* TTL buttons */}
             {expanded['ttl']? (
               <React.Fragment>
-              {props.channels.TTL.map(i => (
-                <TableRow key={i}>
-                  <TableCell> {i} </TableCell>
+              {props.channels.TTL.map(ch => (
+                <TableRow key={ch}>
+                  <TableCell onContextMenu={(event)=>handleClick(event, ch)} style={{width: '100px'}}>
+                    <Typography style={{fontSize: 14}}>
+                      {props.aliases.TTL[ch]}
+                    </Typography>
+                  </TableCell>
+                  <ChannelMenu channel={ch} type='TTL' anchorEl={anchorEl} setAnchorEl={setAnchorEl} anchorName={anchorName}/>
                   {props.sequence.map((step, index) => (
-                    <TTLButton timestep={index} channel={i} key={'ttl-'+i+index} on={props.sequence[index]['ttl'][i]}/>
+                    <TTLButton timestep={index}
+                               channel={ch}
+                               key={'ttl-'+ch+index}
+                               sequenceName={props.sequenceName}
+                    />
                   ))}
 
                 </TableRow>
               ))}
+              <NewChannelButton channelType="TTL"/>
               </React.Fragment>
           ): null
         }
+
+
+
+        {/* DAC header */}
+        <TableRow>
+          <TableCell>
+            <IconButton onClick={()=>expand('dac')} >
+              {expanded['dac']?
+                <ExpandLessIcon/>: <ExpandMoreIcon /> }
+            </IconButton>
+          </TableCell>
+          <TableCell><Typography> <b>DAC</b> </Typography></TableCell>
+        </TableRow>
+
+        {/* DAC buttons */}
+        {expanded['dac']? (
+          <React.Fragment>
+          {Object.keys(props.channels.DAC).map(board => (
+            props.channels.DAC[board].map(ch => (
+              <TableRow key={`${board}${ch}`}>
+                <TableCell>
+                  <Typography style={{fontSize: 14}}>
+                    {props.aliases.DAC[board][ch]}
+                  </Typography>
+                </TableCell>
+                {props.sequence.map((step, index) => (
+                  <DACButton timestep={index} ch={ch} key={'dac-'+board+ch+index} sequenceName={props.sequenceName} board={board}/>
+                ))}
+              </TableRow>
+            ))
+
+          ))}
+          </React.Fragment>
+      ): null
+    }
+
+
+
 
           </TableBody>
         </Table>
@@ -112,7 +168,8 @@ function mapStateToProps(state, ownProps){
   let sequence = state['sequences'][state['active_sequence']]
   return {channels: state.ui['channels'],
           sequence: sequence,
-          sequence_name: state['active_sequence']
+          sequenceName: state['active_sequence'],
+          aliases: state.aliases
         }
 }
 export default connect(mapStateToProps)(RTIOTable)

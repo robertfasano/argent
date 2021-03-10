@@ -15,16 +15,26 @@ import {connect} from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import TTLButton from './rtio/TTLButton.jsx'
-import ScaledInput from './components/ScaledInput.jsx'
+import VariableUnitInput from './components/VariableUnitInput.jsx'
 import MacroContextMenu from './MacroContextMenu.jsx'
 import Button from '@material-ui/core/Button';
 import AddIcon from '@material-ui/icons/Add';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import VisibilityButton from './VisibilityButton.jsx'
+import DACButton from './rtio/DACButton.jsx'
+import ChannelMenu from './rtio/ChannelMenu.jsx'
+import NewChannelButton from './rtio/NewChannelButton.jsx'
 
 function MacroTable(props) {
   const [expanded, setExpanded] = React.useState({'ttl': true, 'dac': true, 'dds': true, 'adc': true, 'script': true})
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorName, setAnchorName] = React.useState('');
+
+  function handleClick(event, name) {
+    event.preventDefault();
+    setAnchorEl(event.currentTarget);
+    setAnchorName(name)
+  }
 
   function add() {
     props.dispatch({type: 'macrosequence/append', sequence: props.macrosequence[props.macrosequence.length-1]})
@@ -34,12 +44,12 @@ function MacroTable(props) {
     setExpanded({...expanded, [name]: !expanded[name]})
   }
 
-  function updateTimestep(timestep, duration, sequence_name) {
-    props.dispatch({type: 'timestep/duration', timestep: timestep, duration: duration, sequence_name: sequence_name})
+  function updateTimestep(timestep, duration, sequenceName) {
+    props.dispatch({type: 'timestep/duration', timestep: timestep, duration: duration, sequenceName: sequenceName})
   }
 
-  function setScale(timestep, value, sequence_name) {
-    props.dispatch({type: 'timestep/scale', timestep: timestep, value: value, sequence_name: sequence_name})
+  function setScale(timestep, value, sequenceName) {
+    props.dispatch({type: 'timestep/scale', timestep: timestep, value: value, sequenceName: sequenceName})
   }
 
   function chooseSequence(index, name) {
@@ -53,9 +63,7 @@ function MacroTable(props) {
           <TableHead>
             {/* timestep control icons */}
             <TableRow>
-            <TableCell>
-              <VisibilityButton/>
-            </TableCell>
+            <TableCell/>
             {
               props.macrosequence.map((stage, i) => (
               <TableCell key={i} colSpan={stage.sequence.length} align='center'>
@@ -93,7 +101,7 @@ function MacroTable(props) {
               <TableCell/>
               {
                 props.macrosequence.map((stage, index) => (
-                    <MacroContextMenu colSpan={stage.sequence.length} timestep={index} length={props.macrosequence.length} key={index} sequence_name={stage.name}/>
+                    <MacroContextMenu colSpan={stage.sequence.length} timestep={index} length={props.macrosequence.length} key={index} sequenceName={stage.name}/>
                 ))
               }
             </TableRow>
@@ -104,11 +112,9 @@ function MacroTable(props) {
                 props.macrosequence.map((stage) => (
                   stage.sequence.map((step, index) => (
                     <TableCell key={index}>
-                      <ScaledInput value={step.duration}
+                      <VariableUnitInput value={step.duration}
                                      onChange = {(value) => updateTimestep(index, value, stage.name)}
-                                     units = {{'s': 1, 'ms': 1e-3, 'us': 1e-6}}
-                                     scale = {step.time_scale}
-                                     setScale = {(value) => setScale(index, value, stage.name)}
+                                     units = {['s', 'ms', 'us']}
                       />
                     </TableCell>
                   ))
@@ -135,19 +141,67 @@ function MacroTable(props) {
               <React.Fragment>
               {props.channels.TTL.map(i => (
                 <TableRow key={i}>
-                  <TableCell> {i} </TableCell>
+                  <TableCell onContextMenu={(event)=>handleClick(event, i)} style={{width: '100px'}}>
+                    <Typography style={{fontSize: 14}}>
+                      {props.aliases.TTL[i]}
+                    </Typography>
+                  </TableCell>
+                  <ChannelMenu channel={i} type='TTL' anchorEl={anchorEl} setAnchorEl={setAnchorEl} anchorName={anchorName}/>
                   {
                     props.macrosequence.map((stage) => (
                       stage.sequence.map((step, index) => (
-                        <TTLButton timestep={index} channel={i} key={'ttl-'+i+index} on={step['ttl'][i]} sequence_name={stage.name}/>
+                        <TTLButton timestep={index} channel={i} key={'ttl-'+i+index} on={step['ttl'][i]} sequenceName={stage.name}/>
                       ))
                     ))
                   }
                 </TableRow>
               ))}
+              <NewChannelButton channelType="TTL"/>
               </React.Fragment>
           ): null
         }
+
+
+        {/* DAC header */}
+        <TableRow>
+          <TableCell>
+            <IconButton onClick={()=>expand('dac')} >
+              {expanded['dac']?
+                <ExpandLessIcon/>: <ExpandMoreIcon /> }
+            </IconButton>
+          </TableCell>
+          <TableCell><Typography> <b>DAC</b> </Typography></TableCell>
+        </TableRow>
+
+        {/* DAC buttons */}
+        {expanded['dac']? (
+          <React.Fragment>
+          {Object.keys(props.channels.DAC).map(board => (
+            props.channels.DAC[board].map(ch => (
+              <TableRow key={`${board}${ch}`}>
+                <TableCell>
+                  <Typography style={{fontSize: 14}}>
+                    {props.aliases.DAC[board][ch]}
+                  </Typography>
+                </TableCell>
+                {props.macrosequence.map((stage) => (
+                    stage.sequence.map((step, index) => (
+                      <DACButton timestep={index} ch={ch} key={'dac-'+board+ch+index} sequenceName={stage.name} board={board}/>
+
+                    )
+                  )
+
+
+
+                ))}
+              </TableRow>
+            ))
+
+          ))}
+          </React.Fragment>
+      ): null
+    }
+
 
           </TableBody>
         </Table>
@@ -165,10 +219,10 @@ function mapStateToProps(state, ownProps){
     macrosequence.push(newStage)
   }
 
-
   return {channels: state.ui['channels'],
           macrosequence: macrosequence,
-          sequences: state['sequences']
+          sequences: state['sequences'],
+          aliases: state.aliases
         }
 }
 export default connect(mapStateToProps)(MacroTable)

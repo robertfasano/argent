@@ -6,6 +6,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import CreateIcon from '@material-ui/icons/Create';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SaveIcon from '@material-ui/icons/Save';
+import omitDeep from 'omit-deep-lodash'
 
 import {connect} from 'react-redux'
 
@@ -23,6 +24,13 @@ function TabMenu(props) {
   const handleDelete = () => {
     props.dispatch({type: 'sequence/close', name: props.name})
     handleClose()
+  }
+
+  function activeSequence() {
+    // returns the sequence with the inactive channels removed
+    let inactiveTTLs = props.channels.TTL.filter(e => !props.ui.channels.TTL.includes(e))
+    return omitDeep(props.sequence, ...inactiveTTLs)   // remove inactive channels from state
+
   }
 
   return (
@@ -48,7 +56,7 @@ function TabMenu(props) {
           <ListItemText primary="Close" />
         </MenuItem>
         <MenuItem button component="a"
-                  href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(props.sequence))}`}
+                  href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(activeSequence(), null, 1))}`}
                   download={`${props.name}.json`}
         >          <ListItemIcon>
             <SaveIcon fontSize="small" />
@@ -61,7 +69,9 @@ function TabMenu(props) {
 }
 
 function mapStateToProps(state, ownProps){
-  return {sequence: state['sequences'][ownProps.name]
+  return {sequence: state['sequences'][ownProps.name],
+          ui: state.ui,
+          channels: state.channels
         }
 }
 export default connect(mapStateToProps)(TabMenu)

@@ -4,14 +4,12 @@ import TableCell from '@material-ui/core/TableCell';
 import {connect} from 'react-redux'
 
 function TTLButton(props) {
+
   function toggle() {
-    if (props.reserved) {
-      return
-    }
     props.dispatch({type: 'ttl/toggle',
                     timestep: props.timestep,
                     channel: props.channel,
-                    sequence_name: props.sequence_name})
+                    sequenceName: props.sequenceName})
   }
 
   return (
@@ -26,13 +24,9 @@ function TTLButton(props) {
     </TableCell>
 )}
 
-function mapStateToProps(state, ownProps){
+function mapStateToProps(state, props){
   return {
-          // on: state['sequence']['ttl'][ownProps.channel][ownProps.timestep].state,
-          // reserved: state['sequence']['ttl'][ownProps.channel][ownProps.timestep].reserved
-          // on: state['sequence_v2'][ownProps.timestep]['ttl'][ownProps.channel].state,
-          // on: state['sequences'][state['active_sequence']][ownProps.timestep]['ttl'][ownProps.channel].state
-          // reserved: false
+          on: state['sequences'][props.sequenceName][props.timestep]['ttl'][props.channel]
         }
 }
 export default connect(mapStateToProps)(TTLButton)

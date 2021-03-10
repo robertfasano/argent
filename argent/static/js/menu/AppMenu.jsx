@@ -18,6 +18,7 @@ import {connect} from 'react-redux'
 import LoadButton from './LoadButton.jsx'
 import CreateIcon from '@material-ui/icons/Create';
 import DeleteIcon from '@material-ui/icons/Delete';
+import omitDeep from 'omit-deep-lodash'
 
 function AppMenu(props) {
   const flexContainer = {
@@ -85,7 +86,6 @@ function AppMenu(props) {
   return (
     <React.Fragment>
       <List style={flexContainer}>
-      {props.tableChoice == 'master'? (
         <>
         <ListItem button onClick={submit}>
           <Box mr={1} mt={0.5}>
@@ -100,27 +100,36 @@ function AppMenu(props) {
           <Typography>Generate</Typography>
         </ListItem>
         </>
-      )
-        :
-      null}
     </List>
 
     </React.Fragment>
   )
 }
 
+
 function mapStateToProps(state, ownProps){
   // assemble macrosequence
+  let inactiveTTLs = state.channels.TTL.filter(e => !state.ui.channels.TTL.includes(e))
   const macrosequence = []
-  for (let stage of state['macrosequence']) {
-    macrosequence.push({name: stage.name,
-                        reps: stage.reps,
-                        sequence: state['sequences'][stage.name]
-                      })
+
+  if (ownProps.tableChoice == 'master') {
+    for (let stage of state['macrosequence']) {
+      macrosequence.push({name: stage.name,
+                          reps: stage.reps,
+                          sequence:  omitDeep(state['sequences'][stage.name], ...inactiveTTLs)
+                        })
+    }
   }
+  else {
+    macrosequence.push({name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence]})
+  }
+
+
   return {
           sequence: state['sequences'][state['active_sequence']],
-          macrosequence: macrosequence
+          macrosequence: macrosequence,
+          channels: state['channels'],
+          ui: state['ui']
         }
 }
 export default connect(mapStateToProps)(AppMenu)

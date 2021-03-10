@@ -3,7 +3,6 @@ import {connect} from 'react-redux'
 import ListItem from '@material-ui/core/ListItem';
 import FolderOpenIcon from '@material-ui/icons/FolderOpen';
 import Box from '@material-ui/core/Box';
-import Typography from '@material-ui/core/Typography';
 
 function LoadButton(props) {
 
@@ -14,8 +13,20 @@ function LoadButton(props) {
     fileReader.readAsText(file, 'UTF-8')
     const name = file.name.split('.json')[0]
     fileReader.onload = e => {
-      props.dispatch({type: 'sequence/load', sequence: JSON.parse(e.target.result), name: name})
+      let sequence = JSON.parse(e.target.result)
+      props.dispatch({type: 'sequence/load', sequence: sequence, name: name})
+
+      // update active channels
+      for (let step of sequence) {
+        for (let ch of Object.keys(step.ttl)) {
+          if (!(props.channels.TTL.includes(ch))) {
+            props.dispatch({type: 'ui/setActive', channelType: 'TTL', channel: ch})
+          }
+        }
+      }
     }
+
+
   }
 
   function uploadState(e) {
@@ -37,11 +48,7 @@ function LoadButton(props) {
     />
     <label htmlFor="button-file">
     <ListItem button>
-      <Box mr={1} mt={0.5}>
         <FolderOpenIcon/>
-      </Box>
-      <Typography>Load</Typography>
-
     </ListItem>
     </label>
     </>
@@ -49,7 +56,7 @@ function LoadButton(props) {
 }
 
 function mapStateToProps(state, ownProps){
-  return {}
+  return {channels: state.ui.channels}
 }
 
 export default connect(mapStateToProps)(LoadButton)

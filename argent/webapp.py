@@ -27,11 +27,7 @@ class App:
 
         @app.route("/")
         def hello():
-            return render_template('index.html', sequences=load(), channels=channels())
-
-        @app.route("/scripts/list")
-        def scripts():
-            return json.dumps(find_scripts())
+            return render_template('index.html', sequences=json.dumps({}), channels=channels(), aliases=self.config['aliases'])
 
         @app.route("/generate", methods=['POST'])
         def generate():
@@ -57,7 +53,7 @@ class App:
         def channels():
             sys.path.append(self.device_db.split('device_db.py')[0])
             from device_db import device_db
-            channel_dict = {'TTL': [], 'DAC': [], 'DDS': [], 'ADC': []}
+            channel_dict = {'TTL': [], 'DAC': {}, 'DDS': [], 'ADC': []}
 
             for key, info in device_db.items():
                 if 'module' not in info:
@@ -70,7 +66,9 @@ class App:
                 elif info['class'] == 'AD9912':
                     channel_dict['DDS'].append(key)
                 elif info['class'] == 'Zotino':
-                    channel_dict['DAC'].extend([f'{key}{i}' for i in range(32)])
+                    # channel_dict['DAC'].extend([f'{key}{i}' for i in range(32)])
+                    channel_dict['DAC'][key] = list(range(32))
+
                 elif info['class'] == 'Sampler':
                     channel_dict['ADC'].append(key)
 
@@ -83,61 +81,6 @@ class App:
                     self.config[key] = value
             return json.dumps(self.config)
 
-        @app.route("/save", methods=['POST'])
-        def save():
-            path = self.config['sequence_library']
-            with open(path, 'w') as file:
-                json.dump(request.json, file, indent=2)
-            return ''
-
-        @app.route("/load")
-        def load():
-            path = self.config['sequence_library']
-            try:
-                with open(path, 'r') as file:
-                    sequence = json.load(file)
-            except:
-                sequence = {}
-            return json.dumps(sequence)
-
-        @app.route("/variables", methods=['GET', 'POST', 'PATCH'])
-        def variables():
-            if request.method == 'POST':
-                self.variables = request.json
-                socketio.emit('variables', self.variables)
-
-            if request.method == 'PATCH':
-                for var, data in request.json.items():
-                    if var in self.variables:
-                        for key, field in data.items():
-                            self.variables[var][key] = field
-                    else:
-                        self.variables[var] = data
-                socketio.emit('variables', self.variables)
-            return json.dumps(self.variables)
-
-        @app.route("/variables/<name>", methods=['GET', 'POST'])
-        def variable(name):
-            if request.method == 'POST':
-                self.variables[name]['value'] = request.json['value']
-                socketio.emit('variables', self.variables)
-            return json.dumps(self.variables)
-
-        @app.route("/controls", methods=['GET', 'POST', 'PATCH'])
-        def controls():
-            if request.method == 'POST':
-                self.controls = request.json
-                socketio.emit('controls', self.controls)
-            elif request.method == 'PATCH':
-                for name, value in request.json.items():
-                    self.controls[name] = value
-                socketio.emit('controls', self.controls)
-
-            return json.dumps(self.controls)
-
-        @socketio.on('connect')
-        def connect():
-            emit('connect', {'data': 'Connected'})
 
         socketio.run(app, host=addr, port=port, debug=True)
 

@@ -21,22 +21,22 @@ function MacroContextMenu(props) {
 
   function remove() {
     // send a store update and close the menu
-    props.dispatch({type: 'macrosequence/remove', index: props.timestep, sequence_name: props.sequence_name})
+    props.dispatch({type: 'macrosequence/remove', index: props.timestep, sequenceName: props.sequenceName})
     setAnchorEl(null);
   }
 
   function moveLeft() {
-    props.dispatch({type: 'macrosequence/swap', a: props.timestep, b: props.timestep-1, sequence_name: props.sequence_name})
+    props.dispatch({type: 'macrosequence/swap', a: props.timestep, b: props.timestep-1, sequenceName: props.sequenceName})
     setAnchorEl(null);
   }
 
   function moveRight() {
-    props.dispatch({type: 'macrosequence/swap', a: props.timestep, b: props.timestep+1, sequence_name: props.sequence_name})
+    props.dispatch({type: 'macrosequence/swap', a: props.timestep, b: props.timestep+1, sequenceName: props.sequenceName})
     setAnchorEl(null);
   }
 
   function insertTimestep(index) {
-    props.dispatch({type: 'macrosequence/insert', timestep: index, sequence_name: props.sequence_name})
+    props.dispatch({type: 'macrosequence/insert', timestep: index, sequenceName: props.sequenceName})
     setAnchorEl(null);
   }
 

@@ -11,16 +11,24 @@ function swap(array, a, b) {
 }
 
 function getSequenceName(state, action) {
-  let sequence_name = action.sequence_name
-  if (typeof sequence_name == 'undefined') {
-    sequence_name = state['active_sequence']
+  let sequenceName = action.sequenceName
+  if (typeof sequenceName == 'undefined') {
+    sequenceName = state['active_sequence']
   }
-  return sequence_name
+  return sequenceName
 }
 
 export default function reducer(state=[], action) {
   switch(action.type) {
     default : return state;
+
+    case 'dac/setpoint':
+    return produce(state, draft => {
+      draft['sequences'][action.sequenceName][action.timestep].dac[action.board][action.ch] = action.voltage
+      if (action.voltage.split(' ')[0] == '') {
+        delete draft['sequences'][action.sequenceName][action.timestep].dac[action.board][action.ch]
+      }
+    })
 
     case 'macrosequence/append':
       return produce(state, draft => {
@@ -128,83 +136,76 @@ export default function reducer(state=[], action) {
 
     case 'timestep/delete':
       return produce(state, draft => {
-        let sequence_name = getSequenceName(state, action)
-        draft['sequences'][sequence_name].splice(action.timestep, 1)
+        let sequenceName = getSequenceName(state, action)
+        draft['sequences'][sequenceName].splice(action.timestep, 1)
       })
 
     case 'timestep/duration':
       return produce(state, draft => {
-        let sequence_name = getSequenceName(state, action)
-        draft['sequences'][sequence_name][action.timestep]['duration'] = action.duration
+        let sequenceName = getSequenceName(state, action)
+        draft['sequences'][sequenceName][action.timestep]['duration'] = action.duration
       })
 
     case 'timestep/insert':
       return produce(state, draft => {
-        let sequence_name = getSequenceName(state, action)
-        let new_timestep = {duration: '1', ttl: {}, time_scale: 1}
+        console.log('Inserting timestep')
+        let sequenceName = getSequenceName(state, action)
+        let new_timestep = {duration: '1 s', ttl: {}, dac: {}}
         for (let channel of state['channels'].TTL) {
           new_timestep['ttl'][channel] = false
         }
+        for (let board of Object.keys(state['channels'].DAC)) {
+          // new_timestep['dac'][board] = Array(32).fill('')
+          new_timestep['dac'][board] = {}
+        }
 
-        draft['sequences'][sequence_name].splice(action.timestep+1, 0, new_timestep)
+        draft['sequences'][sequenceName].splice(action.timestep+1, 0, new_timestep)
       })
 
     case 'timestep/swap':
       return produce(state, draft => {
-        let sequence_name = getSequenceName(state, action)
+        let sequenceName = getSequenceName(state, action)
         let a = action.a
         let b = action.b
-        swap(draft['sequences'][sequence_name], a, b)
+        swap(draft['sequences'][sequenceName], a, b)
       })
-
-    case 'timestep/scale':
-      return produce(state, draft => {
-        let sequence_name = getSequenceName(state, action)
-        draft['sequences'][sequence_name][action.timestep]['time_scale'] = action.value
-      })
-
 
     case 'ttl/toggle':
-      let sequence_name = getSequenceName(state, action)
-      let ttlChecked = state['sequences'][sequence_name][action.timestep]['ttl'][action.channel]
+      let sequenceName = getSequenceName(state, action)
+      let ttlChecked = state['sequences'][sequenceName][action.timestep]['ttl'][action.channel]
       return produce(state, draft => {
-        draft['sequences'][sequence_name][action.timestep]['ttl'][action.channel] = !ttlChecked
+        draft['sequences'][sequenceName][action.timestep]['ttl'][action.channel] = !ttlChecked
       })
 
-    case 'ui/hideInactive':
+    case 'ui/setActive':
       return produce(state, draft => {
-        draft.ui.hideInactive = action.value
-
-        if (action.value) {
-          let inactiveTTLs = []
-          for (let ch of draft.channels.TTL) {
-            var states = _.filter(flatten(draft.sequences), function(v, k) {
-              return _.includes(k, ch)
-            })
-            if (!(states.some(item => item))) {
-              inactiveTTLs.push(ch)
-            }
-          }
-
-          draft.ui.channels.TTL = draft.channels.TTL.filter(e => !inactiveTTLs.includes(e))
-          draft.sequences = omitDeep(draft.sequences, ...inactiveTTLs)
-        }
-        else {
-          let newChannels = draft.channels.TTL.filter(e => !draft.ui.channels.TTL.includes(e))
-
-          draft.ui.channels.TTL = draft.channels.TTL
-
-          for (let [name, sequence] of Object.entries(draft.sequences)) {
-            for (let i=0; i<sequence.length; i++) {
-              let newState = draft.channels.TTL.reduce((acc,curr)=> (acc[curr]=false,acc),{});
-              _.merge(newState, draft.sequences[name][i].ttl)
-              draft.sequences[name][i].ttl = newState
-            }
+        // action.channel_type, action.channel
+        let newChannels = []
+        for (let ch of state.channels[action.channelType]) {
+          if (ch == action.channel || state.ui.channels[action.channelType].includes(ch)) {
+            newChannels.push(ch)
           }
         }
+        draft.ui.channels[action.channelType] = newChannels
 
-        }
-      )
+      })
+
+    case 'ui/setInactive':
+      return produce(state, draft => {
+        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e != action.channel)
+      })
+
+    case 'ui/setOthersInactive':
+      return produce(state, draft => {
+        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e == action.channel)
+      })
+
+    case 'ui/setBelowInactive':
+      return produce(state, draft => {
+        let index = draft.ui.channels[action.channel_type].indexOf(action.channel)
+        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].slice(0, index+1)
+      })
+
     }
 
 }

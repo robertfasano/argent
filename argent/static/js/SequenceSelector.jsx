@@ -12,7 +12,7 @@ import Button from '@material-ui/core/Button';
 import AddIcon from '@material-ui/icons/Add';
 import FolderOpenIcon from '@material-ui/icons/FolderOpen';
 import TabMenu from './TabMenu.jsx'
-import LoadButtonLite from './menu/LoadButtonLite.jsx'
+import LoadButton from './menu/LoadButton.jsx'
 import {connect} from 'react-redux'
 import {defaultSequence} from '../index.jsx'
 
@@ -75,7 +75,7 @@ function SequenceSelector(props) {
         </Button>
       </ListItem>
       <ListItem>
-        <LoadButtonLite/>
+        <LoadButton/>
       </ListItem>
       </List>
       </Box>

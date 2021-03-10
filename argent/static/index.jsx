@@ -1,7 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import reducer from './js/reducers/reducer.js'
-import { createStore } from 'redux'
+import {compose, createStore } from 'redux'
+import persistState from 'redux-localstorage'
 import { Provider } from 'react-redux'
 import { ThemeProvider } from '@material-ui/core'
 import { createMuiTheme } from '@material-ui/core/styles';
@@ -37,8 +38,9 @@ const theme = createMuiTheme({
 });
 
 export function defaultSequence(channels) {
-  const default_timestep = {'duration': '1',
+  const default_timestep = {'duration': '1 s',
                             'ttl': {},
+                            'dac': {},
                             'time_scale': 1
                            }
 
@@ -46,29 +48,58 @@ export function defaultSequence(channels) {
     default_timestep['ttl'][channel] = false
   }
 
+  for (let board of Object.keys(channels.DAC)) {
+    // default_timestep['dac'][board] = Array(32).fill('')
+    default_timestep['dac'][board] = {}
+  }
+
   return [default_timestep]
 }
 
-function initializeState(channels, sequences) {
+function prepareAliases(channels, aliases) {
+  // Prepare the display names of channels by merging user inputs from config.yml
+  // with default channel names
+  let mergedAliases = {'TTL': {}, 'DAC': {}}
+  for (let ch of channels.TTL) {
+    mergedAliases.TTL[ch] = aliases.ttl[ch] || ch
+  }
+
+  for (let board of Object.keys(channels.DAC)) {
+    mergedAliases.DAC[board] = {}
+    for (let ch of channels.DAC[board]) {
+      mergedAliases.DAC[board][ch] = aliases.dac[board][ch] || board+ch
+    }
+  }
+
+  return mergedAliases
+}
+function initializeState(channels, sequences, aliases) {
   let state = {}
   state['channels'] = channels
   state['sequences'] = sequences
-
-
-
   state['sequences'] = {'new sequence': defaultSequence(channels)}
   state['active_sequence'] = 'new sequence'
   state['macrosequence'] = [{name: 'new sequence', reps: 1}]
-  state['ui'] = {hideInactive: false, channels: channels}
+
+  let activeDACChannels = {}
+  for (let board of Object.keys(state.channels.DAC)) {
+    activeDACChannels[board] = []
+  }
+  state['ui'] = {hideInactive: false, channels: {'TTL': ['ttlA0'], 'DAC': state.channels.DAC}}
+  state['aliases'] = prepareAliases(channels, aliases)
   return state
 
 }
 
 
-export function createGUI(sequences, channels) {
+export function createGUI(sequences, channels, aliases) {
   sequences = JSON.parse(sequences)
-  const state = initializeState(channels, sequences)
-  const store = createStore(reducer, state)
+  const state = initializeState(channels, sequences, aliases)
+  console.log('initializeState:', state)
+  const enhancer = compose(persistState(['sequences', 'channels', 'active_sequence', 'macrosequence', 'ui']))
+  const store = createStore(reducer, state, enhancer)
+  // const store = createStore(reducer, state)
+
   ReactDOM.render(<Provider store={store}>
                     <ThemeProvider theme={theme}>
                       <App/>
