@@ -2,9 +2,7 @@ import React from 'react'
 import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
-import RTIOTable from './rtio/RTIOTable.jsx'
-import MacroTable from './MacroTable.jsx'
-import CombinedTable from './CombinedTable.jsx'
+import SequenceTable from './SequenceTable.jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { connect } from 'react-redux'
 import AppMenu from './menu/AppMenu.jsx'
@@ -44,10 +42,7 @@ function App () {
               <SequenceSelector tableChoice={tableChoice} setTableChoice={setTableChoice}/>
             </Grid>
             <Grid item xs={12}>
-              {/*
-              {tableChoice === 'master' ? <MacroTable/> : <RTIOTable/>}
-              */}
-              <CombinedTable tableChoice={tableChoice} />
+              <SequenceTable tableChoice={tableChoice} />
             </Grid>
           </Grid>
         </Grid>

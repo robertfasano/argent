@@ -17,6 +17,7 @@ import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import TTLButton from './rtio/TTLButton.jsx'
 import VariableUnitInput from './components/VariableUnitInput.jsx'
 import MacroContextMenu from './MacroContextMenu.jsx'
+import TimestepContextMenu from './rtio/TimestepContextMenu.jsx'
 import Button from '@material-ui/core/Button'
 import AddIcon from '@material-ui/icons/Add'
 import Select from '@material-ui/core/Select'
@@ -25,9 +26,11 @@ import DACButton from './rtio/DACButton.jsx'
 import ChannelMenu from './rtio/ChannelMenu.jsx'
 import NewChannelButton from './rtio/NewChannelButton.jsx'
 
-function MacroTable (props) {
-  // Similar to the RTIOTable, but displays all events from a user-defined master
-  // sequence, which is an arbitrary combination of individual sequences.
+function SequenceTable (props) {
+  // Displays a grid of widgets allowing sequences to be defined. Has display
+  // modes for both individual sequences and the master sequence; the latter
+  // allows combination of arbitrary individual sequences, possibly each with
+  // varying numbers of repetitions, into a macrosequence.
   const [expanded, setExpanded] = React.useState({ ttl: true, dac: true, dds: true, adc: true, script: true })
   const [anchorEl, setAnchorEl] = React.useState(null)
   const [anchorName, setAnchorName] = React.useState('')
@@ -39,7 +42,11 @@ function MacroTable (props) {
   }
 
   function add () {
-    props.dispatch({ type: 'macrosequence/append', sequence: props.macrosequence[props.macrosequence.length - 1] })
+    if (props.tableChoice === 'master') {
+      props.dispatch({ type: 'macrosequence/append', sequence: props.macrosequence[props.macrosequence.length - 1] })
+    } else {
+      props.dispatch({ type: 'timestep/insert', timestep: props.macrosequence[0].sequence.length, sequenceName: props.macrosequence[0].name })
+    }
   }
 
   function expand (name) {
@@ -62,46 +69,54 @@ function MacroTable (props) {
             {/* timestep control icons */}
             <TableRow>
             <TableCell/>
-            {
-              props.macrosequence.map((stage, i) => (
-              <TableCell key={i} colSpan={stage.sequence.length} align='center'>
-                <List style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  padding: 0
-                }}>
-                <ListItem>
-                <Select value={stage.name}
-                        width='100%'
-                        onChange={(event) => chooseSequence(i, event.target.value)}
-                        >
-                  {Object.keys(props.sequences).map((name, index) => {
-                    return (
-                        <MenuItem key={name} value={name}>{name}</MenuItem>
+            {props.tableChoice === 'master'
+              ? (
+                  props.macrosequence.map((stage, i) => (
+                <TableCell key={i} colSpan={stage.sequence.length} align='center'>
+                  <List style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    padding: 0
+                  }}>
+                  <ListItem>
+                  <Select value={stage.name}
+                          width='100%'
+                          onChange={(event) => chooseSequence(i, event.target.value)}
+                          >
+                    {Object.keys(props.sequences).map((name, index) => {
+                      return (
+                          <MenuItem key={name} value={name}>{name}</MenuItem>
+                      )
+                    }
                     )
-                  }
-                  )
-                  }
-                </Select>
-                </ListItem>
-                {stage.reps > 1
-                  ? <ListItem>
-                <Typography>
-                  {`(x${stage.reps})`}
-                </Typography>
-                </ListItem>
-                  : null }
-                </List>
-              </TableCell>
-              ))
-
+                    }
+                  </Select>
+                  </ListItem>
+                  {stage.reps > 1
+                    ? <ListItem>
+                  <Typography>
+                    {`(x${stage.reps})`}
+                  </Typography>
+                  </ListItem>
+                    : null }
+                  </List>
+                </TableCell>
+                  ))
+                )
+              : (null)
             }
             </TableRow>
             <TableRow>
               <TableCell/>
               {
                 props.macrosequence.map((stage, index) => (
-                    <MacroContextMenu colSpan={stage.sequence.length} timestep={index} length={props.macrosequence.length} key={index} sequenceName={stage.name}/>
+                  props.tableChoice === 'master'
+                    ? (
+                      <MacroContextMenu colSpan={stage.sequence.length} timestep={index} length={props.macrosequence.length} key={index} sequenceName={stage.name}/>
+                      )
+                    : (
+                      <TimestepContextMenu timestep={index} length={props.macrosequence[0].sequence.length} key={index}/>
+                      )
                 ))
               }
             </TableRow>
@@ -212,19 +227,24 @@ function MacroTable (props) {
   )
 }
 
-MacroTable.propTypes = {
+SequenceTable.propTypes = {
   dispatch: PropTypes.func,
   macrosequence: PropTypes.array,
   sequences: PropTypes.object,
   channels: PropTypes.object,
-  aliases: PropTypes.object
+  aliases: PropTypes.object,
+  tableChoice: PropTypes.string
 }
 
 function mapStateToProps (state, ownProps) {
   const macrosequence = []
-  for (const stage of state.macrosequence) {
-    const newStage = { name: stage.name, sequence: state.sequences[stage.name], reps: stage.reps }
-    macrosequence.push(newStage)
+  if (ownProps.tableChoice === 'master') {
+    for (const stage of state.macrosequence) {
+      const newStage = { name: stage.name, sequence: state.sequences[stage.name], reps: stage.reps }
+      macrosequence.push(newStage)
+    }
+  } else {
+    macrosequence.push({ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence] })
   }
 
   return {
@@ -234,4 +254,4 @@ function mapStateToProps (state, ownProps) {
     aliases: state.aliases
   }
 }
-export default connect(mapStateToProps)(MacroTable)
+export default connect(mapStateToProps)(SequenceTable)
