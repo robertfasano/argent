@@ -12,4 +12,4 @@ parserOptions:
 plugins:
   - react
   - unused-imports
-rules: {"react/jsx-indent": [2, 'tab']}
+rules: {}
