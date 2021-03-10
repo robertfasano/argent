@@ -1,211 +1,213 @@
 import produce from 'immer'
-import omitDeep from 'omit-deep-lodash'
-import flatten from 'flat'
-import _ from 'lodash'
 
-function swap(array, a, b) {
+function swap (array, a, b) {
   // Swaps elements with indices a and b of a passed array in place
-  let temp = array[a]
+  const temp = array[a]
   array[a] = array[b]
   array[b] = temp
 }
 
-function getSequenceName(state, action) {
-  let sequenceName = action.sequenceName
-  if (typeof sequenceName == 'undefined') {
-    sequenceName = state['active_sequence']
-  }
-  return sequenceName
-}
-
-export default function reducer(state=[], action) {
-  switch(action.type) {
-    default : return state;
-
+export default function reducer (state = [], action) {
+  switch (action.type) {
     case 'dac/setpoint':
-    return produce(state, draft => {
-      draft['sequences'][action.sequenceName][action.timestep].dac[action.board][action.ch] = action.voltage
-      if (action.voltage.split(' ')[0] == '') {
-        delete draft['sequences'][action.sequenceName][action.timestep].dac[action.board][action.ch]
-      }
-    })
+      // Update a DAC setpoint for a given timestep and channel. The setpoint string
+      // is unitful, e.g. '1 V' or '0.3 mV'. If the value part of the setpoint string
+      // is not defined, remove the channel from the timestep's 'dac' field.
+      return produce(state, draft => {
+        draft.sequences[action.sequenceName][action.timestep].dac[action.board][action.ch] = action.voltage
+        if (action.voltage.split(' ')[0] === '') {
+          delete draft.sequences[action.sequenceName][action.timestep].dac[action.board][action.ch]
+        }
+      })
 
     case 'macrosequence/append':
+      // Append a sequence to the master sequence.
       return produce(state, draft => {
-        draft['macrosequence'].push(action.sequence)
+        draft.macrosequence.push(action.sequence)
       })
 
     case 'macrosequence/insert':
+      // Insert a new sequence in the master sequence. The inserted sequence is
+      // a duplicate of the previous one, or the next one if inserted in the
+      // first stage.
       return produce(state, draft => {
-        if (action.timestep == -1) {
+        if (action.timestep === -1) {
           action.timestep = 0
         }
-        let new_timestep = draft['macrosequence'][action.timestep]
-        draft['macrosequence'].splice(action.timestep+1, 0, new_timestep)
+        const newTimestep = draft.macrosequence[action.timestep]
+        draft.macrosequence.splice(action.timestep + 1, 0, newTimestep)
       })
 
     case 'macrosequence/remove':
+      // Remove a sequence from the master sequence.
       return produce(state, draft => {
-        draft['macrosequence'].splice(action.index, 1)
+        draft.macrosequence.splice(action.index, 1)
       })
 
-      case 'macrosequence/swap':
-        return produce(state, draft => {
-          let a = action.a
-          let b = action.b
-          swap(draft['macrosequence'], a, b)
-        })
+    case 'macrosequence/swap':
+      // Swap two stages in the master sequence.
+      return produce(state, draft => {
+        swap(draft.macrosequence, action.a, action.b)
+      })
 
-      case 'macrosequence/updateReps':
-        return produce(state, draft => {
-          draft['macrosequence'][action.index].reps = action.reps
-        })
+    case 'macrosequence/updateReps':
+      // Update the number of reps for a given stage of the master sequence.
+      return produce(state, draft => {
+        draft.macrosequence[action.index].reps = action.reps
+      })
 
-      case 'macrosequence/updateSequence':
-        return produce(state, draft => {
-          draft['macrosequence'][action.index].name = action.name
-          draft['macrosequence'][action.index].reps = 1
-        })
+    case 'macrosequence/updateSequence':
+      // Choose which sequence is run in a given stage of the master sequence.
+      return produce(state, draft => {
+        draft.macrosequence[action.index].name = action.name
+        draft.macrosequence[action.index].reps = 1
+      })
 
-      case 'sequence/close':
-        return produce(state, draft => {
-          // check if the sequence is used in the master sequence
-          let found = false
-          for (let stage of draft['macrosequence']) {
-            if (stage.name == action.name) {
-              found = true
-            }
+    case 'sequence/close':
+      // Close the tab for a given sequence, removing it from state.sequences.
+      // Sequences contained in the master sequence cannot be closed.
+      return produce(state, draft => {
+        // check if the sequence is used in the master sequence
+        let found = false
+        for (const stage of draft.macrosequence) {
+          if (stage.name === action.name) {
+            found = true
+          }
+        }
+        if (found) {
+          alert('Cannot delete a sequence which is used in the master sequence!')
+        } else {
+          const currentIndex = Object.keys(draft.sequences).indexOf(action.name)
+          let newIndex = currentIndex - 1
+          if (newIndex < 0) {
+            newIndex = 0
           }
 
-          if (found) {
-            alert('Cannot delete a sequence which is used in the master sequence!')
+          delete draft.sequences[action.name]
+
+          if (action.name === draft.active_sequence) {
+            draft.active_sequence = Object.keys(draft.sequences)[newIndex]
           }
-          else {
-            let currentIndex = Object.keys(draft['sequences']).indexOf(action.name)
-            let newIndex = currentIndex-1
-            if (newIndex < 0) {
-              newIndex = 0
-            }
-
-            delete draft['sequences'][action.name]
-
-            if (action.name == draft['active_sequence']) {
-              draft['active_sequence'] = Object.keys(draft['sequences'])[newIndex]
-            }
-          }
-
-
-        })
+        }
+      })
 
     case 'sequence/load':
+      // Store a passed sequence object in state.sequences.
       return produce(state, draft => {
-        draft['sequences'][action.name] = action.sequence
-        draft['active_sequence'] = action.name
-        console.log('Loaded sequence:', action.name)
+        draft.sequences[action.name] = action.sequence
+        draft.active_sequence = action.name
       })
 
     case 'sequence/rename':
+      // Rename a sequence.
       return produce(state, draft => {
         // rename active sequence if necessary
-        if (draft['active_sequence'] == action.name) {
-          draft['active_sequence'] = action.newName
+        if (draft.active_sequence === action.name) {
+          draft.active_sequence = action.newName
         }
         // rename all occurrences in macrosequence
-        for (let stage of draft['macrosequence']) {
-          if (stage.name == action.name) {
+        for (const stage of draft.macrosequence) {
+          if (stage.name === action.name) {
             stage.name = action.newName
           }
         }
         // rename in the 'sequences' store, preserving key order
-        let newSequences = {}
-        for (const [key, val] of Object.entries(draft['sequences'])) {
-          if (key == action.name) {
+        const newSequences = {}
+        for (const [key, val] of Object.entries(draft.sequences)) {
+          if (key === action.name) {
             newSequences[action.newName] = val
-          }
-          else {
+          } else {
             newSequences[key] = val
           }
         }
-        draft['sequences'] = newSequences
+        draft.sequences = newSequences
       })
 
-    case 'sequence/retrieve':
+    case 'sequence/setActive':
+      // Set a sequence to the active sequence, which is used to choose
+      // which sequence to display for editing or send to the code generator.
       return produce(state, draft => {
-        draft['active_sequence'] = action.name
+        draft.active_sequence = action.name
       })
 
     case 'timestep/delete':
+      // Remove a timestep from a sequence at a given index.
       return produce(state, draft => {
-        let sequenceName = getSequenceName(state, action)
-        draft['sequences'][sequenceName].splice(action.timestep, 1)
+        const sequenceName = action.sequenceName || state.active_sequence
+        draft.sequences[sequenceName].splice(action.timestep, 1)
       })
 
     case 'timestep/duration':
+      // Modify a timestep duration at a given index.
       return produce(state, draft => {
-        let sequenceName = getSequenceName(state, action)
-        draft['sequences'][sequenceName][action.timestep]['duration'] = action.duration
+        const sequenceName = action.sequenceName || state.active_sequence
+        draft.sequences[sequenceName][action.timestep].duration = action.duration
       })
 
     case 'timestep/insert':
+      // Insert a timestep at a given index.
       return produce(state, draft => {
-        console.log('Inserting timestep')
-        let sequenceName = getSequenceName(state, action)
-        let new_timestep = {duration: '1 s', ttl: {}, dac: {}}
-        for (let channel of state['channels'].TTL) {
-          new_timestep['ttl'][channel] = false
+        const sequenceName = action.sequenceName || state.active_sequence
+        const newTimestep = { duration: '1 s', ttl: {}, dac: {} }
+        for (const channel of state.channels.TTL) {
+          newTimestep.ttl[channel] = false
         }
-        for (let board of Object.keys(state['channels'].DAC)) {
-          // new_timestep['dac'][board] = Array(32).fill('')
-          new_timestep['dac'][board] = {}
+        for (const board of Object.keys(state.channels.DAC)) {
+          newTimestep.dac[board] = {}
         }
 
-        draft['sequences'][sequenceName].splice(action.timestep+1, 0, new_timestep)
+        draft.sequences[sequenceName].splice(action.timestep + 1, 0, newTimestep)
       })
 
     case 'timestep/swap':
+      // Swap two timesteps.
       return produce(state, draft => {
-        let sequenceName = getSequenceName(state, action)
-        let a = action.a
-        let b = action.b
-        swap(draft['sequences'][sequenceName], a, b)
+        const sequenceName = action.sequenceName || state.active_sequence
+        swap(draft.sequences[sequenceName], action.a, action.b)
       })
 
     case 'ttl/toggle':
-      let sequenceName = getSequenceName(state, action)
-      let ttlChecked = state['sequences'][sequenceName][action.timestep]['ttl'][action.channel]
+      // Toggle a TTL event on/off.
       return produce(state, draft => {
-        draft['sequences'][sequenceName][action.timestep]['ttl'][action.channel] = !ttlChecked
+        const sequenceName = action.sequenceName || state.active_sequence
+        const ttlChecked = state.sequences[sequenceName][action.timestep].ttl[action.channel]
+        draft.sequences[sequenceName][action.timestep].ttl[action.channel] = !ttlChecked
       })
 
     case 'ui/setActive':
+      // Designate a given channel as active. Inactive channels will not be
+      // rendered or sent to the code generator, allowing users to avoid
+      // accessing certain channels on the hardware, e.g. to persist a setpoint
+      // from a previous experiment.
       return produce(state, draft => {
-        // action.channel_type, action.channel
-        let newChannels = []
-        for (let ch of state.channels[action.channelType]) {
-          if (ch == action.channel || state.ui.channels[action.channelType].includes(ch)) {
+        const newChannels = []
+        for (const ch of state.channels[action.channelType]) {
+          if (ch === action.channel || state.ui.channels[action.channelType].includes(ch)) {
             newChannels.push(ch)
           }
         }
         draft.ui.channels[action.channelType] = newChannels
-
       })
 
     case 'ui/setInactive':
+      // Designate a channel as inactive.
       return produce(state, draft => {
-        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e != action.channel)
+        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e !== action.channel)
       })
 
     case 'ui/setOthersInactive':
+      // Designate channels other than the selected one as inactive.
       return produce(state, draft => {
-        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e == action.channel)
+        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e === action.channel)
       })
 
     case 'ui/setBelowInactive':
+      // Designate channels listed after the selected one as inactive.
       return produce(state, draft => {
-        let index = draft.ui.channels[action.channel_type].indexOf(action.channel)
-        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].slice(0, index+1)
+        const index = draft.ui.channels[action.channel_type].indexOf(action.channel)
+        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].slice(0, index + 1)
       })
 
-    }
-
+    default : return state
+  }
 }

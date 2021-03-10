@@ -1,8 +1,9 @@
-import React from 'react';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import TextField from '@material-ui/core/TextField';
+import React from 'react'
+import PropTypes from 'prop-types'
+import InputAdornment from '@material-ui/core/InputAdornment'
+import TextField from '@material-ui/core/TextField'
 
-export default function FixedUnitInput(props) {
+function FixedUnitInput (props) {
   // A text field displaying a fixed unit and label
   return (
     <TextField onChange = {(event) => props.onChange(event)}
@@ -20,3 +21,12 @@ export default function FixedUnitInput(props) {
     />
   )
 }
+
+FixedUnitInput.propTypes = {
+  onChange: PropTypes.func,
+  value: PropTypes.string,
+  placeholder: PropTypes.string,
+  label: PropTypes.string,
+  unit: PropTypes.string
+}
+export default FixedUnitInput

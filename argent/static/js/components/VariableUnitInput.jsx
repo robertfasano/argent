@@ -1,10 +1,13 @@
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Select from '@material-ui/core/Select';
-import React from 'react';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import InputAdornment from '@material-ui/core/InputAdornment'
+import Select from '@material-ui/core/Select'
+import React from 'react'
+import PropTypes from 'prop-types'
+import MenuItem from '@material-ui/core/MenuItem'
+import TextField from '@material-ui/core/TextField'
 
-export default function VariableUnitInput(props) {
+function VariableUnitInput (props) {
+  // Allows display and setting of unitful strings like '1 V' or '30 us'. The
+  // value is set by a TextField, while the unit is set by a Select.
   let [value, unit] = props.value.split(' ')
 
   unit = unit || props.units[0]
@@ -31,3 +34,14 @@ export default function VariableUnitInput(props) {
       />
   )
 }
+
+VariableUnitInput.propTypes = {
+  onChange: PropTypes.func,
+  value: PropTypes.string,
+  label: PropTypes.string,
+  variant: PropTypes.string,
+  size: PropTypes.string,
+  placeholder: PropTypes.string,
+  units: PropTypes.array
+}
+export default VariableUnitInput

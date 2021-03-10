@@ -1,77 +1,92 @@
-import React from 'react';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import CreateIcon from '@material-ui/icons/Create';
-import DeleteIcon from '@material-ui/icons/Delete';
-import SaveIcon from '@material-ui/icons/Save';
+import React from 'react'
+import PropTypes from 'prop-types'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemText from '@material-ui/core/ListItemText'
+import CreateIcon from '@material-ui/icons/Create'
+import DeleteIcon from '@material-ui/icons/Delete'
+import SaveIcon from '@material-ui/icons/Save'
 import omitDeep from 'omit-deep-lodash'
 
-import {connect} from 'react-redux'
+import { connect } from 'react-redux'
 
-function TabMenu(props) {
+function TabMenu (props) {
+  // A context menu for the SequenceSelector allowing sequences to be renamed,
+  // closed, or saved.
   const handleClose = () => {
-    props.setAnchorEl(null);
-  };
+    props.setAnchorEl(null)
+  }
 
   const rename = () => {
     const newName = prompt('Enter new sequence name:')
-    props.dispatch({type: 'sequence/rename', name: props.name, newName: newName})
+    props.dispatch({ type: 'sequence/rename', name: props.name, newName: newName })
     handleClose()
   }
 
   const handleDelete = () => {
-    props.dispatch({type: 'sequence/close', name: props.name})
+    props.dispatch({ type: 'sequence/close', name: props.name })
     handleClose()
   }
 
-  function activeSequence() {
+  function activeSequence () {
     // returns the sequence with the inactive channels removed
-    let inactiveTTLs = props.channels.TTL.filter(e => !props.ui.channels.TTL.includes(e))
-    return omitDeep(props.sequence, ...inactiveTTLs)   // remove inactive channels from state
-
+    const inactiveTTLs = props.channels.TTL.filter(e => !props.ui.channels.TTL.includes(e))
+    return omitDeep(props.sequence, ...inactiveTTLs) // remove inactive channels from state
   }
 
   return (
-    <div>
-      <Menu
+	<div>
+		<Menu
         anchorEl={props.anchorEl}
-        open={Boolean(props.anchorEl) && (props.anchorName == props.name)}
+        open={Boolean(props.anchorEl) && (props.anchorName === props.name)}
         onClose={handleClose}
-        anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-        transformOrigin={{horizontal: 'left', vertical: 'top'}}
+        anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+        transformOrigin={{ horizontal: 'left', vertical: 'top' }}
         getContentAnchorEl={null}
       >
-        <MenuItem onClick={rename}>
-          <ListItemIcon>
-            <CreateIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Rename" />
-        </MenuItem>
-        <MenuItem onClick={handleDelete}>
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Close" />
-        </MenuItem>
-        <MenuItem button component="a"
+			<MenuItem onClick={rename}>
+				<ListItemIcon>
+					<CreateIcon fontSize="small" />
+				</ListItemIcon>
+				<ListItemText primary="Rename" />
+			</MenuItem>
+			<MenuItem onClick={handleDelete}>
+				<ListItemIcon>
+					<DeleteIcon fontSize="small" />
+				</ListItemIcon>
+				<ListItemText primary="Close" />
+			</MenuItem>
+			<MenuItem button component="a"
                   href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(activeSequence(), null, 1))}`}
                   download={`${props.name}.json`}
-        >          <ListItemIcon>
-            <SaveIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Save" />
-        </MenuItem>
-      </Menu>
-    </div>
-  );
+        >
+				<ListItemIcon>
+					<SaveIcon fontSize="small" />
+				</ListItemIcon>
+				<ListItemText primary="Save" />
+			</MenuItem>
+		</Menu>
+	</div>
+  )
 }
 
-function mapStateToProps(state, ownProps){
-  return {sequence: state['sequences'][ownProps.name],
-          ui: state.ui,
-          channels: state.channels
-        }
+TabMenu.propTypes = {
+  name: PropTypes.string,
+  sequence: PropTypes.array,
+  ui: PropTypes.object,
+  channels: PropTypes.object,
+  setAnchorEl: PropTypes.func,
+  anchorEl: PropTypes.object,
+  anchorName: PropTypes.string,
+  dispatch: PropTypes.func
+}
+
+function mapStateToProps (state, ownProps) {
+  return {
+    sequence: state.sequences[ownProps.name],
+    ui: state.ui,
+    channels: state.channels
+  }
 }
 export default connect(mapStateToProps)(TabMenu)
