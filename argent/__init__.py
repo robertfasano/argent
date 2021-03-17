@@ -2,6 +2,8 @@ import yaml
 import re
 import os
 
+path = os.path.dirname(__file__)
+
 class Configurator:
     def __init__(self, config_path):
         self.config_path = config_path

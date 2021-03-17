@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import ListItem from '@material-ui/core/ListItem'
 import FolderOpenIcon from '@material-ui/icons/FolderOpen'
+import yaml from 'js-yaml'
 
 function LoadButton (props) {
   // Allows one or more sequences to be loaded from .json files into the
@@ -12,9 +13,10 @@ function LoadButton (props) {
   function loadFile (file) {
     const fileReader = new FileReader()
     fileReader.readAsText(file, 'UTF-8')
-    const name = file.name.split('.json')[0]
+    const name = file.name.split('.yml')[0]
     fileReader.onload = e => {
-      const sequence = JSON.parse(e.target.result)
+      // const sequence = JSON.parse(e.target.result)
+      const sequence = yaml.load(e.target.result)
       props.dispatch({ type: 'sequence/load', sequence: sequence, name: name })
 
       // update active channels
@@ -37,7 +39,7 @@ function LoadButton (props) {
   return (
     <>
     <input
-      accept="application/json"
+      accept=".yml"
       type="file"
       style={{ display: 'none' }}
       onChange={uploadState}

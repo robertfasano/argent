@@ -8,7 +8,7 @@ import CreateIcon from '@material-ui/icons/Create'
 import DeleteIcon from '@material-ui/icons/Delete'
 import SaveIcon from '@material-ui/icons/Save'
 import omitDeep from 'omit-deep-lodash'
-
+import yaml from 'js-yaml'
 import { connect } from 'react-redux'
 
 function TabMenu (props) {
@@ -29,6 +29,7 @@ function TabMenu (props) {
     handleClose()
   }
 
+  const text = '# Created with Argent commit ' + props.version + '\n' + yaml.dump(props.sequence)
   return (
 	<div>
 		<Menu
@@ -52,8 +53,8 @@ function TabMenu (props) {
 				<ListItemText primary="Close" />
 			</MenuItem>
 			<MenuItem button component="a"
-                  href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(props.sequence, null, 1))}`}
-                  download={`${props.name}.json`}
+                  href={`data:text/json;charset=utf-8,${encodeURIComponent(text)}`}
+                  download={`${props.name}.yml`}
         >
 				<ListItemIcon>
 					<SaveIcon fontSize="small" />
@@ -71,7 +72,8 @@ TabMenu.propTypes = {
   setAnchorEl: PropTypes.func,
   anchorEl: PropTypes.object,
   anchorName: PropTypes.string,
-  dispatch: PropTypes.func
+  dispatch: PropTypes.func,
+  version: PropTypes.string
 }
 
 function mapStateToProps (state, props) {
@@ -81,7 +83,8 @@ function mapStateToProps (state, props) {
   const sequence = omitDeep(state.sequences[props.name], ...inactiveChannels) // remove inactive channels from state
 
   return {
-    sequence: sequence
+    sequence: sequence,
+    version: state.version
   }
 }
 export default connect(mapStateToProps)(TabMenu)

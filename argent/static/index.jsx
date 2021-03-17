@@ -85,7 +85,7 @@ function prepareAliases(channels, aliases) {
   return mergedAliases
 }
 
-function initializeState(channels, sequences, aliases) {
+function initializeState(channels, sequences, aliases, version) {
   let state = {}
   state['channels'] = channels
   state['sequences'] = sequences
@@ -99,14 +99,15 @@ function initializeState(channels, sequences, aliases) {
   }
   state['ui'] = {channels: {'TTL': [state.channels.TTL[0]], 'DAC': state.channels.DAC, 'DDS': [state.channels.DDS[0]]}}
   state['aliases'] = prepareAliases(channels, aliases)
+  state['version'] = version
   return state
 
 }
 
 
-export function createGUI(sequences, channels, aliases) {
+export function createGUI(sequences, channels, aliases, version) {
   sequences = JSON.parse(sequences)
-  const state = initializeState(channels, sequences, aliases)
+  const state = initializeState(channels, sequences, aliases, version)
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
   const enhancer = composeEnhancers(persistState(['sequences', 'channels', 'active_sequence', 'macrosequence', 'ui']))
   const store = createStore(reducer, state, enhancer)

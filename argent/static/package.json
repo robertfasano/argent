@@ -21,6 +21,7 @@
     "babel-preset-react": "^6.24.1",
     "flat": "^5.0.2",
     "immer": "^6.0.9",
+    "js-yaml": "^4.0.0",
     "omit-deep-lodash": "^1.1.5",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",

@@ -2,10 +2,11 @@ import json
 import os
 import sys
 import click
+import subprocess
 from flask import Flask, request
 from flask import render_template, send_from_directory
 from argent.generator import generate_experiment
-from argent import Configurator
+from argent import Configurator, path
 
 class App:
     ''' Handles the server backend which forms the link between the webapp client
@@ -39,7 +40,8 @@ class App:
             return render_template('index.html',
                                    sequences=json.dumps({}),
                                    channels=channels(),
-                                   aliases=self.config['aliases']
+                                   aliases=self.config['aliases'],
+                                   version=version()
                                   )
 
         @app.route("/generate", methods=['POST'])
@@ -94,6 +96,12 @@ class App:
                 elif info['class'] == 'CPLD':
                     channel_dict['cpld'].append(key)
             return channel_dict
+
+        @app.route("/version")
+        def version():
+            ''' Returns the current commit id '''
+            return json.dumps(subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=path).strip().decode())
+
 
         app.run(host=addr, port=port, debug=True)
 
