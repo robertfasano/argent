@@ -29,12 +29,6 @@ function TabMenu (props) {
     handleClose()
   }
 
-  function activeSequence () {
-    // returns the sequence with the inactive channels removed
-    const inactiveTTLs = props.channels.TTL.filter(e => !props.ui.channels.TTL.includes(e))
-    return omitDeep(props.sequence, ...inactiveTTLs) // remove inactive channels from state
-  }
-
   return (
 	<div>
 		<Menu
@@ -58,7 +52,7 @@ function TabMenu (props) {
 				<ListItemText primary="Close" />
 			</MenuItem>
 			<MenuItem button component="a"
-                  href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(activeSequence(), null, 1))}`}
+                  href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(props.sequence, null, 1))}`}
                   download={`${props.name}.json`}
         >
 				<ListItemIcon>
@@ -74,19 +68,20 @@ function TabMenu (props) {
 TabMenu.propTypes = {
   name: PropTypes.string,
   sequence: PropTypes.array,
-  ui: PropTypes.object,
-  channels: PropTypes.object,
   setAnchorEl: PropTypes.func,
   anchorEl: PropTypes.object,
   anchorName: PropTypes.string,
   dispatch: PropTypes.func
 }
 
-function mapStateToProps (state, ownProps) {
+function mapStateToProps (state, props) {
+  const inactiveTTLs = state.channels.TTL.filter(ch => !state.ui.channels.TTL.includes(ch))
+  const inactiveDDS = state.channels.DDS.filter(ch => !state.ui.channels.DDS.includes(ch))
+  const inactiveChannels = [...inactiveTTLs, ...inactiveDDS]
+  const sequence = omitDeep(state.sequences[props.name], ...inactiveChannels) // remove inactive channels from state
+
   return {
-    sequence: state.sequences[ownProps.name],
-    ui: state.ui,
-    channels: state.channels
+    sequence: sequence
   }
 }
 export default connect(mapStateToProps)(TabMenu)
