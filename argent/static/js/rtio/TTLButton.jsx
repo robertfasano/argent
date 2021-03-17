@@ -6,21 +6,12 @@ import { connect } from 'react-redux'
 
 function TTLButton (props) {
   // A simple boolean Button allowing the TTL state at a timestep to be toggled.
-  function toggle () {
-    props.dispatch({
-      type: 'ttl/toggle',
-      timestep: props.timestep,
-      channel: props.channel,
-      sequenceName: props.sequenceName
-    })
-  }
-
   return (
-    <TableCell component="th" scope="row" key={props.timestep}>
+    <TableCell component="th" scope="row">
       <Button variant="contained"
               disableRipple={true}
               style={{ backgroundColor: props.on ? '#ffff00' : '#D3D3D3', opacity: 1 }}
-              onClick={() => toggle()}
+              onClick={props.toggle}
               >
       <React.Fragment/>
       </Button>
@@ -29,11 +20,23 @@ function TTLButton (props) {
 }
 
 TTLButton.propTypes = {
-  timestep: PropTypes.number,
-  channel: PropTypes.string,
-  sequenceName: PropTypes.string,
-  dispatch: PropTypes.func,
-  on: PropTypes.bool
+  on: PropTypes.bool,
+  toggle: PropTypes.func
+}
+
+function mapDispatchToProps (dispatch, props) {
+  const path = {
+    sequenceName: props.sequenceName,
+    channel: props.channel,
+    timestep: props.timestep
+  }
+
+  return {
+    toggle: () => dispatch({
+      type: 'ttl/toggle',
+      path: path
+    })
+  }
 }
 
 function mapStateToProps (state, props) {
@@ -41,4 +44,4 @@ function mapStateToProps (state, props) {
     on: state.sequences[props.sequenceName][props.timestep].ttl[props.channel]
   }
 }
-export default connect(mapStateToProps)(TTLButton)
+export default connect(mapStateToProps, mapDispatchToProps)(TTLButton)

@@ -204,9 +204,9 @@ export default function reducer (state = [], action) {
     case 'ttl/toggle':
       // Toggle a TTL event on/off.
       return produce(state, draft => {
-        const sequenceName = action.sequenceName || state.active_sequence
-        const ttlChecked = state.sequences[sequenceName][action.timestep].ttl[action.channel]
-        draft.sequences[sequenceName][action.timestep].ttl[action.channel] = !ttlChecked
+        const sequenceName = action.path.sequenceName || state.active_sequence
+        const ttlChecked = state.sequences[sequenceName][action.path.timestep].ttl[action.path.channel]
+        draft.sequences[sequenceName][action.path.timestep].ttl[action.path.channel] = !ttlChecked
       })
 
     case 'ui/setActive':
