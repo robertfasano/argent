@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import reducer from './js/reducers/reducer.js'
-import {compose, createStore } from 'redux'
+import {compose, createStore, applyMiddleWare } from 'redux'
 import persistState from 'redux-localstorage'
 import { Provider } from 'react-redux'
 import { ThemeProvider } from '@material-ui/core'
@@ -107,10 +107,9 @@ function initializeState(channels, sequences, aliases) {
 export function createGUI(sequences, channels, aliases) {
   sequences = JSON.parse(sequences)
   const state = initializeState(channels, sequences, aliases)
-  console.log('initializeState:', state)
-  const enhancer = compose(persistState(['sequences', 'channels', 'active_sequence', 'macrosequence', 'ui']))
+  const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+  const enhancer = composeEnhancers(persistState(['sequences', 'channels', 'active_sequence', 'macrosequence', 'ui']))
   const store = createStore(reducer, state, enhancer)
-  // const store = createStore(reducer, state)
 
   ReactDOM.render(<Provider store={store}>
                     <ThemeProvider theme={theme}>
