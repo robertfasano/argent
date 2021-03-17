@@ -1,6 +1,7 @@
 *.pyc
 *saved.json
 *.ipynb_checkpoints
+*.ipynb
 *.egg*
 *generated/
 *.pytest*
