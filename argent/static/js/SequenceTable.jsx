@@ -108,16 +108,15 @@ function SequenceTable (props) {
             </TableRow>
             <TableRow>
               <TableCell/>
-              {
+              {props.tableChoice === 'master'? (
                 props.macrosequence.map((stage, index) => (
-                  props.tableChoice === 'master'
-                    ? (
-                      <MacroContextMenu colSpan={stage.sequence.length} timestep={index} length={props.macrosequence.length} key={index} sequenceName={stage.name}/>
-                      )
-                    : (
-                      <TimestepContextMenu timestep={index} length={props.macrosequence[0].sequence.length} key={index}/>
-                      )
-                ))
+                  <MacroContextMenu colSpan={stage.sequence.length} timestep={index} length={props.macrosequence.length} key={index} sequenceName={stage.name}/>
+                ))) :
+                (
+                  props.macrosequence[0].sequence.map((step, index) => (
+                    <TimestepContextMenu timestep={index} length={props.macrosequence[0].sequence.length} key={index}/>
+                  ))
+                )
               }
             </TableRow>
             {/* timesteps row */}
