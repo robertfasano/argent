@@ -1,4 +1,5 @@
 import produce from 'immer'
+import { defaultSequence } from '../../index.jsx'
 
 function swap (array, a, b) {
   // Swaps elements with indices a and b of a passed array in place
@@ -145,17 +146,22 @@ export default function reducer (state = [], action) {
       })
 
     case 'timestep/insert':
-      // Insert a timestep at a given index.
+      // Insert a timestep at a given index. The new timestep inherits all boolean
+      // states from the previous timestep. In other words, all TTL channels and
+      // DDS rf switches will preserve the previous state, but no other states
+      // will be updated by default.
       return produce(state, draft => {
-        const sequenceName = action.sequenceName || state.active_sequence
-        const newTimestep = { duration: '1 s', ttl: {}, dac: {} }
-        for (const channel of state.channels.TTL) {
-          newTimestep.ttl[channel] = false
-        }
-        for (const board of Object.keys(state.channels.DAC)) {
-          newTimestep.dac[board] = {}
-        }
 
+        const sequenceName = action.sequenceName || state.active_sequence
+        const newTimestep = defaultSequence(state.channels)[0]
+        const previousIndex = Math.max(action.timestep-1, 0)
+        const previousTimestep = state.sequences[sequenceName][previousIndex]
+        for (const ch of Object.keys(previousTimestep.ttl)) {
+          newTimestep.ttl[ch] = previousTimestep.ttl[ch]
+        }
+        for (const ch of Object.keys(previousTimestep.dds)) {
+          newTimestep.dds[ch].enable = previousTimestep.dds[ch].enable
+        }
         draft.sequences[sequenceName].splice(action.timestep + 1, 0, newTimestep)
       })
 
