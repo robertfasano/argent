@@ -41,7 +41,7 @@ export function defaultSequence(channels) {
   const default_timestep = {'duration': '1 s',
                             'ttl': {},
                             'dac': {},
-                            'time_scale': 1
+                            'dds': {}
                            }
 
   for (let channel of channels.TTL) {
@@ -49,8 +49,11 @@ export function defaultSequence(channels) {
   }
 
   for (let board of Object.keys(channels.DAC)) {
-    // default_timestep['dac'][board] = Array(32).fill('')
     default_timestep['dac'][board] = {}
+  }
+
+  for (let ch of channels.DDS) {
+    default_timestep['dds'][ch] = {'enable': false}
   }
 
   return [default_timestep]
@@ -59,11 +62,14 @@ export function defaultSequence(channels) {
 function prepareAliases(channels, aliases) {
   // Prepare the display names of channels by merging user inputs from config.yml
   // with default channel names
-  let mergedAliases = {'TTL': {}, 'DAC': {}}
+  let mergedAliases = {'TTL': {}, 'DAC': {}, 'DDS': {}}
+
+  aliases.ttl = aliases.ttl || {}
   for (let ch of channels.TTL) {
     mergedAliases.TTL[ch] = aliases.ttl[ch] || ch
   }
 
+  aliases.dac = aliases.dac || {}
   for (let board of Object.keys(channels.DAC)) {
     mergedAliases.DAC[board] = {}
     for (let ch of channels.DAC[board]) {
@@ -71,8 +77,14 @@ function prepareAliases(channels, aliases) {
     }
   }
 
+  aliases.dds = aliases.dds || {}
+  for (let ch of channels.DDS) {
+    mergedAliases.DDS[ch] = aliases.dds[ch] || ch
+  }
+
   return mergedAliases
 }
+
 function initializeState(channels, sequences, aliases) {
   let state = {}
   state['channels'] = channels
@@ -85,7 +97,7 @@ function initializeState(channels, sequences, aliases) {
   for (let board of Object.keys(state.channels.DAC)) {
     activeDACChannels[board] = []
   }
-  state['ui'] = {hideInactive: false, channels: {'TTL': ['ttlA0'], 'DAC': state.channels.DAC}}
+  state['ui'] = {channels: {'TTL': [state.channels.TTL[0]], 'DAC': state.channels.DAC, 'DDS': [state.channels.DDS[0]]}}
   state['aliases'] = prepareAliases(channels, aliases)
   return state
 

@@ -1,36 +1,52 @@
-from flask import Flask, request
-from flask import render_template, send_from_directory
-from flask_socketio import SocketIO, emit
-from argent.generator import generate_experiment
-from argent.scripts import find_scripts
-from argent import Configurator
 import json
 import os
-import click
 import sys
+import click
+from flask import Flask, request
+from flask import render_template, send_from_directory
+from argent.generator import generate_experiment
+from argent import Configurator
 
 class App:
-    def __init__(self, device_db='./device_db.py', config='./config.yml'):
-        self.device_db = device_db
-        self.config = Configurator(config, device_db).load()
-        self.variables = {}
-        self.controls = {}
+    ''' Handles the server backend which forms the link between the webapp client
+        and the code generator/ARTIQ experiment submission. Requires a config.yml
+        file with the following fields:
+        - device_db: the path of the device_db.py file for the ARTIQ system
+        - environment_name: the conda environment where ARTIQ is installed
+        - aliases: optional display names to override the default channel names.
+                   For example, 'ttlA0' could be replaced with 'probe rf'.
+    '''
+    def __init__(self, config='./config.yml'):
+        print('Running Argent webapp...')
+        print('Using config file at', os.path.abspath(config))
+        self.config = Configurator(config).load()
+        self.device_db = self.config['device_db']
+        print('Using device_db at', os.path.abspath(self.device_db))
 
     def host(self, addr='127.0.0.1', port=8051):
+        ''' Run the Flask server on a given address and port '''
         app = Flask(__name__)
-        socketio = SocketIO(app)
 
         @app.route('/favicon.ico')
         def favicon():
+            ''' Provides the ARTIQ tab icon '''
             return send_from_directory(os.path.join(app.root_path, 'static'),
                                        'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
         @app.route("/")
         def hello():
-            return render_template('index.html', sequences=json.dumps({}), channels=channels(), aliases=self.config['aliases'])
+            ''' The main entrypoint for the webapp '''
+            return render_template('index.html',
+                                   sequences=json.dumps({}),
+                                   channels=channels(),
+                                   aliases=self.config['aliases']
+                                  )
 
         @app.route("/generate", methods=['POST'])
         def generate():
+            ''' Posting a macrosequence to this endpoint will trigger code
+                generation. The experiment will not be sent to the hardware.
+            '''
             sequence = request.json
             code = generate_experiment(sequence)
             with open('generated_experiment.py', 'w') as file:
@@ -40,6 +56,9 @@ class App:
 
         @app.route("/submit", methods=['POST'])
         def submit():
+            ''' Posting a macrosequence to this endpoint will generate an ARTIQ
+                experiment and execute it on the hardware using artiq_run.
+            '''
             sequence = request.json
             code = generate_experiment(sequence)
             with open('generated_experiment.py', 'w') as file:
@@ -51,9 +70,12 @@ class App:
 
         @app.route("/channels")
         def channels():
+            ''' Reads the device_db.py file to determine which RTIO channels
+                are available.
+            '''
             sys.path.append(self.device_db.split('device_db.py')[0])
             from device_db import device_db
-            channel_dict = {'TTL': [], 'DAC': {}, 'DDS': [], 'ADC': []}
+            channel_dict = {'TTL': [], 'DAC': {}, 'DDS': [], 'ADC': [], 'cpld': []}
 
             for key, info in device_db.items():
                 if 'module' not in info:
@@ -63,35 +85,25 @@ class App:
                     if any(x in key for x in ignore):
                         continue
                     channel_dict['TTL'].append(key)
-                elif info['class'] == 'AD9912':
+                elif info['class'] in ['AD9910', 'AD9912']:
                     channel_dict['DDS'].append(key)
                 elif info['class'] == 'Zotino':
-                    # channel_dict['DAC'].extend([f'{key}{i}' for i in range(32)])
                     channel_dict['DAC'][key] = list(range(32))
-
                 elif info['class'] == 'Sampler':
                     channel_dict['ADC'].append(key)
-
+                elif info['class'] == 'CPLD':
+                    channel_dict['cpld'].append(key)
             return channel_dict
 
-        @app.route("/config", methods=['GET', 'POST'])
-        def config():
-            if request.method == 'POST':
-                for key, value in request.json.items():
-                    self.config[key] = value
-            return json.dumps(self.config)
-
-
-        socketio.run(app, host=addr, port=port, debug=True)
+        app.run(host=addr, port=port, debug=True)
 
 @click.command()
-@click.option('--device_db', default='./device_db.py', help='device_db path')
 @click.option('--config', default='./config.yml', help='config path')
-def main(device_db, config):
-    print('Running Argent webapp...')
-    print('Using device_db file at', os.path.abspath(device_db))
-    print('Using config file at', os.path.abspath(config))
-    app = App(device_db=device_db, config=config)
+def main(config):
+    ''' Hosts the webapp server. The app can be run by navigating to
+        127.0.0.1:8051 in a browser.
+    '''
+    app = App(config=config)
     app.host('127.0.0.1', 8051)
 
 if __name__ == "__main__":

@@ -5,9 +5,11 @@ import TextField from '@material-ui/core/TextField'
 
 function FixedUnitInput (props) {
   // A text field displaying a fixed unit and label
+  let [value, unit] = props.value.split(' ')
+
   return (
     <TextField onChange = {(event) => props.onChange(event)}
-               value = {props.value}
+               value = {value}
                placeholder = {props.placeholder}
                variant = "outlined"
                size = "small"

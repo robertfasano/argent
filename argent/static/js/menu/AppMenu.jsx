@@ -43,6 +43,9 @@ function AppMenu (props) {
 function mapStateToProps (state, ownProps) {
   // assemble macrosequence
   const inactiveTTLs = state.channels.TTL.filter(e => !state.ui.channels.TTL.includes(e))
+  const inactiveDDS = state.channels.DDS.filter(e => !state.ui.channels.DDS.includes(e))
+  const inactiveChannels =[...inactiveTTLs, ...inactiveDDS]
+
   const macrosequence = []
 
   if (ownProps.tableChoice === 'master') {
@@ -50,11 +53,12 @@ function mapStateToProps (state, ownProps) {
       macrosequence.push({
         name: stage.name,
         reps: stage.reps,
-        sequence: omitDeep(state.sequences[stage.name], ...inactiveTTLs)
+        sequence: omitDeep(state.sequences[stage.name], ...inactiveChannels)
       })
     }
   } else {
-    macrosequence.push({ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence] })
+    const sequence = omitDeep(state.sequences[state.active_sequence], ...inactiveChannels)
+    macrosequence.push({ name: state.active_sequence, reps: 1, sequence: sequence })
   }
 
   return {

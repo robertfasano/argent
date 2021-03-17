@@ -21,6 +21,35 @@ export default function reducer (state = [], action) {
         }
       })
 
+    case 'dds/attenuation':
+      // Update a DDS attenuation for a given timestep and channel. If the value
+      // string is empty, remove the channel from the timestep's 'dds' field.
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName][action.path.timestep].dds[action.path.ch].attenuation = action.value
+        if (action.value === '') {
+          delete draft.sequences[action.path.sequenceName][action.path.timestep].dds[action.path.ch].attenuation
+        }
+      })
+
+    case 'dds/frequency':
+      // Update a DDS frequency for a given timestep and channel. The setpoint string
+      // is unitful, e.g. '1 MHz'. If the value part of the setpoint string
+      // is not defined, remove the channel from the timestep's 'dds' field.
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName][action.path.timestep].dds[action.path.ch].frequency = action.value
+        if (action.value === '') {
+          delete draft.sequences[action.path.sequenceName][action.path.timestep].dds[action.path.ch].frequency
+        }
+      })
+
+    case 'dds/toggle':
+      // Toggle a DDS rf switch on or off.
+      return produce(state, draft => {
+        const sequenceName = action.path.sequenceName || state.active_sequence
+        const ddsEnabled = state.sequences[sequenceName][action.path.timestep].dds[action.path.ch].enable
+        draft.sequences[sequenceName][action.path.timestep].dds[action.path.ch].enable = !ddsEnabled
+      })
+
     case 'macrosequence/append':
       // Append a sequence to the master sequence.
       return produce(state, draft => {

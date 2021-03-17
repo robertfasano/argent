@@ -23,6 +23,7 @@ import AddIcon from '@material-ui/icons/Add'
 import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
 import DACButton from './rtio/DACButton.jsx'
+import DDSButton from './rtio/DDSButton.jsx'
 import ChannelMenu from './rtio/ChannelMenu.jsx'
 import NewChannelButton from './rtio/NewChannelButton.jsx'
 
@@ -219,6 +220,48 @@ function SequenceTable (props) {
           : null
     }
 
+    {/* DDS header */}
+    <TableRow>
+      <TableCell>
+        <IconButton onClick={() => expand('dds')} >
+          {expanded.dds
+            ? <ExpandLessIcon/>
+            : <ExpandMoreIcon /> }
+        </IconButton>
+      </TableCell>
+      <TableCell><Typography> <b>DDS</b> </Typography></TableCell>
+    </TableRow>
+
+    {/* DDS buttons */}
+    {expanded.dds
+      ? (
+      <React.Fragment>
+      {props.channels.DDS.map(ch => (
+          <TableRow key={ch}>
+            <TableCell onContextMenu={(event) => handleClick(event, ch)}>
+              <Typography style={{ fontSize: 14 }}>
+                {props.aliases.DDS[ch]}
+              </Typography>
+            </TableCell>
+            <ChannelMenu channel={ch} type='DDS' anchorEl={anchorEl} setAnchorEl={setAnchorEl} anchorName={anchorName}/>
+            {props.macrosequence.map((stage) => (
+              stage.sequence.map((step, index) => (
+                  <DDSButton timestep={index} ch={ch} key={'dds-' + ch + index} sequenceName={stage.name}/>
+
+              )
+              )
+
+            ))}
+          </TableRow>
+
+      ))}
+      <NewChannelButton channelType="DDS"/>
+      </React.Fragment>
+        )
+      : null
+}
+
+
           </TableBody>
         </Table>
     </Box>
@@ -245,7 +288,6 @@ function mapStateToProps (state, ownProps) {
   } else {
     macrosequence.push({ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence] })
   }
-
   return {
     channels: state.ui.channels,
     macrosequence: macrosequence,
