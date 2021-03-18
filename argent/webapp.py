@@ -24,7 +24,11 @@ class App:
         self.device_db = self.config['device_db']
         print('Using device_db at', os.path.abspath(self.device_db))
 
-    def host(self, addr='127.0.0.1', port=8051):
+        self.variables = {}
+
+        self.host()
+
+    def host(self):
         ''' Run the Flask server on a given address and port '''
         app = Flask(__name__)
 
@@ -50,7 +54,7 @@ class App:
                 generation. The experiment will not be sent to the hardware.
             '''
             sequence = request.json
-            code = generate_experiment(sequence)
+            code = generate_experiment(sequence, self.config)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
 
@@ -62,7 +66,7 @@ class App:
                 experiment and execute it on the hardware using artiq_run.
             '''
             sequence = request.json
-            code = generate_experiment(sequence)
+            code = generate_experiment(sequence, self.config)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             env_name = self.config['environment_name']
@@ -97,22 +101,30 @@ class App:
                     channel_dict['cpld'].append(key)
             return channel_dict
 
+        @app.route("/variables", methods=['GET', 'POST'])
+        def variables():
+            if request.method == 'POST':
+                for key, val in request.json.items():
+                    self.variables[key] = val
+
+            elif request.method == 'GET':
+                return json.dumps(self.variables)
+
         @app.route("/version")
         def version():
             ''' Returns the current commit id '''
             return json.dumps(subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=path).strip().decode())
 
-
+        addr, port = self.config['addr'].split(':')
         app.run(host=addr, port=port, debug=True)
 
 @click.command()
 @click.option('--config', default='./config.yml', help='config path')
 def main(config):
     ''' Hosts the webapp server. The app can be run by navigating to
-        127.0.0.1:8051 in a browser.
+        the address specified in the config file in a browser.
     '''
     app = App(config=config)
-    app.host('127.0.0.1', 8051)
 
 if __name__ == "__main__":
     main()

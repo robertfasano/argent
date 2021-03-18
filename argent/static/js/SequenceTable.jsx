@@ -23,6 +23,7 @@ import AddIcon from '@material-ui/icons/Add'
 import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
 import DACButton from './rtio/DACButton.jsx'
+import ADCButton from './rtio/ADCButton.jsx'
 import DDSButton from './rtio/DDSButton.jsx'
 import ChannelMenu from './rtio/ChannelMenu.jsx'
 import NewChannelButton from './rtio/NewChannelButton.jsx'
@@ -260,6 +261,47 @@ function SequenceTable (props) {
         )
       : null
 }
+
+
+
+{/* ADC header */}
+<TableRow>
+  <TableCell>
+    <IconButton onClick={() => expand('adc')} >
+      {expanded.adc
+        ? <ExpandLessIcon/>
+        : <ExpandMoreIcon /> }
+    </IconButton>
+  </TableCell>
+  <TableCell><Typography> <b>ADC</b> </Typography></TableCell>
+</TableRow>
+
+{/* ADC buttons */}
+{expanded.adc
+  ? (
+  <React.Fragment>
+  {props.channels.ADC.map(board => (
+      <TableRow key={`${board}`}>
+        <TableCell>
+          <Typography style={{ fontSize: 14 }}>
+            {board}
+          </Typography>
+        </TableCell>
+        {props.macrosequence.map((stage) => (
+          stage.sequence.map((step, index) => (
+              <ADCButton timestep={index} key={'adc-' + board + index} sequenceName={stage.name} board={board}/>
+          )
+          )
+
+        ))}
+      </TableRow>
+
+  ))}
+  </React.Fragment>
+    )
+  : null
+}
+
 
 
           </TableBody>

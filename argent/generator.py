@@ -22,6 +22,30 @@ def Arguments(variables, keys_only=False):
         return ', '.join(f"{key}" for (key, val) in variables.items())
     return ', '.join(f"{key}={val}" for (key, val) in variables.items())
 
+class Sampler:
+    ''' A container for code generation related to the Sampler ADC '''
+    def __init__(self, board):
+        self.board = board
+
+    def build(self):
+        return f'self.setattr_device("{self.board}")\nself.data = [0.0]*8\n'
+
+    def init(self):
+        return f'self.{self.board}.init()\n'
+
+    def run(self, state):
+        code = ''
+        if state['delay'] != '0 s':
+            code += f'delay({state["delay"].replace(" ", "*")})\n\t'
+        code += f'self.{self.board}.sample(self.data)\n'
+        return code
+
+    def record(self, variables):
+        code = ''
+        for ch, name in variables.items():
+            code += f'self.{name} = self.data[{ch}]\n'
+        return code
+
 class Urukul:
     ''' A container for code generation related to the Urukul DDS. '''
     def __init__(self, channel):
@@ -167,6 +191,33 @@ def get_dac_channels(macrosequence):
             dacs.extend(step.get('dac', {}).keys())
     return list(np.unique(dacs))
 
+def get_adc_boards(macrosequence):
+    ''' Crawls through the macrosequence to assemble a list of all ADC boards
+        which are enabled at some state. Returns a list of the format
+        ['samplerA'].
+    '''
+    boards = []
+    for stage in macrosequence:
+        sequence = stage['sequence']
+        for step in sequence:
+            for board in step['adc']:
+                if step['adc'][board]['enable']:
+                    boards.append(board)
+    return list(np.unique(boards))
+
+def get_adc_variables(macrosequence):
+    ''' Crawls through the macrosequence to assemble a list of all ADC variables
+        to define in the build() stage. Returns a list of the format
+        ['variable1', 'variable2'].
+    '''
+    vars = []
+    for stage in macrosequence:
+        sequence = stage['sequence']
+        for step in sequence:
+            for board in step['adc']:
+                if step['adc'][board]['enable']:
+                    vars.extend(step['adc'][board]['variables'].values())
+    return list(np.unique(vars))
 
 def get_dds_boards(macrosequence):
     ''' Crawls through the macrosequence to assemble a list of all DDS boards
@@ -208,6 +259,13 @@ def generate_build(macrosequence):
     channels = get_dds_channels(macrosequence)
     code += f'for dds in {channels}:\n\tself.setattr_device(dds)\n'
 
+    adcs = get_adc_boards(macrosequence)
+    for board in adcs:
+        code += Sampler(board).build()
+    vars = get_adc_variables(macrosequence)
+    for var in vars:
+        code += f'self.{var} = 0.0\n'
+
     code = 'def build(self):\n' + textwrap.indent(code, '\t') + '\n'
     return code
 
@@ -236,6 +294,10 @@ def generate_init(macrosequence):
         channel_str = 'self.'+channels[0].replace("'", "")
         code += f'\t{channel_str}.init()\n'
 
+    ## initialize ADC channels
+    adcs = get_adc_boards(macrosequence)
+    for board in adcs:
+        code += '\t' + Sampler(board).init()
 
     code += '\t' + Core().break_realtime()
 
@@ -289,7 +351,17 @@ def generate_loop(stage):
         for channel in step['events'][0].get('dds', {}):
             dds_events.extend(Urukul(channel).run(step['events'][0]))
 
-        code += write_batch([*ttl_events, *dac_events, *dds_events])
+        adc_events = []
+        sampler_state = step['events'][0].get('adc', {})
+        for board, state in sampler_state.items():
+            if state['enable']:
+                adc_events.append(Sampler(board).run(state))
+
+        code += write_batch([*ttl_events, *dac_events, *dds_events, *adc_events])
+
+        for board, state in sampler_state.items():
+            if sampler_state[board]['enable']:
+                code += textwrap.indent(Sampler(board).record(sampler_state[board]['variables']), '\t')
 
         ## write ramps, if applicable
         if len(step['events']) > 1:
@@ -320,6 +392,19 @@ def generate_loop(stage):
     code += textwrap.indent(all_code, '\t')
     return code
 
+def generate_sync(macrosequence, config):
+    vars = get_adc_variables(macrosequence)
+    if len(vars) == 0:
+        return ''
+    code = '@rpc(flags={"async"})\ndef sync(self, *variables):\n'
+    code += f'\tvars = dict(zip({vars}, variables))\n'
+    code += '\tprint(vars)\n'
+    code += '\ttry:\n'
+    code += f'\t\trequests.post("http://{config["addr"]}/variables", json=vars)\n'
+    code += '\texcept:\n\t\tpass\n'
+    code += '\n'
+    return code
+
 def generate_run(macrosequence):
     ''' Generates the main loop of the experiment. Different stages of the overall
         macrosequence are written into individual kernel functions for readability,
@@ -335,6 +420,10 @@ def generate_run(macrosequence):
         else:
             code += f'\t\tfor i in range({stage["reps"]}):\n'
             code += '\t' + function_call
+    vars = get_adc_variables(macrosequence)
+    if len(vars) > 0:
+        self_vars = ['self.'+var for var in vars]
+        code += '\t\t' + f'self.sync({", ".join(self_vars)})'
     code += '\n'
 
     loops = []
@@ -344,9 +433,11 @@ def generate_run(macrosequence):
         code += generate_loop(stage)
         loops.append(stage['name'])
 
+    # code += generate_sync(macrosequence)
+
     return code
 
-def generate_experiment(macrosequence):
+def generate_experiment(macrosequence, config):
     ''' The main entrypoint for the code generator. The overall process is:
         1. Remove redundant events from the sequence to minimize RTIO overhead.
         2. Generate the build stage of the experiment (defining hardware).
@@ -361,11 +452,13 @@ def generate_experiment(macrosequence):
     print('Removed redundant events')
     print(macrosequence)
 
-    code = 'from artiq.experiment import *\n\n'
+    code = 'import requests\n'
+    code += 'from artiq.experiment import *\n\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
     code += textwrap.indent(generate_build(macrosequence), '\t')
     code += textwrap.indent(generate_init(macrosequence), '\t')
     code += textwrap.indent(generate_run(macrosequence), '\t')
+    code += textwrap.indent(generate_sync(macrosequence, config), '\t')
 
     return code
 
@@ -391,7 +484,7 @@ def parse_events(step):
         simultaneous events; in cases like the Zotino board, these events need to
         be executed with a single function call.
     '''
-    events = {0: {'ttl': {}, 'dac': {}, 'dds': {}}}
+    events = {0: {'ttl': {}, 'dac': {}, 'dds': {}, 'adc': {}}}
 
     for ch in step['ttl'].keys():
         events[0]['ttl'][ch] = step['ttl'][ch]
@@ -401,6 +494,13 @@ def parse_events(step):
         for key in ['enable', 'frequency', 'attenuation']:
             if key in step['dds'][ch]:
                 events[0]['dds'][ch][key] = step['dds'][ch][key]
+
+    for board, state in step['adc'].items():
+        events[0]['adc'][board] = {}
+        for key in ['enable', 'variables', 'delay']:
+            if key in state:
+                events[0]['adc'][board][key] = state[key]
+
 
     for board in step['dac']:
         for ch in step['dac'][board].keys():
@@ -469,9 +569,9 @@ def remove_redundant_events(sequence):
 
 ''' Convenience functions '''
 def run(macrosequence, filename='generated_experiment.py', device_db='./device_db.py', config='./config.yml'):
-    code = generate_experiment(macrosequence)
+    config = Configurator(config, device_db).load()
+    code = generate_experiment(macrosequence, config)
     with open(filename, 'w') as file:
         file.write(code)
-    config = Configurator(config, device_db).load()
     env_name = config['environment_name']
     os.system(f'start "" cmd /k "call activate {env_name} & artiq_run generated_experiment.py --device-db \"{device_db}\""')

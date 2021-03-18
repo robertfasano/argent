@@ -41,7 +41,8 @@ export function defaultSequence(channels) {
   const default_timestep = {'duration': '1 s',
                             'ttl': {},
                             'dac': {},
-                            'dds': {}
+                            'dds': {},
+                            'adc': {}
                            }
 
   for (let channel of channels.TTL) {
@@ -55,6 +56,11 @@ export function defaultSequence(channels) {
   for (let ch of channels.DDS) {
     default_timestep['dds'][ch] = {'enable': false}
   }
+
+  for (let board of channels.ADC) {
+    default_timestep['adc'][board] = {enable: false, variables: {}, delay: '0 s'}
+  }
+
 
   return [default_timestep]
 }
@@ -97,9 +103,10 @@ function initializeState(channels, sequences, aliases, version) {
   for (let board of Object.keys(state.channels.DAC)) {
     activeDACChannels[board] = []
   }
-  state['ui'] = {channels: {'TTL': [state.channels.TTL[0]], 'DAC': state.channels.DAC, 'DDS': [state.channels.DDS[0]]}}
+  state['ui'] = {channels: {'TTL': [state.channels.TTL[0]], 'DAC': state.channels.DAC, 'DDS': [state.channels.DDS[0]], 'ADC': state.channels.ADC}}
   state['aliases'] = prepareAliases(channels, aliases)
   state['version'] = version
+  state['variables'] = {}
   return state
 
 }

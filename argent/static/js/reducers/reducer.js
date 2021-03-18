@@ -10,6 +10,26 @@ function swap (array, a, b) {
 
 export default function reducer (state = [], action) {
   switch (action.type) {
+    case 'adc/delay':
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName][action.path.timestep].adc[action.path.board].delay = action.value
+      })
+
+    case 'adc/toggle':
+      return produce(state, draft => {
+        const sequenceName = action.path.sequenceName || state.active_sequence
+        const enabled = state.sequences[sequenceName][action.path.timestep].adc[action.path.board].enable
+        draft.sequences[sequenceName][action.path.timestep].adc[action.path.board].enable = !enabled
+      })
+
+    case 'adc/variable':
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName][action.path.timestep].adc[action.path.board].variables[action.path.ch] = action.value
+        if (action.value === '') {
+          delete draft.sequences[action.path.sequenceName][action.path.timestep].adc[action.path.board].variables[action.path.ch]
+        }
+      })
+
     case 'dac/setpoint':
       // Update a DAC setpoint for a given timestep and channel. The setpoint string
       // is unitful, e.g. '1 V' or '0.3 mV'. If the value part of the setpoint string
