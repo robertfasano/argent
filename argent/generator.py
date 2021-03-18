@@ -393,15 +393,20 @@ def generate_loop(stage):
     return code
 
 def generate_sync(macrosequence, config):
-    vars = get_adc_variables(macrosequence)
-    if len(vars) == 0:
-        return ''
     code = '@rpc(flags={"async"})\ndef sync(self, *variables):\n'
-    code += f'\tvars = dict(zip({vars}, variables))\n'
-    code += '\tprint(vars)\n'
-    code += '\ttry:\n'
-    code += f'\t\trequests.post("http://{config["addr"]}/variables", json=vars)\n'
-    code += '\texcept:\n\t\tpass\n'
+
+    vars = get_adc_variables(macrosequence)
+
+    if len(vars) == 0:
+        code += '\ttry:\n'
+        code += f'\t\trequests.post("http://{config["addr"]}/heartbeat")\n'
+        code += '\texcept:\n\t\tpass\n'
+    else:
+        code += f'\tvars = dict(zip({vars}, variables))\n'
+        code += '\tprint(vars)\n'
+        code += '\ttry:\n'
+        code += f'\t\trequests.post("http://{config["addr"]}/variables", json=vars)\n'
+        code += '\texcept:\n\t\tpass\n'
     code += '\n'
     return code
 
@@ -421,9 +426,9 @@ def generate_run(macrosequence):
             code += f'\t\tfor i in range({stage["reps"]}):\n'
             code += '\t' + function_call
     vars = get_adc_variables(macrosequence)
-    if len(vars) > 0:
-        self_vars = ['self.'+var for var in vars]
-        code += '\t\t' + f'self.sync({", ".join(self_vars)})'
+    # if len(vars) > 0:
+    self_vars = ['self.'+var for var in vars]
+    code += '\t\t' + f'self.sync({", ".join(self_vars)})'
     code += '\n'
 
     loops = []

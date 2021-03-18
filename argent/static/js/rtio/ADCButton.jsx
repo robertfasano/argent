@@ -72,7 +72,7 @@ function ADCButton (props) {
                          InputLabelProps={{ shrink: true }}
                          InputProps={{
                            endAdornment: <InputAdornment position="end">
-                                          {Object.keys(props.variables).includes(props.channel.variables[ch])? '('+props.variables[props.channel.variables[ch]]+')' : '  '}
+                                          {Object.keys(props.variables).includes(props.channel.variables[ch])? '('+props.variables[props.channel.variables[ch]].substring(0, 5)+')' : '  '}
                                          </InputAdornment>
                          }}
               />

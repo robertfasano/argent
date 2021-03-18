@@ -229,6 +229,12 @@ export default function reducer (state = [], action) {
         draft.sequences[sequenceName][action.path.timestep].ttl[action.path.channel] = !ttlChecked
       })
 
+    case 'ui/heartbeat':
+      // Toggle the heartbeat state
+      return produce(state, draft => {
+        draft.ui.heartbeat = !state.ui.heartbeat
+      })
+
     case 'ui/setActive':
       // Designate a given channel as active. Inactive channels will not be
       // rendered or sent to the code generator, allowing users to avoid
@@ -261,6 +267,14 @@ export default function reducer (state = [], action) {
       return produce(state, draft => {
         const index = draft.ui.channels[action.channel_type].indexOf(action.channel)
         draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].slice(0, index + 1)
+      })
+
+    case 'variables/update':
+      return produce(state, draft => {
+        for (let [key, val] of Object.entries(action.variables)) {
+          draft.variables[key] = String(val)
+        }
+        // draft.variables = Object.assign(state.variables, action.variables)
       })
 
     default : return state

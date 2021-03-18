@@ -5,6 +5,7 @@ import click
 import subprocess
 from flask import Flask, request
 from flask import render_template, send_from_directory
+from flask_socketio import SocketIO, emit
 from argent.generator import generate_experiment
 from argent import Configurator, path
 
@@ -31,6 +32,7 @@ class App:
     def host(self):
         ''' Run the Flask server on a given address and port '''
         app = Flask(__name__)
+        socketio = SocketIO(app)
 
         @app.route('/favicon.ico')
         def favicon():
@@ -107,16 +109,25 @@ class App:
                 for key, val in request.json.items():
                     self.variables[key] = val
 
+                socketio.emit('heartbeat')
+                return ''
+
             elif request.method == 'GET':
                 return json.dumps(self.variables)
 
+        @app.route("/heartbeat", methods=['POST'])
+        def heartbeat():
+            socketio.emit('heartbeat')
+            return ''
+            
         @app.route("/version")
         def version():
             ''' Returns the current commit id '''
             return json.dumps(subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=path).strip().decode())
 
         addr, port = self.config['addr'].split(':')
-        app.run(host=addr, port=port, debug=True)
+        # app.run(host=addr, port=port, debug=True)
+        socketio.run(app, host=addr, port=int(port), debug=True)
 
 @click.command()
 @click.option('--config', default='./config.yml', help='config path')

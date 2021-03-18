@@ -8,7 +8,9 @@ import { connect } from 'react-redux'
 import AppMenu from './menu/AppMenu.jsx'
 import SequenceSelector from './SequenceSelector.jsx'
 import Grid from '@material-ui/core/Grid'
-
+import Heartbeat from './menu/Heartbeat.jsx'
+import io from 'socket.io-client'
+import { get } from './utilities.js'
 const useStyles = makeStyles(theme => ({
   content: {
     padding: theme.spacing(3)
@@ -20,9 +22,25 @@ const useStyles = makeStyles(theme => ({
   appBarSpacer: theme.mixins.toolbar
 }))
 
-function App () {
+function App (props) {
   const classes = useStyles()
   const [tableChoice, setTableChoice] = React.useState('master')
+
+  React.useEffect(() => {
+    const socket = io();
+    socket.on('connect', (data) => {
+      console.log('Connected to socketIO link')
+    })
+
+    socket.on('heartbeat', () => {
+      props.dispatch({type: 'ui/heartbeat'})
+      get('/variables', (result) => {
+        props.dispatch({type: 'variables/update', variables: result})
+      })
+    })
+  },
+  [])
+
 
   return (
     <React.Fragment>
@@ -31,6 +49,7 @@ function App () {
         <Toolbar>
           <AppMenu tableChoice={tableChoice}/>
           <Typography style={{ flexGrow: 1 }}>  </Typography>
+          <Heartbeat/>
         </Toolbar>
       </AppBar>
       <div className={classes.appBarSpacer} />
