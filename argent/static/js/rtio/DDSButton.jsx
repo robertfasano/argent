@@ -17,11 +17,11 @@ function DDSButton (props) {
   // a number of steps.
   const [anchorEl, setAnchorEl] = React.useState(null)
   const open = Boolean(anchorEl)
-  const color = props.enable ? '#ffff00' : '#D3D3D3'
+  const color = props.enable ? '#67001a' : '#D3D3D3'
   const style = {
     background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
     opacity: 1,
-    color: 'black',
+    color: 'white',
     fontSize: 10,
     textTransform: 'none'
   }

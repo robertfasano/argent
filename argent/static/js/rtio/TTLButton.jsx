@@ -10,7 +10,7 @@ function TTLButton (props) {
     <TableCell component="th" scope="row">
       <Button variant="contained"
               disableRipple={true}
-              style={{ backgroundColor: props.on ? '#ffff00' : '#D3D3D3', opacity: 1 }}
+              style={{ backgroundColor: props.on ? '#67001a' : '#D3D3D3', opacity: 1 }}
               onClick={props.toggle}
               >
       <React.Fragment/>
