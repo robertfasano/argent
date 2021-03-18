@@ -93,53 +93,55 @@ function DACButton (props) {
           horizontal: 'left'
         }}
       >
-      <Box m={1}>
-        <ModeSelector label={'Voltage'}
-                      value={mode}
-                      onChange = {(event) => changeMode(event.target.value)}
-        />
-      </Box>
-      {mode === 'constant'
+      <Box p={1}>
+        <Box m={1}>
+          <ModeSelector label={'Voltage'}
+                        value={mode}
+                        onChange = {(event) => changeMode(event.target.value)}
+          />
+        </Box>
+        {mode === 'constant'
+          ? (
+            <Box m={1}>
+              <VariableUnitInput value={props.setpoint}
+                                 onChange = {(value) => props.dispatch({ type: 'dac/setpoint', voltage: value, sequenceName: props.sequenceName, ch: props.ch, board: props.board, timestep: props.timestep })}
+                                 units = {['V', 'mV', 'uV']}
+              />
+            </Box>
+            )
+          : null
+      }
+      {mode === 'ramp'
         ? (
+          <React.Fragment>
           <Box m={1}>
-            <VariableUnitInput value={props.setpoint}
-                               onChange = {(value) => props.dispatch({ type: 'dac/setpoint', voltage: value, sequenceName: props.sequenceName, ch: props.ch, board: props.board, timestep: props.timestep })}
-                               units = {['V', 'mV', 'uV']}
+            <VariableUnitInput value={parseRamp().start}
+                           onChange = {(value) => updateRamp('start', value)}
+                           units = {['V', 'mV', 'uV']}
+                           label = 'Start'
+                           variant = 'outlined'
             />
           </Box>
+          <Box m={1}>
+            <VariableUnitInput value={parseRamp().stop}
+                           onChange = {(value) => updateRamp('stop', value)}
+                           units = {['V', 'mV', 'uV']}
+                           label = 'Stop'
+                           variant = 'outlined'
+            />
+          </Box>
+          <Box m={1}>
+            <TextField label='Steps'
+                       value={parseRamp().steps}
+                       onChange={(event) => updateRamp('steps', event.target.value)}
+                       variant='outlined'
+                       InputLabelProps={{ shrink: true }}
+            />
+          </Box>
+          </React.Fragment>
           )
-        : null
-    }
-    {mode === 'ramp'
-      ? (
-        <React.Fragment>
-        <Box m={1}>
-          <VariableUnitInput value={parseRamp().start}
-                         onChange = {(value) => updateRamp('start', value)}
-                         units = {['V', 'mV', 'uV']}
-                         label = 'Start'
-                         variant = 'outlined'
-          />
+        : null}
         </Box>
-        <Box m={1}>
-          <VariableUnitInput value={parseRamp().stop}
-                         onChange = {(value) => updateRamp('stop', value)}
-                         units = {['V', 'mV', 'uV']}
-                         label = 'Stop'
-                         variant = 'outlined'
-          />
-        </Box>
-        <Box m={1}>
-          <TextField label='Steps'
-                     value={parseRamp().steps}
-                     onChange={(event) => updateRamp('steps', event.target.value)}
-                     variant='outlined'
-                     InputLabelProps={{ shrink: true }}
-          />
-        </Box>
-        </React.Fragment>
-        )
-      : null}
       </Popover>
     </TableCell>
   )
