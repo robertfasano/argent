@@ -32,8 +32,8 @@ function App (props) {
       console.log('Connected to socketIO link')
     })
 
-    socket.on('heartbeat', () => {
-      props.dispatch({type: 'ui/heartbeat'})
+    socket.on('heartbeat', (data) => {      
+      props.dispatch({type: 'ui/heartbeat', pid: data.pid})
       get('/variables', (result) => {
         props.dispatch({type: 'variables/update', variables: result})
       })

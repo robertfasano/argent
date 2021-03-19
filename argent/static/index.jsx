@@ -107,7 +107,8 @@ function initializeState(channels, sequences, aliases, version) {
                             'DAC': state.channels.DAC,
                             'DDS': [state.channels.DDS[0]],
                             'ADC': state.channels.ADC},
-                 heartbeat: false
+                 heartbeat: false,
+                 pid: {active: null, submitted: null}
                 }
   state['aliases'] = prepareAliases(channels, aliases)
   state['version'] = version

@@ -233,6 +233,13 @@ export default function reducer (state = [], action) {
       // Toggle the heartbeat state
       return produce(state, draft => {
         draft.ui.heartbeat = !state.ui.heartbeat
+        draft.ui.pid.active = action.pid
+      })
+
+    case 'ui/pid':
+      // Toggle the heartbeat state
+      return produce(state, draft => {
+        draft.ui.pid.submitted = action.value
       })
 
     case 'ui/setActive':

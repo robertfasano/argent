@@ -239,11 +239,12 @@ def get_dds_channels(macrosequence):
             channels.extend(step.get('dds', {}).keys())
     return list(np.unique(channels))
 
-def generate_build(macrosequence):
+def generate_build(macrosequence, pid):
     ''' Generates the build() function, in which all hardware accessed by the
         sequence is defined.
     '''
     code = ''
+    code += f'self.__pid__ = "{pid}"\n'
     code += Core().build()
 
     ttls = get_ttl_channels(macrosequence)
@@ -399,11 +400,13 @@ def generate_sync(macrosequence, config):
 
     if len(vars) == 0:
         code += '\ttry:\n'
-        code += f'\t\trequests.post("http://{config["addr"]}/heartbeat")\n'
+        code += '\t\tpayload={"__pid__": self.__pid__}\n'
+        code += f'\t\trequests.post("http://{config["addr"]}/heartbeat", json=payload)\n'
         code += '\texcept:\n\t\tpass\n'
     else:
         code += f'\tvars = dict(zip({vars}, variables))\n'
         code += '\tprint(vars)\n'
+        code += '\tvars["__pid__"] = self.__pid__\n'
         code += '\ttry:\n'
         code += f'\t\trequests.post("http://{config["addr"]}/variables", json=vars)\n'
         code += '\texcept:\n\t\tpass\n'
@@ -442,7 +445,7 @@ def generate_run(macrosequence):
 
     return code
 
-def generate_experiment(macrosequence, config):
+def generate_experiment(macrosequence, config, pid):
     ''' The main entrypoint for the code generator. The overall process is:
         1. Remove redundant events from the sequence to minimize RTIO overhead.
         2. Generate the build stage of the experiment (defining hardware).
@@ -460,7 +463,7 @@ def generate_experiment(macrosequence, config):
     code = 'import requests\n'
     code += 'from artiq.experiment import *\n\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
-    code += textwrap.indent(generate_build(macrosequence), '\t')
+    code += textwrap.indent(generate_build(macrosequence, pid), '\t')
     code += textwrap.indent(generate_init(macrosequence), '\t')
     code += textwrap.indent(generate_run(macrosequence), '\t')
     code += textwrap.indent(generate_sync(macrosequence, config), '\t')

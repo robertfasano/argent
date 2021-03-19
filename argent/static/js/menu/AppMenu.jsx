@@ -9,6 +9,8 @@ import CodeIcon from '@material-ui/icons/Code'
 import { post } from '../utilities.js'
 import { connect } from 'react-redux'
 import omitDeep from 'omit-deep-lodash'
+import { v4 as uuidv4 } from 'uuid'
+
 
 function AppMenu (props) {
   const flexContainer = {
@@ -17,23 +19,32 @@ function AppMenu (props) {
     padding: 0
   }
 
+  function submit() {
+    const pid = uuidv4()
+    post('/submit', {macrosequence: props.macrosequence, pid: pid})
+    props.dispatch({type: 'ui/pid', value: pid})
+  }
+
+  function generate() {
+    const pid = uuidv4()
+    post('/generate', {macrosequence: props.macrosequence, pid: pid})
+  }
+
   return (
     <React.Fragment>
       <List style={flexContainer}>
-        <>
-        <ListItem button onClick={() => post('/submit', props.macrosequence)}>
+        <ListItem button onClick={submit}>
           <Box mr={1} mt={0.5}>
             <PlayArrowIcon/>
           </Box>
           <Typography>Run</Typography>
         </ListItem>
-        <ListItem button onClick={() => post('/generate', props.macrosequence)}>
+        <ListItem button onClick={generate}>
           <Box mr={1} mt={0.5}>
             <CodeIcon/>
           </Box>
           <Typography>Generate</Typography>
         </ListItem>
-        </>
     </List>
 
     </React.Fragment>

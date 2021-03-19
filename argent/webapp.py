@@ -55,8 +55,9 @@ class App:
             ''' Posting a macrosequence to this endpoint will trigger code
                 generation. The experiment will not be sent to the hardware.
             '''
-            sequence = request.json
-            code = generate_experiment(sequence, self.config)
+            sequence = request.json['macrosequence']
+            pid = request.json['pid']
+            code = generate_experiment(sequence, self.config, pid)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
 
@@ -67,8 +68,9 @@ class App:
             ''' Posting a macrosequence to this endpoint will generate an ARTIQ
                 experiment and execute it on the hardware using artiq_run.
             '''
-            sequence = request.json
-            code = generate_experiment(sequence, self.config)
+            sequence = request.json['macrosequence']
+            pid = request.json['pid']
+            code = generate_experiment(sequence, self.config, pid)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             env_name = self.config['environment_name']
@@ -109,7 +111,7 @@ class App:
                 for key, val in request.json.items():
                     self.variables[key] = val
 
-                socketio.emit('heartbeat')
+                socketio.emit('heartbeat', {"pid": request.json['__pid__']})
                 return ''
 
             elif request.method == 'GET':
@@ -117,9 +119,9 @@ class App:
 
         @app.route("/heartbeat", methods=['POST'])
         def heartbeat():
-            socketio.emit('heartbeat')
+            socketio.emit('heartbeat', {"pid": request.json['__pid__']})
             return ''
-            
+
         @app.route("/version")
         def version():
             ''' Returns the current commit id '''
