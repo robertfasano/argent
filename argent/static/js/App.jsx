@@ -24,7 +24,7 @@ const useStyles = makeStyles(theme => ({
 
 function App (props) {
   const classes = useStyles()
-  const [tableChoice, setTableChoice] = React.useState('master')
+  const [tableChoice, setTableChoice] = React.useState('rtio')
 
   React.useEffect(() => {
     const socket = io();
@@ -32,7 +32,7 @@ function App (props) {
       console.log('Connected to socketIO link')
     })
 
-    socket.on('heartbeat', (data) => {      
+    socket.on('heartbeat', (data) => {
       props.dispatch({type: 'ui/heartbeat', pid: data.pid})
       get('/variables', (result) => {
         props.dispatch({type: 'variables/update', variables: result})
