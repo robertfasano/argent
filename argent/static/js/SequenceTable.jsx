@@ -117,7 +117,13 @@ function SequenceTable (props) {
                 ))) :
                 (
                   props.macrosequence[0].sequence.map((step, index) => (
-                    <TimestepContextMenu timestep={index} length={props.macrosequence[0].sequence.length} key={index}/>
+                    <TimestepContextMenu anchorEl={anchorEl}
+                                         setAnchorEl={setAnchorEl}
+                                         anchorName={anchorName}
+                                         timestep={index}
+                                         length={props.macrosequence[0].sequence.length}
+                                         key={index}
+                    />
                   ))
                 )
               }
@@ -128,7 +134,7 @@ function SequenceTable (props) {
               {
                 props.macrosequence.map((stage) => (
                   stage.sequence.map((step, index) => (
-                    <TableCell key={index}>
+                    <TableCell key={index} onContextMenu={(event) => handleClick(event, 'timestep'+index)}>
                       <VariableUnitInput value={step.duration}
                                      onChange = {(value) => updateTimestep(index, value, stage.name)}
                                      units = {['s', 'ms', 'us']}

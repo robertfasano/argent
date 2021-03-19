@@ -1,95 +1,83 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import TableCell from '@material-ui/core/TableCell'
-import IconButton from '@material-ui/core/IconButton'
 import { connect } from 'react-redux'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
-import MenuIcon from '@material-ui/icons/Menu'
 
 function TimestepContextMenu (props) {
   // A context menu allowing timesteps to be inserted, reordered, or deleted.
-  const [visible, setVisible] = React.useState(false)
-  const [anchorEl, setAnchorEl] = React.useState(null)
-
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
-
-  function dispatch (type) {
-    // send a store update and close the menu
-    props.dispatch({ type: type, timestep: props.timestep, sequenceName: props.sequenceName })
-    setAnchorEl(null)
-  }
-
-  function moveLeft () {
-    props.dispatch({ type: 'timestep/swap', a: props.timestep, b: props.timestep - 1, sequenceName: props.sequenceName })
-  }
-
-  function moveRight () {
-    props.dispatch({ type: 'timestep/swap', a: props.timestep, b: props.timestep + 1, sequenceName: props.sequenceName })
-  }
-
-  function insertTimestep (timestep) {
-    props.dispatch({ type: 'timestep/insert', timestep: timestep, sequenceName: props.sequenceName })
-    setAnchorEl(null)
-  }
 
   return (
-    <TableCell onMouseEnter={() => setVisible(true)}
-               onMouseLeave={() => setVisible(false)}
-               align="center"
-    >
-      {visible
-        ? (
-        <IconButton onClick={handleClick} style={{ padding: '0px' }}>
-          <MenuIcon />
-        </IconButton>
-
-          )
-        : null
-      }
     <Menu
-      anchorEl={anchorEl}
-      keepMounted
-      open={Boolean(anchorEl)}
-      onClose={handleClose}
+      anchorEl={props.anchorEl}
+      open={props.open}
+      onClose={() => props.setAnchorEl(null)}
     >
       {props.timestep > 0
-        ? <MenuItem onClick={moveLeft}>
+        ? <MenuItem onClick={props.moveLeft}>
           Move left
         </MenuItem>
         : null}
       {props.timestep < props.length - 1
-        ? <MenuItem onClick={moveRight}>
+        ? <MenuItem onClick={props.moveRight}>
           Move right
         </MenuItem>
         : null}
-      <MenuItem onClick={() => insertTimestep(props.timestep - 1)}>
+      <MenuItem onClick={props.insertLeft}>
         Insert left
       </MenuItem>
-      <MenuItem onClick={() => insertTimestep(props.timestep)}>
+      <MenuItem onClick={props.insertRight}>
         Insert right
       </MenuItem>
       {props.length > 1
-        ? <MenuItem onClick={() => dispatch('timestep/delete')}>
+        ? <MenuItem onClick={props.deleteTimestep}>
           Delete
         </MenuItem>
         : null}
     </Menu>
-  </TableCell>
   )
 }
 
 TimestepContextMenu.propTypes = {
-  dispatch: PropTypes.func,
+  open: PropTypes.bool,
   timestep: PropTypes.number,
-  sequenceName: PropTypes.string,
-  length: PropTypes.number
+  length: PropTypes.number,
+  anchorEl: PropTypes.object,
+  setAnchorEl: PropTypes.func,
+  moveLeft: PropTypes.func,
+  moveRight: PropTypes.func,
+  insertLeft: PropTypes.func,
+  insertRight: PropTypes.func,
+  deleteTimestep: PropTypes.func
 }
 
-export default connect()(TimestepContextMenu)
+function mapStateToProps (state, props) {
+  return { open: Boolean(props.anchorEl) && props.anchorName === 'timestep' + props.timestep }
+}
+
+function mapDispatchToProps (dispatch, props) {
+  return {
+    moveLeft: () => {
+      dispatch({ type: 'timestep/swap', a: props.timestep, b: props.timestep - 1, sequenceName: props.sequenceName })
+      props.setAnchorEl(null)
+    },
+    moveRight: () => {
+      dispatch({ type: 'timestep/swap', a: props.timestep, b: props.timestep + 1, sequenceName: props.sequenceName })
+      props.setAnchorEl(null)
+    },
+    insertLeft: () => {
+      dispatch({ type: 'timestep/insert', timestep: props.timestep - 1, sequenceName: props.sequenceName })
+      props.setAnchorEl(null)
+    },
+    insertRight: () => {
+      dispatch({ type: 'timestep/insert', timestep: props.timestep, sequenceName: props.sequenceName })
+      props.setAnchorEl(null)
+    },
+    deleteTimestep: () => {
+      dispatch({ type: 'timestep/delete', timestep: props.timestep, sequenceName: props.sequenceName })
+      props.setAnchorEl(null)
+    }
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TimestepContextMenu)
