@@ -6,6 +6,7 @@ import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
+import Grid from '@material-ui/core/Grid'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import Paper from '@material-ui/core/Paper'
@@ -144,15 +145,22 @@ function SequenceTable (props) {
             </TableRow>
           </TableHead>
           <TableBody>
+
             <TableRow>
               <TableCell>
-                <IconButton onClick={() => expand('ttl')} >
-                  {expanded.ttl
-                    ? <ExpandLessIcon/>
-                    : <ExpandMoreIcon /> }
-                </IconButton>
+                <Grid container>
+                  <Grid item xs={6}>
+                    <IconButton onClick={() => expand('ttl')} >
+                      {expanded.ttl
+                        ? <ExpandLessIcon/>
+                        : <ExpandMoreIcon /> }
+                    </IconButton>
+                  </Grid>
+                  <Grid container item xs={6} alignItems='center'>
+                    <Typography style={{ fontSize: 24 }}> <b>TTL</b> </Typography>
+                  </Grid>
+                </Grid>
               </TableCell>
-              <TableCell><Typography> <b>TTL</b> </Typography></TableCell>
             </TableRow>
             {expanded.ttl
               ? (
@@ -180,16 +188,21 @@ function SequenceTable (props) {
               : null
         }
 
-        {/* DAC header */}
         <TableRow>
           <TableCell>
-            <IconButton onClick={() => expand('dac')} >
-              {expanded.dac
-                ? <ExpandLessIcon/>
-                : <ExpandMoreIcon /> }
-            </IconButton>
+            <Grid container>
+              <Grid item xs={6}>
+                <IconButton onClick={() => expand('dac')} >
+                  {expanded.dac
+                    ? <ExpandLessIcon/>
+                    : <ExpandMoreIcon /> }
+                </IconButton>
+              </Grid>
+              <Grid container item xs={6} alignItems='center'>
+                <Typography style={{ fontSize: 24 }}> <b>DAC</b> </Typography>
+              </Grid>
+            </Grid>
           </TableCell>
-          <TableCell><Typography> <b>DAC</b> </Typography></TableCell>
         </TableRow>
 
         {/* DAC buttons */}
@@ -197,13 +210,17 @@ function SequenceTable (props) {
           ? (
           <React.Fragment>
           {Object.keys(props.channels.DAC).map(board => (
+            <React.Fragment key={board}>
+
+            {
             props.channels.DAC[board].map(ch => (
               <TableRow key={`${board}${ch}`}>
-                <TableCell>
+                <TableCell onContextMenu={(event) => handleClick(event, ch)}>
                   <Typography style={{ fontSize: 14 }}>
                     {props.aliases.DAC[board][ch]}
                   </Typography>
                 </TableCell>
+                <ChannelMenu channel={ch} type='DAC' anchorEl={anchorEl} setAnchorEl={setAnchorEl} anchorName={anchorName} board={board}/>
                 {props.macrosequence.map((stage) => (
                   stage.sequence.map((step, index) => (
                       <DACButton timestep={index} ch={ch} key={'dac-' + board + ch + index} sequenceName={stage.name} board={board}/>
@@ -214,8 +231,14 @@ function SequenceTable (props) {
                 ))}
               </TableRow>
             ))
+          }
 
-          ))}
+          <NewChannelButton channelType="DAC" board={board}/>
+          </React.Fragment>
+
+          )
+
+        )}
           </React.Fragment>
             )
           : null
@@ -224,13 +247,19 @@ function SequenceTable (props) {
     {/* DDS header */}
     <TableRow>
       <TableCell>
-        <IconButton onClick={() => expand('dds')} >
-          {expanded.dds
-            ? <ExpandLessIcon/>
-            : <ExpandMoreIcon /> }
-        </IconButton>
+        <Grid container>
+          <Grid item xs={6}>
+            <IconButton onClick={() => expand('dds')} >
+              {expanded.dds
+                ? <ExpandLessIcon/>
+                : <ExpandMoreIcon /> }
+            </IconButton>
+          </Grid>
+          <Grid container item xs={6} alignItems='center'>
+            <Typography style={{ fontSize: 24 }}> <b>DDS</b> </Typography>
+          </Grid>
+        </Grid>
       </TableCell>
-      <TableCell><Typography> <b>DDS</b> </Typography></TableCell>
     </TableRow>
 
     {/* DDS buttons */}
@@ -267,13 +296,19 @@ function SequenceTable (props) {
 {/* ADC header */}
 <TableRow>
   <TableCell>
-    <IconButton onClick={() => expand('adc')} >
-      {expanded.adc
-        ? <ExpandLessIcon/>
-        : <ExpandMoreIcon /> }
-    </IconButton>
+    <Grid container>
+      <Grid item xs={6}>
+        <IconButton onClick={() => expand('adc')} >
+          {expanded.adc
+            ? <ExpandLessIcon/>
+            : <ExpandMoreIcon /> }
+        </IconButton>
+      </Grid>
+      <Grid container item xs={6} alignItems='center'>
+        <Typography style={{ fontSize: 24 }}> <b>ADC</b> </Typography>
+      </Grid>
+    </Grid>
   </TableCell>
-  <TableCell><Typography> <b>ADC</b> </Typography></TableCell>
 </TableRow>
 
 {/* ADC buttons */}

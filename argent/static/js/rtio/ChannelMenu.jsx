@@ -13,7 +13,7 @@ function ChannelMenu (props) {
   }
 
   const dispatch = (type) => {
-    props.dispatch({ type: type, channel: props.channel, channel_type: props.type })
+    props.dispatch({ type: type, channel: props.channel, channel_type: props.type, board: props.board })
     handleClose()
   }
 
@@ -42,8 +42,8 @@ function ChannelMenu (props) {
 ChannelMenu.propTypes = {
   anchorEl: PropTypes.object,
   setAnchorEl: PropTypes.func,
-  anchorName: PropTypes.string,
-  channel: PropTypes.string,
+  anchorName: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  channel: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   type: PropTypes.string,
   dispatch: PropTypes.func
 }

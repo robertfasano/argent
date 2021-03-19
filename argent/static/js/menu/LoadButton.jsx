@@ -26,6 +26,22 @@ function LoadButton (props) {
             props.dispatch({ type: 'ui/setActive', channelType: 'TTL', channel: ch })
           }
         }
+        for (const ch of Object.keys(step.dds)) {
+          if (!(props.channels.DDS.includes(ch))) {
+            props.dispatch({ type: 'ui/setActive', channelType: 'DDS', channel: ch })
+
+          }
+        }
+
+        for (const board of Object.keys(step.dac)) {
+          for (const ch of Object.keys(step.dac[board])) {
+            if (!(props.channels.DAC[board].includes(ch))) {
+              props.dispatch({ type: 'ui/setActive', channelType: 'DAC', channel: ch, board: board })
+
+            }
+          }
+        }
+
       }
     }
   }

@@ -249,18 +249,34 @@ export default function reducer (state = [], action) {
       // from a previous experiment.
       return produce(state, draft => {
         const newChannels = []
-        for (const ch of state.channels[action.channelType]) {
-          if (ch === action.channel || state.ui.channels[action.channelType].includes(ch)) {
+        let oldChannels = state.ui.channels[action.channelType]
+        let allChannels = state.channels[action.channelType]
+        if (typeof(action.board) != 'undefined') {
+          oldChannels = oldChannels[action.board]
+          allChannels = allChannels[action.board]
+        }
+        for (const ch of allChannels) {
+          if (ch == action.channel || oldChannels.includes(ch)) {
             newChannels.push(ch)
           }
         }
-        draft.ui.channels[action.channelType] = newChannels
+        if (typeof(action.board) == 'undefined') {
+          draft.ui.channels[action.channelType] = newChannels
+        }
+        else {
+          draft.ui.channels[action.channelType][action.board] = newChannels
+        }
       })
 
     case 'ui/setInactive':
       // Designate a channel as inactive.
       return produce(state, draft => {
-        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e !== action.channel)
+        if (typeof(action.board) == 'undefined') {
+          draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e !== action.channel)
+        }
+        else {
+          draft.ui.channels[action.channel_type][action.board] = draft.ui.channels[action.channel_type][action.board].filter(e => e !== action.channel)
+        }
       })
 
     case 'ui/setOthersInactive':

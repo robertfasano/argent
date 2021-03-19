@@ -103,13 +103,15 @@ function initializeState(channels, sequences, aliases, version) {
   for (let board of Object.keys(state.channels.DAC)) {
     activeDACChannels[board] = []
   }
-  state['ui'] = {channels: {'TTL': [state.channels.TTL[0]],
-                            'DAC': state.channels.DAC,
-                            'DDS': [state.channels.DDS[0]],
+  
+  state['ui'] = {channels: {'TTL': [],
+                            'DAC': activeDACChannels,
+                            'DDS': [],
                             'ADC': state.channels.ADC},
                  heartbeat: false,
                  pid: {active: null, submitted: null}
                 }
+
   state['aliases'] = prepareAliases(channels, aliases)
   state['version'] = version
   state['variables'] = {}
