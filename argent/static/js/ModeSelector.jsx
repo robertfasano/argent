@@ -14,6 +14,7 @@ function ModeSelector (props) {
       <RadioGroup row value={props.value} onChange={props.onChange}>
         <FormControlLabel value="constant" control={<Radio />} label="Constant" />
         <FormControlLabel value="ramp" control={<Radio />} label="Ramp" />
+        <FormControlLabel value="variable" control={<Radio />} label="Variable" />
       </RadioGroup>
     </FormControl>
   )

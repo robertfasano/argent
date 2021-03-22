@@ -41,7 +41,7 @@ function mapDispatchToProps (dispatch, props) {
 
 function mapStateToProps (state, props) {
   return {
-    on: state.sequences[props.sequenceName][props.timestep].ttl[props.channel]
+    on: state.sequences[props.sequenceName].steps[props.timestep].ttl[props.channel]
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(TTLButton)

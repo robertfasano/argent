@@ -22,6 +22,7 @@ def Arguments(variables, keys_only=False):
         return ', '.join(f"{key}" for (key, val) in variables.items())
     return ', '.join(f"{key}={val}" for (key, val) in variables.items())
 
+
 class Sampler:
     ''' A container for code generation related to the Sampler ADC '''
     def __init__(self, board):
@@ -112,12 +113,16 @@ class Zotino:
         try:
             return float(voltage_str)
         except ValueError:
+            if 'Var' in voltage_str:
+                variable = voltage_str.replace('Var(', '').replace(')', '')
+                return "self."+variable
             value = float(voltage_str.split(' ')[0])
             unit = voltage_str.split(' ')[1]
             return value * {'V': 1, 'mV': 1e-3, 'uV': 1e-6}[unit]
 
     def run(self, step):
         voltages = [self.parse(V) for V in step["dac"][self.board].values()]
+        voltages = str(voltages).replace("'", '')
         channels = [int(ch) for ch in step["dac"][self.board].keys()]
         return f'self.{self.board}.set_dac({voltages}, {channels})\n'
 
@@ -174,7 +179,7 @@ def get_ttl_channels(macrosequence):
     ttls = []
     for stage in macrosequence:
         # print('stage:', stage)
-        sequence = stage['sequence']
+        sequence = stage['sequence']['steps']
         for step in sequence:
             ttls.extend(step.get('ttl', {}).keys())
     return list(np.unique(ttls))
@@ -186,7 +191,7 @@ def get_dac_channels(macrosequence):
     '''
     dacs = []
     for stage in macrosequence:
-        sequence = stage['sequence']
+        sequence = stage['sequence']['steps']
         for step in sequence:
             dacs.extend(step.get('dac', {}).keys())
     return list(np.unique(dacs))
@@ -198,7 +203,7 @@ def get_adc_boards(macrosequence):
     '''
     boards = []
     for stage in macrosequence:
-        sequence = stage['sequence']
+        sequence = stage['sequence']['steps']
         for step in sequence:
             for board in step['adc']:
                 if step['adc'][board]['enable']:
@@ -212,7 +217,7 @@ def get_adc_variables(macrosequence):
     '''
     vars = []
     for stage in macrosequence:
-        sequence = stage['sequence']
+        sequence = stage['sequence']['steps']
         for step in sequence:
             for board in step['adc']:
                 if step['adc'][board]['enable']:
@@ -228,14 +233,14 @@ def get_dds_boards(macrosequence):
     '''
     boards = []
     for stage in macrosequence:
-        for step in stage['sequence']:
+        for step in stage['sequence']['steps']:
             boards.extend([ch.split('_')[0] for ch in step.get('dds', {}).keys()])
     return list(np.unique(boards))
 
 def get_dds_channels(macrosequence):
     channels = []
     for stage in macrosequence:
-        for step in stage['sequence']:
+        for step in stage['sequence']['steps']:
             channels.extend(step.get('dds', {}).keys())
     return list(np.unique(channels))
 
@@ -267,6 +272,9 @@ def generate_build(macrosequence, pid):
     for var in vars:
         code += f'self.{var} = 0.0\n'
 
+    for stage in macrosequence:
+        for name, value in stage['sequence']['inputs'].items():
+            code += f'self.{name} = {float(value)}\n'
     code = 'def build(self):\n' + textwrap.indent(code, '\t') + '\n'
     return code
 
@@ -332,10 +340,10 @@ def generate_loop(stage):
     '''
     name = stage['name'].replace(' ', '_')
     sequence = stage['sequence']
-    variables = stage.get('variables', {})
+    variables = stage['sequence'].get('inputs', {})
     timesteps = []
 
-    for step in parse_sequence(sequence):
+    for step in parse_sequence(sequence['steps']):
         code = ''
         code += Delay(step)
 
@@ -382,14 +390,14 @@ def generate_loop(stage):
 
     all_code = ''
     for i, code in enumerate(timesteps):
-        all_code += Comment(sequence[i], i)
+        all_code += Comment(sequence['steps'][i], i)
         all_code += 'with parallel:\n'
         all_code += textwrap.indent(code, '\t')
 
-    loop_args = Arguments(variables, keys_only=True)
-    if loop_args != '':
-        loop_args = ', ' + loop_args
-    code = f'@kernel\ndef {name}(self{loop_args}):\n'
+    # loop_args = Arguments(variables, keys_only=True)
+    # if loop_args != '':
+    #     loop_args = ', ' + loop_args
+    code = f'@kernel\ndef {name}(self):\n'
     code += textwrap.indent(all_code, '\t')
     return code
 
@@ -422,7 +430,7 @@ def generate_run(macrosequence):
     code += '\tself.init()\n\n'
     code += '\twhile True:\n'
     for stage in macrosequence:
-        function_call = f"\t\tself.{stage['name'].replace(' ', '_')}({Arguments(stage.get('variables', {}))})\n"
+        function_call = f"\t\tself.{stage['name'].replace(' ', '_')}()\n"
         if int(stage['reps']) == 1:
             code += function_call
         else:
@@ -456,7 +464,7 @@ def generate_experiment(macrosequence, config, pid):
     print('Generating macrosequence')
     print(macrosequence)
     for i, stage in enumerate(macrosequence):
-        macrosequence[i]['sequence'] = remove_redundant_events(macrosequence[i]['sequence'])
+        macrosequence[i]['sequence']['steps'] = remove_redundant_events(macrosequence[i]['sequence']['steps'])
     print('Removed redundant events')
     print(macrosequence)
 

@@ -66,7 +66,7 @@ function SequenceTable (props) {
 
   return (
     <Paper elevation={6} style={{ overflowX: 'auto' }}>
-    <Box px={2} style={{ display: 'inline-block' }}>
+    <Box p={2} style={{ display: 'inline-block' }}>
         <Table>
           <TableHead>
             {/* timestep control icons */}
@@ -365,11 +365,11 @@ function mapStateToProps (state, ownProps) {
   const macrosequence = []
   if (ownProps.tableChoice === 'master') {
     for (const stage of state.macrosequence) {
-      const newStage = { name: stage.name, sequence: state.sequences[stage.name], reps: stage.reps }
+      const newStage = { name: stage.name, sequence: state.sequences[stage.name].steps, reps: stage.reps }
       macrosequence.push(newStage)
     }
   } else {
-    macrosequence.push({ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence] })
+    macrosequence.push({ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence].steps })
   }
   return {
     channels: state.ui.channels,

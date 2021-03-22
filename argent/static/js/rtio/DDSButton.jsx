@@ -21,7 +21,7 @@ function DDSButton (props) {
   const style = {
     background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
     opacity: 1,
-    color: 'white',
+    color: props.enable? 'white': 'black',
     fontSize: 10,
     textTransform: 'none'
   }
@@ -107,7 +107,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  const channel = state.sequences[props.sequenceName][props.timestep].dds[props.ch]
+  const channel = state.sequences[props.sequenceName].steps[props.timestep].dds[props.ch]
   return {
     enable: channel.enable,
     frequency: channel.frequency || '',

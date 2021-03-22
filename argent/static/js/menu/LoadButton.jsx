@@ -20,7 +20,7 @@ function LoadButton (props) {
       props.dispatch({ type: 'sequence/load', sequence: sequence, name: name })
 
       // update active channels
-      for (const step of sequence) {
+      for (const step of sequence.steps) {
         for (const ch of Object.keys(step.ttl)) {
           if (!(props.channels.TTL.includes(ch))) {
             props.dispatch({ type: 'ui/setActive', channelType: 'TTL', channel: ch })

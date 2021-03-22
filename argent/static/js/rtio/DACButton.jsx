@@ -8,7 +8,29 @@ import Typography from '@material-ui/core/Typography'
 import VariableUnitInput from '../components/VariableUnitInput.jsx'
 import TextField from '@material-ui/core/TextField'
 import ModeSelector from '../ModeSelector.jsx'
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import FormControl from '@material-ui/core/FormControl';
 import { connect } from 'react-redux'
+
+
+function parseFunctionalSetpoint (str) {
+  const type = str.split('(')[0]
+  const args = str.replace(type, '').replace('(', '').replace(')', '').split(',')
+  return {type: type, arguments: args}
+}
+
+function createFunctionalSetpoint (type, args) {
+  return type + '(' + args.join(',') + ')'
+}
+
+function updateFunctionalSetpoint (setpoint, index, value) {
+  const args = parseFunctionalSetpoint(setpoint).arguments
+  args[index] = value
+  return createFunctionalSetpoint(parseFunctionalSetpoint(setpoint).type, args)
+}
 
 function DACButton (props) {
   // A Button which opens a Popover allowing the user to define the state of a
@@ -17,9 +39,18 @@ function DACButton (props) {
   // intra-timestep linear ramp parameterized by start and stop voltages and
   // a number of steps.
   const [anchorEl, setAnchorEl] = React.useState(null)
+
   const open = Boolean(anchorEl)
 
-  const mode = props.setpoint.includes('Ramp') ? 'ramp' : 'constant'
+  // const mode = props.setpoint.includes('Ramp') ? 'ramp' : 'constant'
+
+  let mode = 'constant'
+  if (props.setpoint.includes('Ramp')) {
+    mode = 'ramp'
+  }
+  if (props.setpoint.includes('Var')) {
+    mode = 'variable'
+  }
 
   let displayValue = props.setpoint
   if (mode === 'constant') {
@@ -35,6 +66,9 @@ function DACButton (props) {
   } else if (mode === 'ramp') {
     color = '#004e67'
   }
+  else if (mode == 'variable') {
+    color = '#67001a'
+  }
 
   const constantStyle = {
     background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
@@ -46,26 +80,19 @@ function DACButton (props) {
 
   function changeMode (newMode) {
     if (newMode === 'ramp') {
-      props.dispatch({ type: 'dac/setpoint', voltage: 'Ramp(0 V,1 V,10)', sequenceName: props.sequenceName, ch: props.ch, board: props.board, timestep: props.timestep })
+      const newSetpoint = createFunctionalSetpoint('Ramp', ['0 V', '1 V', 100])
+      props.updateSetpoint(newSetpoint)
+    } else if (newMode == 'variable') {
+      const firstVariable = Object.keys(props.variables)[0] || ''
+      props.updateSetpoint(`Var(${firstVariable})`)
     } else {
-      props.dispatch({ type: 'dac/setpoint', voltage: '', sequenceName: props.sequenceName, ch: props.ch, board: props.board, timestep: props.timestep })
-    }
-  }
-
-  function parseRamp () {
-    const ramp = props.setpoint.replace('Ramp(', '').replace(')', '').split(',')
-    return {
-      start: ramp[0] || '',
-      stop: ramp[1] || '',
-      steps: ramp[2] || ''
+      props.updateSetpoint('')
     }
   }
 
   function updateRamp (field, value) {
-    const state = parseRamp()
-    state[field] = value
-    const newState = `Ramp(${state.start},${state.stop},${state.steps})`
-    props.dispatch({ type: 'dac/setpoint', voltage: newState, sequenceName: props.sequenceName, ch: props.ch, board: props.board, timestep: props.timestep })
+    const newState = updateFunctionalSetpoint(props.setpoint, field, value)
+    props.updateSetpoint(newState)
   }
 
   return (
@@ -95,19 +122,21 @@ function DACButton (props) {
       >
       <Box p={1}>
         <Box m={1}>
-          <ModeSelector label={'Voltage'}
+          <ModeSelector label={'Setpoint mode'}
                         value={mode}
                         onChange = {(event) => changeMode(event.target.value)}
           />
         </Box>
-        {mode === 'constant'
+        {(mode === 'constant')
           ? (
             <Box m={1}>
               <VariableUnitInput value={props.setpoint}
-                                 onChange = {(value) => props.dispatch({ type: 'dac/setpoint', voltage: value, sequenceName: props.sequenceName, ch: props.ch, board: props.board, timestep: props.timestep })}
+                                 onChange = {(value) => props.updateSetpoint(value)}
                                  units = {['V', 'mV', 'uV']}
+                                 label = 'Setpoint'
               />
             </Box>
+
             )
           : null
       }
@@ -115,16 +144,16 @@ function DACButton (props) {
         ? (
           <React.Fragment>
           <Box m={1}>
-            <VariableUnitInput value={parseRamp().start}
-                           onChange = {(value) => updateRamp('start', value)}
+            <VariableUnitInput value={parseFunctionalSetpoint(props.setpoint).arguments[0]}
+                           onChange = {(value) => updateRamp(0, value)}
                            units = {['V', 'mV', 'uV']}
                            label = 'Start'
                            variant = 'outlined'
             />
           </Box>
           <Box m={1}>
-            <VariableUnitInput value={parseRamp().stop}
-                           onChange = {(value) => updateRamp('stop', value)}
+            <VariableUnitInput value={parseFunctionalSetpoint(props.setpoint).arguments[1]}
+                           onChange = {(value) => updateRamp(1, value)}
                            units = {['V', 'mV', 'uV']}
                            label = 'Stop'
                            variant = 'outlined'
@@ -132,8 +161,8 @@ function DACButton (props) {
           </Box>
           <Box m={1}>
             <TextField label='Steps'
-                       value={parseRamp().steps}
-                       onChange={(event) => updateRamp('steps', event.target.value)}
+                       value={parseFunctionalSetpoint(props.setpoint).arguments[2]}
+                       onChange={(event) => updateRamp(2, event.target.value)}
                        variant='outlined'
                        InputLabelProps={{ shrink: true }}
             />
@@ -141,6 +170,32 @@ function DACButton (props) {
           </React.Fragment>
           )
         : null}
+        {(mode === 'variable' && Object.keys(props.variables).length > 0)
+          ? (
+            <Box m={1}>
+              <FormControl>
+              <InputLabel shrink={true}> Variable </InputLabel>
+              <Select label="Variable"
+                      value={parseFunctionalSetpoint(props.setpoint).arguments[0]}
+                      onChange = {(event) => props.updateSetpoint(updateFunctionalSetpoint(props.setpoint, 0, event.target.value))}>
+                {Object.keys(props.variables).map((key, index) => (
+                  <MenuItem value={key} key={key}>
+                    {key}
+                  </MenuItem>
+                ))}
+              </Select>
+              </FormControl>
+            </Box>
+            )
+          : null
+      }
+      {(mode == 'variable' && Object.keys(props.variables).length == 0)
+        ? (
+          <Typography> Define a variable first. </Typography>
+        )
+        : null
+
+    }
         </Box>
       </Popover>
     </TableCell>
@@ -149,6 +204,7 @@ function DACButton (props) {
 
 DACButton.propTypes = {
   setpoint: PropTypes.string,
+  updateSetpoint: PropTypes.func,
   sequenceName: PropTypes.string,
   ch: PropTypes.number,
   board: PropTypes.string,
@@ -156,9 +212,27 @@ DACButton.propTypes = {
   dispatch: PropTypes.func
 }
 
-function mapStateToProps (state, props) {
+function mapDispatchToProps (dispatch, props) {
+  const path = {
+    sequenceName: props.sequenceName,
+    ch: props.ch,
+    timestep: props.timestep,
+    board: props.board
+  }
+
   return {
-    setpoint: state.sequences[props.sequenceName][props.timestep].dac[props.board][props.ch] || ''
+    updateSetpoint: (value) => dispatch({
+      type: 'dac/setpoint',
+      value: value,
+      path: path
+    })
   }
 }
-export default connect(mapStateToProps)(DACButton)
+
+function mapStateToProps (state, props) {
+  return {
+    setpoint: state.sequences[props.sequenceName].steps[props.timestep].dac[props.board][props.ch] || '',
+    variables: state.sequences[props.sequenceName].inputs
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(DACButton)

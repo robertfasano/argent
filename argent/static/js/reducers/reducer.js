@@ -12,22 +12,32 @@ export default function reducer (state = [], action) {
   switch (action.type) {
     case 'adc/delay':
       return produce(state, draft => {
-        draft.sequences[action.path.sequenceName][action.path.timestep].adc[action.path.board].delay = action.value
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].delay = action.value
       })
 
     case 'adc/toggle':
       return produce(state, draft => {
         const sequenceName = action.path.sequenceName || state.active_sequence
-        const enabled = state.sequences[sequenceName][action.path.timestep].adc[action.path.board].enable
-        draft.sequences[sequenceName][action.path.timestep].adc[action.path.board].enable = !enabled
+        const enabled = state.sequences[sequenceName].steps[action.path.timestep].adc[action.path.board].enable
+        draft.sequences[sequenceName].steps[action.path.timestep].adc[action.path.board].enable = !enabled
       })
 
     case 'adc/variable':
       return produce(state, draft => {
-        draft.sequences[action.path.sequenceName][action.path.timestep].adc[action.path.board].variables[action.path.ch] = action.value
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch] = action.value
         if (action.value === '') {
-          delete draft.sequences[action.path.sequenceName][action.path.timestep].adc[action.path.board].variables[action.path.ch]
+          delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch]
         }
+      })
+
+    case 'arguments/update':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].arguments[action.name] = action.value
+      })
+
+    case 'arguments/delete':
+      return produce(state, draft => {
+        delete draft.sequences[state.active_sequence].arguments[action.name]
       })
 
     case 'dac/setpoint':
@@ -35,9 +45,9 @@ export default function reducer (state = [], action) {
       // is unitful, e.g. '1 V' or '0.3 mV'. If the value part of the setpoint string
       // is not defined, remove the channel from the timestep's 'dac' field.
       return produce(state, draft => {
-        draft.sequences[action.sequenceName][action.timestep].dac[action.board][action.ch] = action.voltage
-        if (action.voltage.split(' ')[0] === '') {
-          delete draft.sequences[action.sequenceName][action.timestep].dac[action.board][action.ch]
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch] = action.value
+        if (action.value.split(' ')[0] === '') {
+          delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch]
         }
       })
 
@@ -45,9 +55,9 @@ export default function reducer (state = [], action) {
       // Update a DDS attenuation for a given timestep and channel. If the value
       // string is empty, remove the channel from the timestep's 'dds' field.
       return produce(state, draft => {
-        draft.sequences[action.path.sequenceName][action.path.timestep].dds[action.path.ch].attenuation = action.value
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].dds[action.path.ch].attenuation = action.value
         if (action.value === '') {
-          delete draft.sequences[action.path.sequenceName][action.path.timestep].dds[action.path.ch].attenuation
+          delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].dds[action.path.ch].attenuation
         }
       })
 
@@ -56,9 +66,9 @@ export default function reducer (state = [], action) {
       // is unitful, e.g. '1 MHz'. If the value part of the setpoint string
       // is not defined, remove the channel from the timestep's 'dds' field.
       return produce(state, draft => {
-        draft.sequences[action.path.sequenceName][action.path.timestep].dds[action.path.ch].frequency = action.value
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].dds[action.path.ch].frequency = action.value
         if (action.value === '') {
-          delete draft.sequences[action.path.sequenceName][action.path.timestep].dds[action.path.ch].frequency
+          delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].dds[action.path.ch].frequency
         }
       })
 
@@ -66,8 +76,8 @@ export default function reducer (state = [], action) {
       // Toggle a DDS rf switch on or off.
       return produce(state, draft => {
         const sequenceName = action.path.sequenceName || state.active_sequence
-        const ddsEnabled = state.sequences[sequenceName][action.path.timestep].dds[action.path.ch].enable
-        draft.sequences[sequenceName][action.path.timestep].dds[action.path.ch].enable = !ddsEnabled
+        const ddsEnabled = state.sequences[sequenceName].steps[action.path.timestep].dds[action.path.ch].enable
+        draft.sequences[sequenceName].steps[action.path.timestep].dds[action.path.ch].enable = !ddsEnabled
       })
 
     case 'macrosequence/append':
@@ -184,14 +194,14 @@ export default function reducer (state = [], action) {
       // Remove a timestep from a sequence at a given index.
       return produce(state, draft => {
         const sequenceName = action.sequenceName || state.active_sequence
-        draft.sequences[sequenceName].splice(action.timestep, 1)
+        draft.sequences[sequenceName].steps.splice(action.timestep, 1)
       })
 
     case 'timestep/duration':
       // Modify a timestep duration at a given index.
       return produce(state, draft => {
         const sequenceName = action.sequenceName || state.active_sequence
-        draft.sequences[sequenceName][action.timestep].duration = action.duration
+        draft.sequences[sequenceName].steps[action.timestep].duration = action.duration
       })
 
     case 'timestep/insert':
@@ -204,29 +214,29 @@ export default function reducer (state = [], action) {
         const sequenceName = action.sequenceName || state.active_sequence
         const newTimestep = defaultSequence(state.channels)[0]
         const previousIndex = Math.max(action.timestep-1, 0)
-        const previousTimestep = state.sequences[sequenceName][previousIndex]
+        const previousTimestep = state.sequences[sequenceName].steps[previousIndex]
         for (const ch of Object.keys(previousTimestep.ttl)) {
           newTimestep.ttl[ch] = previousTimestep.ttl[ch]
         }
         for (const ch of Object.keys(previousTimestep.dds)) {
           newTimestep.dds[ch].enable = previousTimestep.dds[ch].enable
         }
-        draft.sequences[sequenceName].splice(action.timestep + 1, 0, newTimestep)
+        draft.sequences[sequenceName].steps.splice(action.timestep + 1, 0, newTimestep)
       })
 
     case 'timestep/swap':
       // Swap two timesteps.
       return produce(state, draft => {
         const sequenceName = action.sequenceName || state.active_sequence
-        swap(draft.sequences[sequenceName], action.a, action.b)
+        swap(draft.sequences[sequenceName].steps, action.a, action.b)
       })
 
     case 'ttl/toggle':
       // Toggle a TTL event on/off.
       return produce(state, draft => {
         const sequenceName = action.path.sequenceName || state.active_sequence
-        const ttlChecked = state.sequences[sequenceName][action.path.timestep].ttl[action.path.channel]
-        draft.sequences[sequenceName][action.path.timestep].ttl[action.path.channel] = !ttlChecked
+        const ttlChecked = state.sequences[sequenceName].steps[action.path.timestep].ttl[action.path.channel]
+        draft.sequences[sequenceName].steps[action.path.timestep].ttl[action.path.channel] = !ttlChecked
       })
 
     case 'ui/heartbeat':
@@ -292,12 +302,26 @@ export default function reducer (state = [], action) {
         draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].slice(0, index + 1)
       })
 
-    case 'variables/update':
+    case 'variables/output/update':
       return produce(state, draft => {
         for (let [key, val] of Object.entries(action.variables)) {
-          draft.variables[key] = String(val)
+          draft.sequences[state.active_sequence].outputs[key] = val   // new-implementation, sequence-specific variables
         }
-        // draft.variables = Object.assign(state.variables, action.variables)
+      })
+
+    case 'variables/input/update':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].inputs[action.name] = action.value
+      })
+
+    case 'variables/input/delete':
+      return produce(state, draft => {
+        delete draft.sequences[state.active_sequence].inputs[action.name]
+      })
+
+    case 'variables/output/delete':
+      return produce(state, draft => {
+        delete draft.sequences[state.active_sequence].outputs[action.name]
       })
 
     default : return state

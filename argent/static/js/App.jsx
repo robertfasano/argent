@@ -1,13 +1,17 @@
 import React from 'react'
 import AppBar from '@material-ui/core/AppBar'
+import Box from '@material-ui/core/Box'
 import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import SequenceTable from './SequenceTable.jsx'
+import VariableTable from './VariableTable.jsx'
+import ArgumentTable from './ArgumentTable.jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { connect } from 'react-redux'
 import AppMenu from './menu/AppMenu.jsx'
 import SequenceSelector from './SequenceSelector.jsx'
 import Grid from '@material-ui/core/Grid'
+import Paper from '@material-ui/core/Paper'
 import Heartbeat from './menu/Heartbeat.jsx'
 import io from 'socket.io-client'
 import { get } from './utilities.js'
@@ -35,7 +39,8 @@ function App (props) {
     socket.on('heartbeat', (data) => {
       props.dispatch({type: 'ui/heartbeat', pid: data.pid})
       get('/variables', (result) => {
-        props.dispatch({type: 'variables/update', variables: result})
+        delete result['__pid__']
+        props.dispatch({type: 'variables/output/update', variables: result})
       })
     })
   },
@@ -55,14 +60,18 @@ function App (props) {
       <div className={classes.appBarSpacer} />
 
       <main className={classes.content}>
-        <Grid container spacing={2}>
-          <Grid container item xs={12} direction='column' spacing={2} justify='space-evenly'>
-            <Grid item xs={12}>
-              <SequenceSelector tableChoice={tableChoice} setTableChoice={setTableChoice}/>
+        <Grid container item xs={12} spacing={2} justify='space-evenly'>
+          <Grid item xs={12}>
+            <SequenceSelector tableChoice={tableChoice} setTableChoice={setTableChoice}/>
+          </Grid>
+            <Grid item xs={2}>
+              <Paper elevation={6} style={{ overflowX: 'auto' }}>
+                <ArgumentTable/>
+                <VariableTable/>
+              </Paper>
             </Grid>
-            <Grid item xs={12}>
-              <SequenceTable tableChoice={tableChoice} />
-            </Grid>
+          <Grid item xs={10}>
+            <SequenceTable tableChoice={tableChoice} />
           </Grid>
         </Grid>
 

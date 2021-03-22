@@ -68,7 +68,7 @@ function TabMenu (props) {
 
 TabMenu.propTypes = {
   name: PropTypes.string,
-  sequence: PropTypes.array,
+  sequence: PropTypes.object,
   setAnchorEl: PropTypes.func,
   anchorEl: PropTypes.object,
   anchorName: PropTypes.string,
@@ -80,7 +80,9 @@ function mapStateToProps (state, props) {
   const inactiveTTLs = state.channels.TTL.filter(ch => !state.ui.channels.TTL.includes(ch))
   const inactiveDDS = state.channels.DDS.filter(ch => !state.ui.channels.DDS.includes(ch))
   const inactiveChannels = [...inactiveTTLs, ...inactiveDDS]
-  const sequence = omitDeep(state.sequences[props.name], ...inactiveChannels) // remove inactive channels from state
+  const sequence = {variables: state.sequences[props.name].variables,
+                    steps: omitDeep(state.sequences[props.name].steps, ...inactiveChannels) // remove inactive channels from state
+                  }
 
   return {
     sequence: sequence,

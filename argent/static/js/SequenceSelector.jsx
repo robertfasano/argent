@@ -49,7 +49,7 @@ function SequenceSelector (props) {
       i = i + 1
       name = `new sequence (${i})`
     }
-    props.dispatch({ type: 'sequence/load', name: name, sequence: defaultSequence(props.channels) })
+    props.dispatch({ type: 'sequence/load', name: name, sequence: {steps: defaultSequence(props.channels), inputs: {}, outputs: {}, arguments: {}} })
   }
 
   function handleClick (event, name) {

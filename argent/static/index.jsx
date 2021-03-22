@@ -95,7 +95,7 @@ function initializeState(channels, sequences, aliases, version) {
   let state = {}
   state['channels'] = channels
   state['sequences'] = sequences
-  state['sequences'] = {'new sequence': defaultSequence(channels)}
+  state['sequences'] = {'new sequence': {steps: defaultSequence(channels), inputs: {}, arguments: {}, outputs: {}}}
   state['active_sequence'] = 'new sequence'
   state['macrosequence'] = [{name: 'new sequence', reps: 1}]
 
@@ -103,7 +103,7 @@ function initializeState(channels, sequences, aliases, version) {
   for (let board of Object.keys(state.channels.DAC)) {
     activeDACChannels[board] = []
   }
-  
+
   state['ui'] = {channels: {'TTL': [],
                             'DAC': activeDACChannels,
                             'DDS': [],
@@ -114,7 +114,6 @@ function initializeState(channels, sequences, aliases, version) {
 
   state['aliases'] = prepareAliases(channels, aliases)
   state['version'] = version
-  state['variables'] = {}
   return state
 
 }
