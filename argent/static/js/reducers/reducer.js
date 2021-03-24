@@ -10,6 +10,13 @@ function swap (array, a, b) {
 
 export default function reducer (state = [], action) {
   switch (action.type) {
+    case 'adc/changeChannel':
+    return produce(state, draft => {
+      const variable = draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch]
+      draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.value] = variable
+      delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch]
+    })
+
     case 'adc/delay':
       return produce(state, draft => {
         draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].delay = action.value

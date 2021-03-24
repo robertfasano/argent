@@ -17,6 +17,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
+import ClearIcon from '@material-ui/icons/Clear';
+import AddIcon from '@material-ui/icons/Add';
 
 function ADCButton (props) {
 
@@ -31,6 +33,9 @@ function ADCButton (props) {
     fontSize: 10,
     textTransform: 'none'
   }
+
+  const firstUnusedChannel = [...Array(8).keys()].filter(ch => !Object.keys(props.outputs).includes(String(ch)))[0]
+  const firstVariable = Object.keys(props.allOutputs)[0]
 
   return (
     <TableCell component="th" scope="row">
@@ -66,27 +71,50 @@ function ADCButton (props) {
           </Box>
           <Typography component="div">
             <Box m={1} fontWeight="fontWeightBold" fontSize="h6.fontSize">
-              Variables
+              Outputs
             </Box>
           </Typography>
-          {[...Array(8).keys()].map((ch) => (
+          {Object.keys(props.outputs).map((ch) => (
             <Box m={1} key={ch}>
-              <FormControl>
-              <InputLabel shrink={true}> {"Channel " + ch} </InputLabel>
-              <Select label="Variable"
-                      value={props.outputs[ch] || ''}
-                      onChange = {(event) => props.setVariable(event, ch)}
-                      style={{width: '200px'}}>
-                {Object.keys(props.allOutputs).map((key, index) => (
-                  <MenuItem value={key} key={key}>
-                    {key}
-                  </MenuItem>
-                ))}
-              </Select>
-              </FormControl>
-
+              <Grid container alignItems='flex-start'>
+                <Grid item xs={3}>
+                  <Select label="Channel"
+                          value={ch}
+                          onChange = {(event) => props.changeChannel(event, ch)}
+                          >
+                    {[...Array(8).keys()].map((key, index) => (
+                      <MenuItem value={key} key={key}>
+                        {key}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
+                <Grid item xs={4}>
+                  <Select label="Variable"
+                          value={props.outputs[ch] || ''}
+                          onChange = {(event) => props.setVariable(event.target.value, ch)}
+                          >
+                    <MenuItem value={''} key={''}>
+                      {''}
+                    </MenuItem>
+                    {Object.keys(props.allOutputs).map((key, index) => (
+                      <MenuItem value={key} key={key}>
+                        {key}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
+                <Grid item xs={5}>
+                  <Button onClick={() => props.setVariable('', ch)}>
+                    <ClearIcon/>
+                  </Button>
+                </Grid>
+            </Grid>
             </Box>
           ))}
+          <Button onClick={() => props.newOutput(firstUnusedChannel, firstVariable)}>
+            <AddIcon/>
+          </Button>
         </Box>
 
       </Popover>
@@ -99,7 +127,9 @@ ADCButton.propTypes = {
   delay: PropTypes.string,
   toggle: PropTypes.func,
   setDelay: PropTypes.func,
-  channel: PropTypes.object
+  channel: PropTypes.object,
+  changeChannel: PropTypes.func,
+  newOutput: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -110,8 +140,22 @@ function mapDispatchToProps (dispatch, props) {
   }
 
   return {
-    setVariable: (event, ch) => dispatch({
+    setVariable: (value, ch) => dispatch({
       type: 'adc/variable',
+      value: value,
+      path: Object.assign(path, {ch: ch})
+    }),
+
+    newOutput: (ch, variable) => {
+      dispatch({
+        type: 'adc/variable',
+        value: variable,
+        path: Object.assign(path, {ch: ch})
+      })
+    },
+
+    changeChannel: (event, ch) => dispatch({
+      type: 'adc/changeChannel',
       value: event.target.value,
       path: Object.assign(path, {ch: ch})
     }),

@@ -48,18 +48,26 @@ function VariableTable (props) {
     }  }
 
   function deleteInput (name) {
-    if (checkVariable(name)) {
+    if (checkInput(name)) {
       alert('Cannot delete a variable which is used in the sequence!')
       return
     }
     props.deleteInput(name)
   }
 
+  function deleteOutput (name) {
+    if (checkOutput(name)) {
+      alert('Cannot delete a variable which is used in the sequence!')
+      return
+    }
+    props.deleteOutput(name)
+  }
+
   function sendInputs () {
     post('/inputs', props.inputs)
   }
 
-  function checkVariable (name) {
+  function checkInput (name) {
     // Return true if the variable is used in the sequence
     for (const step of props.sequence.steps) {
       for (let board of Object.keys(step.dac)) {
@@ -70,6 +78,18 @@ function VariableTable (props) {
               return true
             }
           }
+        }
+      }
+    }
+    return false
+  }
+
+  function checkOutput (name) {
+    // Return true if the variable is used in the sequence
+    for (const step of props.sequence.steps) {
+      for (let board of Object.keys(step.adc)) {
+        if (Object.values(step.adc[board].variables || {}).includes(name)) {
+            return true
         }
       }
     }
@@ -139,7 +159,7 @@ function VariableTable (props) {
                   <TextField disabled value={String(value).substring(0, 5)}/>
                 </TableCell>
                 <TableCell>
-                  <Button onClick={() => props.deleteOutput(key)}>
+                  <Button onClick={() => deleteOutput(key)}>
                     <ClearIcon/>
                   </Button>
                 </TableCell>
