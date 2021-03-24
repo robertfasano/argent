@@ -276,6 +276,28 @@ export default function reducer (state = [], action) {
         else {
           draft.ui.channels[action.channelType][action.board] = newChannels
         }
+
+        // if the channel is a boolean type (e.g. TTL, DDS enable), set to false in all timesteps and all channels
+        if (action.channelType == 'TTL') {
+          for (const [name, sequence] of Object.entries(state.sequences)) {
+            // console.log(name, sequence)
+            for (const [index, step] of sequence.steps.entries()) {
+              let channelState = state.sequences[name].steps[index].ttl[action.channel]
+              draft.sequences[name].steps[index].ttl[action.channel] = channelState || false
+            }
+          }
+        }
+
+        if (action.channelType == 'DDS') {
+          for (const [name, sequence] of Object.entries(state.sequences)) {
+            // console.log(name, sequence)
+            for (const [index, step] of sequence.steps.entries()) {
+              let channelState = state.sequences[name].steps[index].dds[action.channel]
+              draft.sequences[name].steps[index].dds[action.channel] =  channelState || {enable: false}
+            }
+          }
+        }
+
       })
 
     case 'ui/setInactive':
