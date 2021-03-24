@@ -14,6 +14,7 @@ import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import { connect } from 'react-redux'
+import { post } from './utilities.js'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import TTLButton from './rtio/TTLButton.jsx'
@@ -30,6 +31,7 @@ import DDSButton from './rtio/DDSButton.jsx'
 import ChannelMenu from './rtio/ChannelMenu.jsx'
 import NewChannelButton from './rtio/NewChannelButton.jsx'
 import ClearIcon from '@material-ui/icons/Clear';
+import SendIcon from '@material-ui/icons/Send';
 
 function VariableTable (props) {
   function addInput () {
@@ -51,6 +53,10 @@ function VariableTable (props) {
       return
     }
     props.deleteInput(name)
+  }
+
+  function sendInputs () {
+    post('/inputs', props.inputs)
   }
 
   function checkVariable (name) {
@@ -103,6 +109,11 @@ function VariableTable (props) {
               <TableCell>
                 <Button onClick={addInput}>
                   <AddIcon/>
+                </Button>
+              </TableCell>
+              <TableCell>
+                <Button onClick={sendInputs}>
+                  <SendIcon/>
                 </Button>
               </TableCell>
             </TableRow>

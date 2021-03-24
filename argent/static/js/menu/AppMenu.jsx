@@ -21,6 +21,7 @@ function AppMenu (props) {
 
   function submit() {
     const pid = uuidv4()
+    post('/inputs', props.inputs)
     post('/submit', {macrosequence: props.macrosequence, pid: pid})
     props.dispatch({type: 'ui/pid', value: pid})
   }
@@ -76,7 +77,8 @@ function mapStateToProps (state, ownProps) {
     sequence: state.sequences[state.active_sequence],
     macrosequence: macrosequence,
     channels: state.channels,
-    ui: state.ui
+    ui: state.ui,
+    inputs: state.sequences[state.active_sequence].inputs
   }
 }
 

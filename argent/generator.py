@@ -244,6 +244,13 @@ def get_dds_channels(macrosequence):
             channels.extend(step.get('dds', {}).keys())
     return list(np.unique(channels))
 
+def get_input_variables(macrosequence):
+    inputs = {}
+    for stage in macrosequence:
+        for name, value in stage['sequence']['inputs'].items():
+            inputs[name] = float(value)
+    return inputs
+
 def generate_build(macrosequence, pid):
     ''' Generates the build() function, in which all hardware accessed by the
         sequence is defined.
@@ -268,13 +275,19 @@ def generate_build(macrosequence, pid):
     adcs = get_adc_boards(macrosequence)
     for board in adcs:
         code += Sampler(board).build()
+
+    ## build output variables
+    code += '\n##Output variables\n'
     vars = get_adc_variables(macrosequence)
     for var in vars:
         code += f'self.{var} = 0.0\n'
 
-    for stage in macrosequence:
-        for name, value in stage['sequence']['inputs'].items():
-            code += f'self.{name} = {float(value)}\n'
+    ## build input variables
+    code += '\n##Input variables\n'
+    inputs = get_input_variables(macrosequence)
+    code += f'self.inputs = {inputs}\n'
+    for name, value in inputs.items():
+        code += f'self.{name} = {float(value)}\n'
     code = 'def build(self):\n' + textwrap.indent(code, '\t') + '\n'
     return code
 
@@ -311,6 +324,23 @@ def generate_init(macrosequence):
     code += '\t' + Core().break_realtime()
 
     return code + '\n'
+
+def generate_pull(macrosequence, config):
+    inputs = get_input_variables(macrosequence)
+
+    code = '@rpc(flags={"async"})\ndef pull(self):\n'
+    code += '\t' + f'self.inputs = requests.get("http://{config["addr"]}/inputs").json()\n'
+
+    # for var in inputs:
+    #     code += '\t' + f'self.{var} = inputs["{var}"]\n'
+
+    code += '\n'
+
+    code += 'def __update__(self, name) -> TFloat:\n'
+    code += '\t' + 'return float(self.inputs[name])\n'
+
+
+    return code
 
 def write_batch(events):
     ''' Adds a batch of events into the generated code. The events argument
@@ -416,7 +446,7 @@ def generate_sync(macrosequence, config):
         code += '\tprint(vars)\n'
         code += '\tvars["__pid__"] = self.__pid__\n'
         code += '\ttry:\n'
-        code += f'\t\trequests.post("http://{config["addr"]}/variables", json=vars)\n'
+        code += f'\t\trequests.post("http://{config["addr"]}/outputs", json=vars)\n'
         code += '\texcept:\n\t\tpass\n'
     code += '\n'
     return code
@@ -429,6 +459,9 @@ def generate_run(macrosequence):
     code = '@kernel\ndef run(self):\n'
     code += '\tself.init()\n\n'
     code += '\twhile True:\n'
+    if len(get_input_variables(macrosequence)) > 0:
+        code += '\t\t' + 'self.pull()\n'
+
     for stage in macrosequence:
         function_call = f"\t\tself.{stage['name'].replace(' ', '_')}()\n"
         if int(stage['reps']) == 1:
@@ -436,12 +469,25 @@ def generate_run(macrosequence):
         else:
             code += f'\t\tfor i in range({stage["reps"]}):\n'
             code += '\t' + function_call
+
+    ## broadcast output variables
     vars = get_adc_variables(macrosequence)
     # if len(vars) > 0:
     self_vars = ['self.'+var for var in vars]
     code += '\t\t' + f'self.sync({", ".join(self_vars)})'
     code += '\n'
 
+    ## update input variables
+    vars = get_input_variables(macrosequence)
+    if len(vars) > 0:
+        for var in vars:
+            code += '\t\t' + f'self.{var} = self.__update__("{var}")\n'
+        code += '\t\t' + 'self.core.break_realtime()\n'
+        code += '\t\t' + 'delay(5*ms)\n'
+        
+    code += '\n'
+
+    ## write individual stage functions
     loops = []
     for stage in macrosequence:
         if stage['name'] in loops:
@@ -475,6 +521,7 @@ def generate_experiment(macrosequence, config, pid):
     code += textwrap.indent(generate_init(macrosequence), '\t')
     code += textwrap.indent(generate_run(macrosequence), '\t')
     code += textwrap.indent(generate_sync(macrosequence, config), '\t')
+    code += textwrap.indent(generate_pull(macrosequence, config), '\t')
 
     return code
 

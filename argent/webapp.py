@@ -25,7 +25,8 @@ class App:
         self.device_db = self.config['device_db']
         print('Using device_db at', os.path.abspath(self.device_db))
 
-        self.variables = {}
+        self.inputs = {}
+        self.outputs = {}
 
         self.host()
 
@@ -105,17 +106,28 @@ class App:
                     channel_dict['cpld'].append(key)
             return channel_dict
 
-        @app.route("/variables", methods=['GET', 'POST'])
-        def variables():
+        @app.route("/inputs", methods=['GET', 'POST'])
+        def inputs():
             if request.method == 'POST':
                 for key, val in request.json.items():
-                    self.variables[key] = val
+                    self.inputs[key] = val
+
+                return ''
+
+            elif request.method == 'GET':
+                return json.dumps(self.inputs)
+
+        @app.route("/outputs", methods=['GET', 'POST'])
+        def outputs():
+            if request.method == 'POST':
+                for key, val in request.json.items():
+                    self.outputs[key] = val
 
                 socketio.emit('heartbeat', {"pid": request.json['__pid__']})
                 return ''
 
             elif request.method == 'GET':
-                return json.dumps(self.variables)
+                return json.dumps(self.outputs)
 
         @app.route("/heartbeat", methods=['POST'])
         def heartbeat():
