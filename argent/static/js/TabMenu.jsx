@@ -14,55 +14,39 @@ import { connect } from 'react-redux'
 function TabMenu (props) {
   // A context menu for the SequenceSelector allowing sequences to be renamed,
   // closed, or saved.
-  const handleClose = () => {
-    props.setAnchorEl(null)
-  }
-
-  const rename = () => {
-    const newName = prompt('Enter new sequence name:')
-    props.dispatch({ type: 'sequence/rename', name: props.name, newName: newName })
-    handleClose()
-  }
-
-  const handleDelete = () => {
-    props.dispatch({ type: 'sequence/close', name: props.name })
-    handleClose()
-  }
 
   const text = '# Created with Argent commit ' + props.version + '\n' + yaml.dump(props.sequence)
   return (
-	<div>
-		<Menu
+    <Menu
         anchorEl={props.anchorEl}
-        open={Boolean(props.anchorEl) && (props.anchorName === props.name)}
-        onClose={handleClose}
+        open={props.open}
+        onClose={() => props.setAnchorEl(null)}
         anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
         getContentAnchorEl={null}
       >
-			<MenuItem onClick={rename}>
-				<ListItemIcon>
-					<CreateIcon fontSize="small" />
-				</ListItemIcon>
-				<ListItemText primary="Rename" />
-			</MenuItem>
-			<MenuItem onClick={handleDelete}>
-				<ListItemIcon>
-					<DeleteIcon fontSize="small" />
-				</ListItemIcon>
-				<ListItemText primary="Close" />
-			</MenuItem>
-			<MenuItem button component="a"
+      <MenuItem onClick={props.rename}>
+        <ListItemIcon>
+          <CreateIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText primary="Rename" />
+      </MenuItem>
+      <MenuItem onClick={props.delete}>
+        <ListItemIcon>
+          <DeleteIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText primary="Close" />
+      </MenuItem>
+      <MenuItem button component="a"
                   href={`data:text/json;charset=utf-8,${encodeURIComponent(text)}`}
                   download={`${props.name}.yml`}
-        >
-				<ListItemIcon>
-					<SaveIcon fontSize="small" />
-				</ListItemIcon>
-				<ListItemText primary="Save" />
-			</MenuItem>
-		</Menu>
-	</div>
+      >
+        <ListItemIcon>
+          <SaveIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText primary="Save" />
+      </MenuItem>
+    </Menu>
   )
 }
 
@@ -71,22 +55,35 @@ TabMenu.propTypes = {
   sequence: PropTypes.object,
   setAnchorEl: PropTypes.func,
   anchorEl: PropTypes.object,
-  anchorName: PropTypes.string,
-  dispatch: PropTypes.func,
+  open: PropTypes.bool,
+  rename: PropTypes.func,
+  delete: PropTypes.func,
   version: PropTypes.string
+}
+
+function mapDispatchToProps (dispatch, props) {
+  return {
+    rename: () => {
+      const newName = prompt('Enter new sequence name:')
+      dispatch({ type: 'sequence/rename', name: props.name, newName: newName })
+      props.setAnchorEl(null)
+    },
+    delete: () => {
+      dispatch({ type: 'sequence/close', name: props.name })
+      props.setAnchorEl(null)
+    }
+  }
 }
 
 function mapStateToProps (state, props) {
   const inactiveTTLs = state.channels.TTL.filter(ch => !state.ui.channels.TTL.includes(ch))
   const inactiveDDS = state.channels.DDS.filter(ch => !state.ui.channels.DDS.includes(ch))
   const inactiveChannels = [...inactiveTTLs, ...inactiveDDS]
-  const sequence = {variables: state.sequences[props.name].variables,
-                    steps: omitDeep(state.sequences[props.name].steps, ...inactiveChannels) // remove inactive channels from state
-                  }
-
+  const sequence = { ...state.sequences[props.name], steps: omitDeep(state.sequences[props.name].steps, ...inactiveChannels) }
   return {
     sequence: sequence,
-    version: state.version
+    version: state.version,
+    open: Boolean(props.anchorEl) && (props.anchorName === props.name)
   }
 }
-export default connect(mapStateToProps)(TabMenu)
+export default connect(mapStateToProps, mapDispatchToProps)(TabMenu)
