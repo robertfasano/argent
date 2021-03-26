@@ -13,6 +13,7 @@ import TabMenu from './TabMenu.jsx'
 import LoadButton from './menu/LoadButton.jsx'
 import { connect } from 'react-redux'
 import { defaultSequence } from '../index.jsx'
+import { defaultMemoize, createSelector } from 'reselect';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -30,14 +31,15 @@ function SequenceSelector (props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
   const [anchorName, setAnchorName] = React.useState('')
 
-  const value = props.tableChoice === 'master' ? -1 : Object.keys(props.sequences).indexOf(props.activeSequence)
 
+  const value = props.tableChoice === 'master' ? -1 : props.sequenceNames.indexOf(props.activeSequence)
+  console.log('SequenceSelector render', props, anchorEl, anchorName)
   const handleChange = (event, newValue) => {
     if (newValue === -1) {
       props.setTableChoice('master')
     } else {
-      const name = Object.keys(props.sequences)[newValue]
-      props.dispatch({ type: 'sequence/setActive', name: name })
+      const name = props.sequenceNames[newValue]
+      props.setActive(name)
       props.setTableChoice('rtio')
     }
   }
@@ -45,11 +47,11 @@ function SequenceSelector (props) {
   function newSequence () {
     let name = 'new sequence'
     let i = 0
-    while (Object.keys(props.sequences).includes(name)) {
+    while (props.sequenceNames.includes(name)) {
       i = i + 1
       name = `new sequence (${i})`
     }
-    props.dispatch({ type: 'sequence/load', name: name, sequence: {steps: defaultSequence(props.channels), inputs: {}, outputs: {}, arguments: {}} })
+    props.load(name, {steps: defaultSequence(props.channels), inputs: {}, outputs: {}, arguments: {}})
   }
 
   function handleClick (event, name) {
@@ -84,13 +86,13 @@ function SequenceSelector (props) {
 		<AppBar position="static" color="default">
 			<Tabs value={value} onChange={handleChange}>
 				<Tab label='master' value={-1} style={{ textTransform: 'none', backgroundColor: '#67001a', color: 'white' }}/>
-				{Object.keys(props.sequences).map((name, index) => (
+				{props.sequenceNames.map((name, index) => (
 					<Tab key={name} onContextMenu={(event) => handleClick(event, name)} label={name} value={index} style={{ textTransform: 'none' }}/>
 				))}
 
 				<AddTab/>
 			</Tabs>
-			{Object.keys(props.sequences).map((name, index) => (
+			{props.sequenceNames.map((name, index) => (
 				<TabMenu key={name} anchorEl={anchorEl} setAnchorEl={setAnchorEl} name={name} anchorName={anchorName}/>
 			))}
 		</AppBar>
@@ -99,19 +101,36 @@ function SequenceSelector (props) {
 }
 
 SequenceSelector.propTypes = {
-  sequences: PropTypes.object,
+  sequenceNames: PropTypes.array,
   activeSequence: PropTypes.string,
   channels: PropTypes.object,
-  dispatch: PropTypes.func,
   tableChoice: PropTypes.string,
   setTableChoice: PropTypes.func
 }
 
+function mapDispatchToProps (dispatch, props) {
+  return {
+    load: (name, sequence) => dispatch({ type: 'sequence/load', name: name, sequence: sequence}),
+    setActive: (name) => dispatch({ type: 'sequence/setActive', name: name })
+  }
+}
+
+const createMemoizeArray = (array) => {
+  const memArray = defaultMemoize((...array) => array)
+  return (array) => memArray.apply(null, array)
+}
+
+const getSequenceNames = (
+  (memArray) => createSelector(state => state.sequences,
+                               sequences => memArray(Object.keys(sequences))
+                              )
+)(createMemoizeArray());
+
 function mapStateToProps (state, ownProps) {
   return {
-    sequences: state.sequences,
+    sequenceNames: getSequenceNames(state),   // use selector to preserve array reference for identical arrays
     activeSequence: state.active_sequence,
     channels: state.channels
   }
 }
-export default connect(mapStateToProps)(SequenceSelector)
+export default connect(mapStateToProps, mapDispatchToProps)(SequenceSelector)
