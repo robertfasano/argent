@@ -11,11 +11,11 @@ function swap (array, a, b) {
 export default function reducer (state = [], action) {
   switch (action.type) {
     case 'adc/changeChannel':
-    return produce(state, draft => {
-      const variable = draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch]
-      draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.value] = variable
-      delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch]
-    })
+      return produce(state, draft => {
+        const variable = draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch]
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.value] = variable
+        delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch]
+      })
 
     case 'adc/delay':
       return produce(state, draft => {
@@ -333,8 +333,8 @@ export default function reducer (state = [], action) {
 
     case 'variables/output/update':
       return produce(state, draft => {
-        for (let [key, val] of Object.entries(action.variables)) {
-          draft.sequences[state.active_sequence].outputs[key] = val   // new-implementation, sequence-specific variables
+        for (let [key, val] of Object.entries(draft.sequences[state.active_sequence].outputs)) {
+          draft.sequences[state.active_sequence].outputs[key] = action.variables[key]
         }
       })
 
