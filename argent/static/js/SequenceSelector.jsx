@@ -13,7 +13,8 @@ import TabMenu from './TabMenu.jsx'
 import LoadButton from './menu/LoadButton.jsx'
 import { connect } from 'react-redux'
 import { defaultSequence } from '../index.jsx'
-import { defaultMemoize, createSelector } from 'reselect';
+import { createSelector } from 'reselect';
+import { memoizeArray } from './utilities.js'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -33,7 +34,6 @@ function SequenceSelector (props) {
 
 
   const value = props.tableChoice === 'master' ? -1 : props.sequenceNames.indexOf(props.activeSequence)
-  console.log('SequenceSelector render', props, anchorEl, anchorName)
   const handleChange = (event, newValue) => {
     if (newValue === -1) {
       props.setTableChoice('master')
@@ -115,16 +115,14 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-const createMemoizeArray = (array) => {
-  const memArray = defaultMemoize((...array) => array)
-  return (array) => memArray.apply(null, array)
-}
 
-const getSequenceNames = (
+
+
+const getSequenceNames = memoizeArray(
   (memArray) => createSelector(state => state.sequences,
                                sequences => memArray(Object.keys(sequences))
                               )
-)(createMemoizeArray());
+)
 
 function mapStateToProps (state, ownProps) {
   return {

@@ -17,3 +17,15 @@ export function post (url, payload = {}, callback = (response) => null) {
     resp.then((response) => callback(response.data))
   }
 }
+
+
+import { defaultMemoize } from 'reselect';
+
+const createMemoizeArray = (array) => {
+  const memArray = defaultMemoize((...array) => array)
+  return (array) => memArray.apply(null, array)
+}
+
+export function memoizeArray (selectorCreator) {
+  return selectorCreator(createMemoizeArray())
+}
