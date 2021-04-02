@@ -27,4 +27,4 @@ class Configurator:
         config[field] = new_value
         self.save(config)
 
-from .generator import run
+# from .generator.generator import run

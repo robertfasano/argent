@@ -6,7 +6,7 @@ import subprocess
 from flask import Flask, request
 from flask import render_template, send_from_directory
 from flask_socketio import SocketIO, emit
-from argent.generator import generate_experiment
+from argent.generator.generator import generate_experiment
 from argent import Configurator, path
 
 class App:
