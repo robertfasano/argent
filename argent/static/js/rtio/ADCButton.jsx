@@ -38,12 +38,19 @@ function ADCButton (props) {
   }
 
   const firstUnusedVariable = Object.keys(props.allOutputs).filter(name => !Object.keys(props.outputs).includes(name))[0]
+
+  const handleContextMenu = (event) => {
+    event.preventDefault()
+    setAnchorEl(event.currentTarget)
+  }
+
   return (
     <TableCell component="th" scope="row">
       <Button variant="contained"
               disableRipple={true}
               style={style}
-              onClick={(event) => setAnchorEl(event.currentTarget)}
+              onContextMenu={handleContextMenu}
+              onClick={props.toggle}
               >
       </Button>
       <Popover
@@ -60,36 +67,30 @@ function ADCButton (props) {
         }}
       >
         <Box p={1}>
+          <Typography style={{fontWeight: 'bold', fontSize: 24}}>
+              ADC options
+          </Typography>
           <Box m={1}>
-            <Switch checked={props.enable} onChange={props.toggle}/>
-          </Box>
-          <Box m={1}>
-            <VariableUnitInput value={props.delay}
-                               onChange = {props.setDelay}
-                               units = {['s', 'ms', 'us']}
-                               label = 'Delay'
-            />
-          </Box>
-          <Box m={1}>
+          <Grid container spacing={2}>
+            <Grid item xs={3}>
             <VariableUnitInput value={props.duration}
                                onChange={props.setDuration}
                                units = {['s', 'ms', 'us']}
                                label = 'Duration'
             />
-          </Box>
-          <Box m={1}>
+            </Grid>
+            <Grid item xs={3}>
             <TextField label='Samples'
                        value={props.samples}
                        onChange={props.setSamples}
                        InputLabelProps={{ shrink: true }}
             />
+          </Grid>
+          </Grid>
           </Box>
 
         </Box>
-        <Box m={1}>
-          <Typography style={{fontWeight: 'bold', fontSize: 24}}>
-              Outputs
-          </Typography>
+        <Box m={1} mx={2}>
           <Table>
             <TableHead>
               <TableRow>
@@ -105,6 +106,7 @@ function ADCButton (props) {
                     <Select label="Variable"
                             value={name || ''}
                             onChange = {(event) => props.replaceOutput(name, event.target.value)}
+                            style={{width: '100%'}}
                             >
                       <MenuItem value={''} key={''}>
                         {''}
@@ -120,6 +122,7 @@ function ADCButton (props) {
                     <Select label="Channel"
                             value={props.outputs[name].ch}
                             onChange = {(event) => props.changeChannel(event, name)}
+                            style={{width: '100%'}}
                             >
                       {[...Array(8).keys()].map((key, index) => (
                         <MenuItem value={key} key={key}>
@@ -132,6 +135,7 @@ function ADCButton (props) {
                     <Select label="Operation"
                             value={props.outputs[name].operation}
                             onChange={(event) => props.updateOperation(event, name)}
+                            style={{width: '100%'}}
                             >
                       {['mean', 'min', 'max', 'first', 'last'].map((key, index) => (
                         <MenuItem value={key} key={key}>

@@ -19,6 +19,7 @@ function VariableUnitInput (props) {
              variant={(props.variant) || 'standard'}
              size={(props.size) || 'medium'}
              placeholder={value}
+             style={props.style || {}}
              InputLabelProps={{ shrink: true }}
              InputProps={{
                endAdornment: <InputAdornment position="end">

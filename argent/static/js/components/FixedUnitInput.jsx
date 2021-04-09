@@ -11,10 +11,10 @@ function FixedUnitInput (props) {
     <TextField onChange = {(event) => props.onChange(event)}
                value = {value}
                placeholder = {props.placeholder}
-               variant = "outlined"
                size = "small"
                label={props.label}
                InputLabelProps={{ shrink: true }}
+               style={props.style || {}}
                InputProps={{
                  endAdornment: <InputAdornment position="end">
                                 {props.unit}

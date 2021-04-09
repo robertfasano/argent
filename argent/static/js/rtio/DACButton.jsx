@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Popover from '@material-ui/core/Popover'
+import Grid from '@material-ui/core/Grid'
 import TableCell from '@material-ui/core/TableCell'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -49,12 +50,17 @@ function DACButton (props) {
     textTransform: 'none'
   }
 
+  const handleContextMenu = (event) => {
+    event.preventDefault()
+    setAnchorEl(event.currentTarget)
+  }
+
   return (
     <TableCell component="th" scope="row" key={props.timestep}>
       <Button variant="contained"
               disableRipple={true}
               style={constantStyle}
-              onClick={(event) => setAnchorEl(event.currentTarget)}
+              onContextMenu={handleContextMenu}
               >
         {props.mode == 'variable'? <LinkIcon/>
         : props.mode == 'ramp'? <TrendingUpIcon/>
@@ -78,6 +84,9 @@ function DACButton (props) {
         }}
       >
       <Box p={1}>
+        <Typography style={{fontWeight: 'bold', fontSize: 24}}>
+            DAC options
+        </Typography>
         <Box m={1}>
           <ModeSelector label={'Setpoint mode'}
                         value={props.mode}
@@ -92,6 +101,7 @@ function DACButton (props) {
                                  onChange = {(value) => props.updateSetpoint(value)}
                                  units = {['V', 'mV', 'uV']}
                                  label = 'Setpoint'
+                                 style={{width: '100%'}}
               />
             </Box>
 
@@ -102,30 +112,29 @@ function DACButton (props) {
       {props.mode === 'ramp'
         ? (
           <React.Fragment>
-          <Box m={1}>
+          <Grid container spacing={1}  style={{width: '300px'}}>
+          <Grid item xs={4}>
             <VariableUnitInput value={props.ramp.start}
                            onChange = {props.updateStart}
                            units = {['V', 'mV', 'uV']}
                            label = 'Start'
-                           variant = 'outlined'
             />
-          </Box>
-          <Box m={1}>
+          </Grid>
+          <Grid item xs={4}>
             <VariableUnitInput value={props.ramp.stop}
                            onChange = {props.updateStop}
                            units = {['V', 'mV', 'uV']}
                            label = 'Stop'
-                           variant = 'outlined'
             />
-          </Box>
-          <Box m={1}>
+          </Grid>
+          <Grid item xs={4}>
             <TextField label='Steps'
                        value={props.ramp.steps}
                        onChange={(event) => props.updateSteps(event.target.value)}
-                       variant='outlined'
                        InputLabelProps={{ shrink: true }}
             />
-          </Box>
+          </Grid>
+          </Grid>
           </React.Fragment>
           )
         : null}
@@ -137,7 +146,9 @@ function DACButton (props) {
               <InputLabel shrink={true}> Variable </InputLabel>
               <Select label="Variable"
                       value={props.variable}
-                      onChange = {(event) => props.updateVariable(event.target.value)}>
+                      onChange = {(event) => props.updateVariable(event.target.value)}
+                      style={{width: '300px'}}
+                      >
                 {Object.keys(props.variables).map((key, index) => (
                   <MenuItem value={key} key={key}>
                     {key}

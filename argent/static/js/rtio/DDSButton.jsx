@@ -26,12 +26,18 @@ function DDSButton (props) {
     textTransform: 'none'
   }
 
+  const handleContextMenu = (event) => {
+    event.preventDefault()
+    setAnchorEl(event.currentTarget)
+  }
+
   return (
     <TableCell component="th" scope="row">
       <Button variant="contained"
               disableRipple={true}
               style={style}
-              onClick={(event) => setAnchorEl(event.currentTarget)}
+              onContextMenu={handleContextMenu}
+              onClick={props.toggleSwitch}
               >
         <Typography style={style}>
           {props.frequency === ''? '' : props.frequency + ' MHz'}
@@ -50,14 +56,16 @@ function DDSButton (props) {
           horizontal: 'left'
         }}
       >
-          <Box m={1}>
-            <Switch checked={props.enable} onChange={props.toggleSwitch}/>
-          </Box>
+          <Box p={1}>
+          <Typography style={{fontWeight: 'bold', fontSize: 24}}>
+              DDS options
+          </Typography>
           <Box m={1}>
             <FixedUnitInput value={props.frequency}
                                onChange = {props.updateFrequency}
                                unit = 'MHz'
                                label='Frequency'
+                               style={{width: '100%'}}
             />
           </Box>
           <Box m={1}>
@@ -65,7 +73,9 @@ function DDSButton (props) {
                                onChange = {props.updateAttenuation}
                                unit = 'dB'
                                label='Attenuation'
+                               style={{width: '100%'}}
             />
+          </Box>
           </Box>
       </Popover>
     </TableCell>

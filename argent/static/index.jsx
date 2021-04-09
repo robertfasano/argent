@@ -8,7 +8,7 @@ import { ThemeProvider } from '@material-ui/core'
 import { createMuiTheme } from '@material-ui/core/styles';
 import App from './js/App.jsx'
 import { range } from './js/utilities.js'
-const cellWidth = '82px'
+const cellWidth = '80px'
 const cellHeight = '30px'
 
 const theme = createMuiTheme({
@@ -24,7 +24,7 @@ const theme = createMuiTheme({
                 minWidth: cellWidth,
                 minHeight: cellHeight,
                 borderBottom: false,
-                padding: '2px 2px 2px 2px'
+                padding: '2px 1px 2px 1px'
             },
         },
         MuiButton: {
