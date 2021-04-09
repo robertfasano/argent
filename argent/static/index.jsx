@@ -7,7 +7,7 @@ import { Provider } from 'react-redux'
 import { ThemeProvider } from '@material-ui/core'
 import { createMuiTheme } from '@material-ui/core/styles';
 import App from './js/App.jsx'
-
+import { range } from './js/utilities.js'
 const cellWidth = '82px'
 const cellHeight = '30px'
 
@@ -50,7 +50,10 @@ export function defaultSequence(channels) {
   }
 
   for (let board of Object.keys(channels.DAC)) {
-    default_timestep['dac'][board] = {}
+    default_timestep.dac[board] = {}
+    for (let ch of range(32)) {
+      default_timestep.dac[board][board+ch] = {mode: 'constant', constant: ' V', ramp: {start: ' V', stop: ' V', steps: 100}, variable: ''}
+    }
   }
 
   for (let ch of channels.DDS) {
@@ -58,7 +61,7 @@ export function defaultSequence(channels) {
   }
 
   for (let board of channels.ADC) {
-    default_timestep['adc'][board] = {enable: false, variables: {}, delay: '0 s'}
+    default_timestep['adc'][board] = {enable: false, variables: {}, delay: '0 s', samples: 1, duration: '1 s'}
   }
 
 
@@ -79,7 +82,7 @@ function prepareAliases(channels, aliases) {
   for (let board of Object.keys(channels.DAC)) {
     mergedAliases.DAC[board] = {}
     for (let ch of channels.DAC[board]) {
-      mergedAliases.DAC[board][ch] = aliases.dac[board][ch] || board+ch
+      mergedAliases.DAC[board][ch] = aliases.dac[board][ch] || ch
     }
   }
 

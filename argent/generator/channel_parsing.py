@@ -49,9 +49,20 @@ def get_adc_variables(macrosequence):
         for step in sequence:
             for board in step['adc']:
                 if step['adc'][board]['enable']:
-                    vars.extend(step['adc'][board]['variables'].values())
-    print('Found variables:', list(np.unique(vars)))
+                    vars.extend(step['adc'][board]['variables'].keys())
     return list(np.unique(vars))
+
+def get_data_arrays(macrosequence):
+    arrays = {}
+    for stage in macrosequence:
+        sequence = stage['sequence']['steps']
+        for i, step in enumerate(sequence):
+            for board in step['adc']:
+                if step['adc'][board]['enable']:
+                    name = stage['name'].replace(' ', '_') + '_' + str(i)
+                    arrays[name] = f'[[0]*8]*{int(step["adc"][board]["samples"])}'
+
+    return arrays
 
 def get_dds_boards(macrosequence):
     ''' Crawls through the macrosequence to assemble a list of all DDS boards

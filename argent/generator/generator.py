@@ -1,7 +1,7 @@
 import textwrap
 import os
 import numpy as np
-from argent import Configurator
+from argent import Configurator, path
 from .building_blocks import *
 from .channel_parsing import *
 from .sequence_parsing import *
@@ -21,7 +21,11 @@ def generate_experiment(macrosequence, config, pid):
         macrosequence[i]['sequence']['steps'] = remove_redundant_events(macrosequence[i]['sequence']['steps'])
 
     code = 'import requests\n'
-    code += 'from artiq.experiment import *\n\n'
+    code += 'import numpy as np\n'
+    code += 'from artiq.experiment import *\n'
+    code += 'from artiq.coredevice.sampler import adc_mu_to_volt\n\n'
+    with open(os.path.join(path, 'generator/array_ops.py')) as file:
+        code += file.read() + '\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
     code += textwrap.indent(generate_build(macrosequence, pid), '\t')
     code += textwrap.indent(generate_init(macrosequence), '\t')
@@ -56,6 +60,12 @@ def generate_build(macrosequence, pid):
     for board in adcs:
         code += Sampler(board).build()
 
+    ## build data arrays for sampling
+    code += '\n## Data arrays\n'
+    arrays = get_data_arrays(macrosequence)
+    for key, val in arrays.items():
+        code += f'self.{key} = {val}\n'
+
     ## build output variables
     code += '\n## Output variables\n'
     vars = get_adc_variables(macrosequence)
@@ -69,6 +79,7 @@ def generate_build(macrosequence, pid):
     for name, value in inputs.items():
         code += f'self.{name} = {float(value)}\n'
     code = 'def build(self):\n' + textwrap.indent(code, '\t') + '\n'
+
     return code
 
 def generate_init(macrosequence):
@@ -92,7 +103,7 @@ def generate_init(macrosequence):
     if len(channels) > 1:
         channels_str = str(['self.' + ch for ch in channels]).replace("'", "")
         code += f'\tfor dds in {channels_str}:\n\t\tdds.init()\n'
-    else:
+    elif len(channels) == 1:
         channel_str = 'self.'+channels[0].replace("'", "")
         code += f'\t{channel_str}.init()\n'
 
@@ -165,12 +176,13 @@ def write_batch(events):
     if len(events) == 0:
         return events[0]
     code = 'with sequential:\n'
+    indented = ''
     for i, event in enumerate(events):
         if not i % 8 and i != 0:
-            code += '\tdelay(2*ns)\n'
-        code += '\t' + event
+            indented += 'delay(2*ns)\n'
+        indented += event
 
-    return code
+    return code + textwrap.indent(indented, '\t')
 
 def generate_loop(stage):
     ''' Generates a kernel function for a single stage of a macrosequence. For
@@ -184,48 +196,71 @@ def generate_loop(stage):
     variables = stage['sequence'].get('inputs', {})
     timesteps = []
 
-    for step in parse_sequence(sequence['steps']):
+    for i, step in enumerate(sequence['steps']):
         code = ''
         code += Delay(step)
 
         ## write initial state
         ttl_events = []
-        for ch in step['events'][0].get('ttl', {}):
-            ttl_events.append(TTL(ch).run(step['events'][0]))
+        for ch in step.get('ttl', {}):
+        # for ch in step['events'][0].get('ttl', {}):
+            ttl_events.append(TTL(ch).run(step))
 
         dac_events = []
-        for board in step['events'][0].get('dac', {}):
-            dac_events.append(Zotino(board).run(step['events'][0]))
+        # for board in step['events'][0].get('dac', {}):
+        for board in step.get('dac', {}):
+            dac_events.append(Zotino(board).initial(step))
 
         dds_events = []
-        for channel in step['events'][0].get('dds', {}):
-            dds_events.extend(Urukul(channel).run(step['events'][0]))
+        # for channel in step['events'][0].get('dds', {}):
+        for channel in step.get('dds', {}):
+            dds_events.extend(Urukul(channel).run(step))
+
+        code += write_batch([*ttl_events, *dac_events, *dds_events])
+
 
         adc_events = []
-        sampler_state = step['events'][0].get('adc', {})
+        # sampler_state = step['events'][0].get('adc', {})
+        sampler_state = step.get('adc', {})
         for board, state in sampler_state.items():
             if state['enable']:
-                adc_events.append(Sampler(board).run(state))
+                # adc_events.append(Sampler(board).run(state))
+                if int(state['samples']) == 1:
+                    cmd = f'self.{board}.sample_mu(self.{stage["name"].replace(" ", "_")}_{i}[0])\n'
+                else:
+                    duration = float(state['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[state['duration'].split(' ')[1]]
+                    delay = duration / int(state['samples'])
+                    cmd = f'\tfor i in range({state["samples"]}):\n'
+                    cmd += '\t\t' + f'self.{board}.sample_mu(self.{stage["name"].replace(" ", "_")}_{i}[i])\n'
+                    cmd += '\t\t' + f'delay({delay})\n'
+                adc_events.append(cmd)
 
-        code += write_batch([*ttl_events, *dac_events, *dds_events, *adc_events])
+        for cmd in adc_events:
+            code += cmd
+
 
         for board, state in sampler_state.items():
             if sampler_state[board]['enable']:
-                code += textwrap.indent(Sampler(board).record(sampler_state[board]['variables']), '\t')
+                for var, state in sampler_state[board]['variables'].items():
+                    ch = state['ch']
+                    operation = state['operation']
+                    array_name = stage['name'].replace(' ', '_') + '_' + str(i)
+                    if operation == 'min':
+                        code += f'\tself.{var} = array_min(self.{array_name}, {ch})\n'
+                    elif operation == 'max':
+                        code += f'\tself.{var} = array_max(self.{array_name}, {ch})\n'
+                    elif operation == 'mean':
+                        code += f'\tself.{var} = array_mean(self.{array_name}, {ch})\n'
+                    elif operation == 'first':
+                        code += f'\tself.{var} = array_first(self.{array_name}, {ch})\n'
+                    elif operation == 'last':
+                        code += f'\tself.{var} = array_last(self.{array_name}, {ch})\n'
+                # code += textwrap.indent(Sampler(board).record(sampler_state[board]['variables']), '\t')
 
         ## write ramps, if applicable
-        if len(step['events']) > 1:
-            code += 'with sequential:\n'
-            last_time = 0
-            for t in step['events']:
-                event = step['events'][t]
-                if t == 0:
-                    continue
-                dt = np.round(t - last_time, 9)
-                last_time = t
-                code += '\t' + f"delay({dt})\n"
-                for board in event.get('dac', {}):
-                    code += '\t' + Zotino(board).run(event)
+        for board in step.get('dac', {}):
+            code += textwrap.indent(Zotino(board).ramp(step), '\t')
+
 
         timesteps.append(code+'\n')
 
@@ -235,9 +270,6 @@ def generate_loop(stage):
         all_code += 'with parallel:\n'
         all_code += textwrap.indent(code, '\t')
 
-    # loop_args = Arguments(variables, keys_only=True)
-    # if loop_args != '':
-    #     loop_args = ', ' + loop_args
     code = f'@kernel\ndef {name}(self):\n'
     code += textwrap.indent(all_code, '\t')
     return code

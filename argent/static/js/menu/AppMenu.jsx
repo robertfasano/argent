@@ -56,8 +56,12 @@ function mapStateToProps (state, ownProps) {
   // assemble macrosequence
   const inactiveTTLs = state.channels.TTL.filter(e => !state.ui.channels.TTL.includes(e))
   const inactiveDDS = state.channels.DDS.filter(e => !state.ui.channels.DDS.includes(e))
-  const inactiveChannels =[...inactiveTTLs, ...inactiveDDS]
-
+  let inactiveDACs = []
+  for (let board of Object.keys(state.channels.DAC)) {
+    inactiveDACs = [...inactiveDACs, ...state.channels.DAC[board].filter(e => !state.ui.channels.DAC[board].includes(e))]
+  }
+  const inactiveChannels =[...inactiveTTLs, ...inactiveDDS, ...inactiveDACs]
+  
   const macrosequence = []
 
   if (ownProps.tableChoice === 'master') {

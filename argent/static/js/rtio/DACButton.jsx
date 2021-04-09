@@ -13,24 +13,10 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
+import LinkIcon from '@material-ui/icons/Link';
+import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 import { connect } from 'react-redux'
 
-
-function parseFunctionalSetpoint (str) {
-  const type = str.split('(')[0]
-  const args = str.replace(type, '').replace('(', '').replace(')', '').split(',')
-  return {type: type, arguments: args}
-}
-
-function createFunctionalSetpoint (type, args) {
-  return type + '(' + args.join(',') + ')'
-}
-
-function updateFunctionalSetpoint (setpoint, index, value) {
-  const args = parseFunctionalSetpoint(setpoint).arguments
-  args[index] = value
-  return createFunctionalSetpoint(parseFunctionalSetpoint(setpoint).type, args)
-}
 
 function DACButton (props) {
   // A Button which opens a Popover allowing the user to define the state of a
@@ -42,31 +28,16 @@ function DACButton (props) {
 
   const open = Boolean(anchorEl)
 
-  // const mode = props.setpoint.includes('Ramp') ? 'ramp' : 'constant'
-
-  let mode = 'constant'
-  if (props.setpoint.includes('Ramp')) {
-    mode = 'ramp'
-  }
-  if (props.setpoint.includes('Var')) {
-    mode = 'variable'
-  }
-
-  let displayValue = props.setpoint
-  if (mode === 'constant') {
-    const [value] = props.setpoint.split(' ')[0]
-    if (value === '') {
-      displayValue = ''
-    }
-  }
+  const constantValue = props.constant.split(' ')[0]
+  let displayValue = constantValue == ''? '': props.constant
 
   let color = '#D3D3D3'
-  if (mode === 'constant' && props.setpoint.split(' ')[0] !== '') {
+  if (props.mode === 'constant' && constantValue !== '') {
     color = '#67001a'
-  } else if (mode === 'ramp') {
+  } else if (props.mode === 'ramp') {
     color = '#004e67'
   }
-  else if (mode == 'variable') {
+  else if (props.mode == 'variable') {
     color = '#67001a'
   }
 
@@ -78,23 +49,6 @@ function DACButton (props) {
     textTransform: 'none'
   }
 
-  function changeMode (newMode) {
-    if (newMode === 'ramp') {
-      const newSetpoint = createFunctionalSetpoint('Ramp', ['0 V', '1 V', 100])
-      props.updateSetpoint(newSetpoint)
-    } else if (newMode == 'variable') {
-      const firstVariable = Object.keys(props.variables)[0] || ''
-      props.updateSetpoint(`Var(${firstVariable})`)
-    } else {
-      props.updateSetpoint('')
-    }
-  }
-
-  function updateRamp (field, value) {
-    const newState = updateFunctionalSetpoint(props.setpoint, field, value)
-    props.updateSetpoint(newState)
-  }
-
   return (
     <TableCell component="th" scope="row" key={props.timestep}>
       <Button variant="contained"
@@ -102,9 +56,12 @@ function DACButton (props) {
               style={constantStyle}
               onClick={(event) => setAnchorEl(event.currentTarget)}
               >
-        <Typography style={constantStyle}>
-        {displayValue}
-        </Typography>
+        {props.mode == 'variable'? <LinkIcon/>
+        : props.mode == 'ramp'? <TrendingUpIcon/>
+        : <Typography style={constantStyle}> {displayValue} </Typography>
+
+      }
+
 
       </Button>
       <Popover
@@ -123,14 +80,15 @@ function DACButton (props) {
       <Box p={1}>
         <Box m={1}>
           <ModeSelector label={'Setpoint mode'}
-                        value={mode}
-                        onChange = {(event) => changeMode(event.target.value)}
+                        value={props.mode}
+                        onChange = {(event) => props.updateMode(event.target.value)}
           />
         </Box>
-        {(mode === 'constant')
+
+        {(props.mode === 'constant')
           ? (
             <Box m={1}>
-              <VariableUnitInput value={props.setpoint}
+              <VariableUnitInput value={props.constant}
                                  onChange = {(value) => props.updateSetpoint(value)}
                                  units = {['V', 'mV', 'uV']}
                                  label = 'Setpoint'
@@ -140,20 +98,21 @@ function DACButton (props) {
             )
           : null
       }
-      {mode === 'ramp'
+
+      {props.mode === 'ramp'
         ? (
           <React.Fragment>
           <Box m={1}>
-            <VariableUnitInput value={parseFunctionalSetpoint(props.setpoint).arguments[0]}
-                           onChange = {(value) => updateRamp(0, value)}
+            <VariableUnitInput value={props.ramp.start}
+                           onChange = {props.updateStart}
                            units = {['V', 'mV', 'uV']}
                            label = 'Start'
                            variant = 'outlined'
             />
           </Box>
           <Box m={1}>
-            <VariableUnitInput value={parseFunctionalSetpoint(props.setpoint).arguments[1]}
-                           onChange = {(value) => updateRamp(1, value)}
+            <VariableUnitInput value={props.ramp.stop}
+                           onChange = {props.updateStop}
                            units = {['V', 'mV', 'uV']}
                            label = 'Stop'
                            variant = 'outlined'
@@ -161,8 +120,8 @@ function DACButton (props) {
           </Box>
           <Box m={1}>
             <TextField label='Steps'
-                       value={parseFunctionalSetpoint(props.setpoint).arguments[2]}
-                       onChange={(event) => updateRamp(2, event.target.value)}
+                       value={props.ramp.steps}
+                       onChange={(event) => props.updateSteps(event.target.value)}
                        variant='outlined'
                        InputLabelProps={{ shrink: true }}
             />
@@ -170,14 +129,15 @@ function DACButton (props) {
           </React.Fragment>
           )
         : null}
-        {(mode === 'variable' && Object.keys(props.variables).length > 0)
+
+        {(props.mode === 'variable' && Object.keys(props.variables).length > 0)
           ? (
             <Box m={1}>
               <FormControl>
               <InputLabel shrink={true}> Variable </InputLabel>
               <Select label="Variable"
-                      value={parseFunctionalSetpoint(props.setpoint).arguments[0]}
-                      onChange = {(event) => props.updateSetpoint(updateFunctionalSetpoint(props.setpoint, 0, event.target.value))}>
+                      value={props.variable}
+                      onChange = {(event) => props.updateVariable(event.target.value)}>
                 {Object.keys(props.variables).map((key, index) => (
                   <MenuItem value={key} key={key}>
                     {key}
@@ -189,13 +149,14 @@ function DACButton (props) {
             )
           : null
       }
-      {(mode == 'variable' && Object.keys(props.variables).length == 0)
+
+      {(props.mode == 'variable' && Object.keys(props.variables).length == 0)
         ? (
           <Typography> Define a variable first. </Typography>
         )
         : null
-
     }
+
         </Box>
       </Popover>
     </TableCell>
@@ -206,7 +167,7 @@ DACButton.propTypes = {
   setpoint: PropTypes.string,
   updateSetpoint: PropTypes.func,
   sequenceName: PropTypes.string,
-  ch: PropTypes.number,
+  ch: PropTypes.string,
   board: PropTypes.string,
   timestep: PropTypes.number,
   dispatch: PropTypes.func
@@ -221,17 +182,52 @@ function mapDispatchToProps (dispatch, props) {
   }
 
   return {
+    updateMode: (value) => dispatch({
+      type: 'dac/mode',
+      value: value,
+      path: path
+    }),
+
     updateSetpoint: (value) => dispatch({
       type: 'dac/setpoint',
       value: value,
       path: path
+    }),
+
+    updateStart: (value) => dispatch({
+      type: 'dac/ramp/start',
+      value: value,
+      path: path
+    }),
+
+    updateStop: (value) => dispatch({
+      type: 'dac/ramp/stop',
+      value: value,
+      path: path
+    }),
+
+    updateSteps: (value) => dispatch({
+      type: 'dac/ramp/steps',
+      value: value,
+      path: path
+    }),
+
+    updateVariable: (value) => dispatch({
+      type: 'dac/variable',
+      value: value,
+      path: path
     })
+
   }
 }
 
 function mapStateToProps (state, props) {
+  const channel = state.sequences[props.sequenceName].steps[props.timestep].dac[props.board][props.ch] || {}
   return {
-    setpoint: state.sequences[props.sequenceName].steps[props.timestep].dac[props.board][props.ch] || '',
+    mode: channel.mode,
+    constant: channel.constant,
+    ramp: channel.ramp,
+    variable: channel.variable,
     variables: state.sequences[props.sequenceName].inputs
   }
 }

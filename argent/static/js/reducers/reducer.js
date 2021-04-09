@@ -1,5 +1,6 @@
 import produce from 'immer'
 import { defaultSequence } from '../../index.jsx'
+import { range } from '../utilities.js'
 
 function swap (array, a, b) {
   // Swaps elements with indices a and b of a passed array in place
@@ -10,16 +11,20 @@ function swap (array, a, b) {
 
 export default function reducer (state = [], action) {
   switch (action.type) {
-    case 'adc/changeChannel':
-      return produce(state, draft => {
-        const variable = draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch]
-        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.value] = variable
-        delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch]
-      })
 
     case 'adc/delay':
       return produce(state, draft => {
         draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].delay = action.value
+      })
+
+    case 'adc/duration':
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].duration = action.value
+      })
+
+    case 'adc/samples':
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].samples = action.value
       })
 
     case 'adc/toggle':
@@ -29,12 +34,31 @@ export default function reducer (state = [], action) {
         draft.sequences[sequenceName].steps[action.path.timestep].adc[action.path.board].enable = !enabled
       })
 
-    case 'adc/variable':
+    case 'adc/outputs/add':
       return produce(state, draft => {
-        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch] = action.value
-        if (action.value === '') {
-          delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.path.ch]
-        }
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.value] = {ch: action.path.ch, operation: 'first'}
+      })
+
+    case 'adc/outputs/changeChannel':
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.value].ch = action.path.ch
+      })
+
+    case 'adc/outputs/remove':
+      return produce(state, draft => {
+        delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.value]
+      })
+
+    case 'adc/outputs/replace':
+      return produce(state, draft => {
+        const state = draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.oldOutput]
+        delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.oldOutput]
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.newOutput] = state
+      })
+
+    case 'adc/outputs/operation':
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.variable].operation = action.operation
       })
 
     case 'arguments/update':
@@ -47,15 +71,39 @@ export default function reducer (state = [], action) {
         delete draft.sequences[state.active_sequence].arguments[action.name]
       })
 
+      case 'dac/mode':
+        return produce(state, draft => {
+          draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch].mode = action.value
+        })
+
     case 'dac/setpoint':
       // Update a DAC setpoint for a given timestep and channel. The setpoint string
       // is unitful, e.g. '1 V' or '0.3 mV'. If the value part of the setpoint string
       // is not defined, remove the channel from the timestep's 'dac' field.
       return produce(state, draft => {
-        draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch] = action.value
-        if (action.value.split(' ')[0] === '') {
-          delete draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch]
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch].constant = action.value
+      })
+
+    case 'dac/ramp/start':
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch].ramp.start = action.value
+      })
+
+    case 'dac/ramp/stop':
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch].ramp.stop = action.value
+      })
+
+    case 'dac/ramp/steps':
+      return produce(state, draft => {
+        for (let ch of range(32)) {
+          draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board]['zotino'+action.path.board+ch].ramp.steps = action.value
         }
+      })
+
+    case 'dac/variable':
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch].variable = action.value
       })
 
     case 'dds/attenuation':
@@ -333,8 +381,8 @@ export default function reducer (state = [], action) {
 
     case 'variables/output/update':
       return produce(state, draft => {
-        for (let [key, val] of Object.entries(draft.sequences[state.active_sequence].outputs)) {
-          draft.sequences[state.active_sequence].outputs[key] = action.variables[key]
+        for (let [key, val] of Object.entries(action.variables)) {
+            draft.sequences[state.active_sequence].outputs[key] = action.variables[key]
         }
       })
 

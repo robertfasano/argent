@@ -1,4 +1,5 @@
 ''' Building blocks for code generation '''
+import numpy as np
 
 def Delay(step):
     if 'var' in str(step['duration']):
@@ -36,7 +37,7 @@ class Sampler:
 
     def record(self, variables):
         code = ''
-        for ch, name in variables.items():
+        for name, ch in variables.items():
             code += f'self.{name} = self.data[{ch}]\n'
         return code
 
@@ -96,19 +97,54 @@ class Zotino:
         try:
             return float(voltage_str)
         except ValueError:
-            if 'Var' in voltage_str:
-                variable = voltage_str.replace('Var(', '').replace(')', '')
-                return "self."+variable
             value = float(voltage_str.split(' ')[0])
             unit = voltage_str.split(' ')[1]
             return value * {'V': 1, 'mV': 1e-3, 'uV': 1e-6}[unit]
 
-    def run(self, step):
-        voltages = [self.parse(V) for V in step["dac"][self.board].values()]
-        voltages = str(voltages).replace("'", '')
-        channels = [int(ch) for ch in step["dac"][self.board].keys()]
-        return f'self.{self.board}.set_dac({voltages}, {channels})\n'
+    def initial(self, step):
+        channels = []
+        voltages = []
 
+        for ch, state in step['dac'][self.board].items():
+            if state['mode'] == 'constant' and state['constant'].split(' ')[0] != '':
+                voltages.append(self.parse(state['constant']))
+                channels.append(int(ch.split(self.board)[1]))
+            elif state['mode'] == 'ramp':
+                voltages.append(self.parse(state['ramp']['start']))
+                channels.append(int(ch.split(self.board)[1]))
+            elif state['mode'] == 'variable':
+                voltages.append("self." + state['variable'])
+                channels.append(int(ch.split(self.board)[1]))
+
+        if len(voltages) == 0:
+            return ''
+        return f'self.{self.board}.set_dac({voltages}, {channels})\n'.replace("'", "")
+
+    def ramp(self, step):
+        channels = []
+        ramp = None
+        for ch, state in step['dac'][self.board].items():
+            if state['mode'] != 'ramp':
+                continue
+            channels.append(int(ch.split(self.board)[1]))
+            start = self.parse(state['ramp']['start'])
+            stop = self.parse(state['ramp']['stop'])
+            steps = int(state['ramp']['steps'])
+            if ramp is None:
+                ramp = np.atleast_2d(np.linspace(start, stop, steps)).T
+            else:
+                ramp = np.hstack([ramp, np.atleast_2d(np.linspace(start, stop, steps)).T])
+
+        if ramp is None:
+            return ''
+
+        ramp_cmd = '\n## DAC ramp\n'
+        duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
+        delay = duration / int(state['ramp']['steps'])
+        for voltages in ramp[1::]:
+            ramp_cmd += f'self.delay({delay})\n'
+            ramp_cmd += f'self.{self.board}.set_dac({voltages}, {channels})\n'
+        return ramp_cmd
 
 class TTL:
     ''' A container for code generation related to TTL devices. '''

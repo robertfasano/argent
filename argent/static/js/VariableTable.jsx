@@ -48,10 +48,10 @@ function VariableTable (props) {
     }  }
 
   function deleteInput (name) {
-    if (checkInput(name)) {
-      alert('Cannot delete a variable which is used in the sequence!')
-      return
-    }
+    // if (checkInput(name)) {
+    //   alert('Cannot delete a variable which is used in the sequence!')
+    //   return
+    // }
     props.deleteInput(name)
   }
 
@@ -67,22 +67,22 @@ function VariableTable (props) {
     post('/inputs', props.inputs)
   }
 
-  function checkInput (name) {
-    // Return true if the variable is used in the sequence
-    for (const step of props.sequence.steps) {
-      for (let board of Object.keys(step.dac)) {
-        for (let ch of Object.keys(step.dac[board])) {
-          if (step.dac[board][ch].includes('Var')) {
-            let varName = step.dac[board][ch].replace('Var(', '').replace(')', '')
-            if (name === varName) {
-              return true
-            }
-          }
-        }
-      }
-    }
-    return false
-  }
+  // function checkInput (name) {
+  //   // Return true if the variable is used in the sequence
+  //   for (const step of props.sequence.steps) {
+  //     for (let board of Object.keys(step.dac)) {
+  //       for (let ch of Object.keys(step.dac[board])) {
+  //         if (step.dac[board][ch].includes('Var')) {
+  //           let varName = step.dac[board][ch].replace('Var(', '').replace(')', '')
+  //           if (name === varName) {
+  //             return true
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return false
+  // }
 
   function checkOutput (name) {
     // Return true if the variable is used in the sequence
@@ -97,12 +97,14 @@ function VariableTable (props) {
   }
 
   return (
-    <Box p={2}>
+    <Box pl={2}>
         <Typography style={{ fontSize: 24 }}> <b>Variables</b> </Typography>
-
-
         <Typography style={{ fontSize: 18 }}> <b>Inputs</b> </Typography>
         <Table>
+          <colgroup>
+             <col style={{width:'90%'}}/>
+             <col style={{width:'10%'}}/>
+          </colgroup>
           <TableHead>
             <TableRow>
               <TableCell> Name </TableCell>
@@ -143,6 +145,10 @@ function VariableTable (props) {
 
         <Typography style={{ fontSize: 18 }}> <b>Outputs</b> </Typography>
         <Table>
+          <colgroup>
+             <col style={{width:'90%'}}/>
+             <col style={{width:'10%'}}/>
+          </colgroup>
           <TableHead>
             <TableRow>
               <TableCell> Name </TableCell>

@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+export const range = n => [...Array(n).keys()]
+
 export function get (url, callback) {
   const resp = axios.get(url)
   if (typeof (callback) !== 'undefined') {

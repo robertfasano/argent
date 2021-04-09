@@ -3,6 +3,10 @@ import PropTypes from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Popover from '@material-ui/core/Popover'
 import TableCell from '@material-ui/core/TableCell'
+import TableHead from '@material-ui/core/TableHead'
+import TableBody from '@material-ui/core/TableBody'
+import TableRow from '@material-ui/core/TableRow'
+import Table from '@material-ui/core/Table'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
@@ -21,7 +25,6 @@ import ClearIcon from '@material-ui/icons/Clear';
 import AddIcon from '@material-ui/icons/Add';
 
 function ADCButton (props) {
-
   const [anchorEl, setAnchorEl] = React.useState(null)
   const open = Boolean(anchorEl)
 
@@ -34,9 +37,7 @@ function ADCButton (props) {
     textTransform: 'none'
   }
 
-  const firstUnusedChannel = [...Array(8).keys()].filter(ch => !Object.keys(props.outputs).includes(String(ch)))[0]
-  const firstVariable = Object.keys(props.allOutputs)[0]
-
+  const firstUnusedVariable = Object.keys(props.allOutputs).filter(name => !Object.keys(props.outputs).includes(name))[0]
   return (
     <TableCell component="th" scope="row">
       <Button variant="contained"
@@ -69,54 +70,94 @@ function ADCButton (props) {
                                label = 'Delay'
             />
           </Box>
-          <Typography component="div">
-            <Box m={1} fontWeight="fontWeightBold" fontSize="h6.fontSize">
-              Outputs
-            </Box>
-          </Typography>
-          {Object.keys(props.outputs).map((ch) => (
-            <Box m={1} key={ch}>
-              <Grid container alignItems='flex-start'>
-                <Grid item xs={3}>
-                  <Select label="Channel"
-                          value={ch}
-                          onChange = {(event) => props.changeChannel(event, ch)}
-                          >
-                    {[...Array(8).keys()].map((key, index) => (
-                      <MenuItem value={key} key={key}>
-                        {key}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </Grid>
-                <Grid item xs={4}>
-                  <Select label="Variable"
-                          value={props.outputs[ch] || ''}
-                          onChange = {(event) => props.setVariable(event.target.value, ch)}
-                          >
-                    <MenuItem value={''} key={''}>
-                      {''}
-                    </MenuItem>
-                    {Object.keys(props.allOutputs).map((key, index) => (
-                      <MenuItem value={key} key={key}>
-                        {key}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </Grid>
-                <Grid item xs={5}>
-                  <Button onClick={() => props.setVariable('', ch)}>
-                    <ClearIcon/>
-                  </Button>
-                </Grid>
-            </Grid>
-            </Box>
-          ))}
-          <Button onClick={() => props.newOutput(firstUnusedChannel, firstVariable)}>
-            <AddIcon/>
-          </Button>
-        </Box>
+          <Box m={1}>
+            <VariableUnitInput value={props.duration}
+                               onChange={props.setDuration}
+                               units = {['s', 'ms', 'us']}
+                               label = 'Duration'
+            />
+          </Box>
+          <Box m={1}>
+            <TextField label='Samples'
+                       value={props.samples}
+                       onChange={props.setSamples}
+                       InputLabelProps={{ shrink: true }}
+            />
+          </Box>
 
+        </Box>
+        <Box m={1}>
+          <Typography style={{fontWeight: 'bold', fontSize: 24}}>
+              Outputs
+          </Typography>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell> <Typography style={{fontWeight: "bold"}}> Variable </Typography> </TableCell>
+                <TableCell> <Typography style={{fontWeight: "bold"}}> Channel </Typography> </TableCell>
+                <TableCell> <Typography style={{fontWeight: "bold"}}> Operation </Typography> </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {Object.keys(props.outputs).map((name) => (
+                <TableRow key={name}>
+                  <TableCell>
+                    <Select label="Variable"
+                            value={name || ''}
+                            onChange = {(event) => props.replaceOutput(name, event.target.value)}
+                            >
+                      <MenuItem value={''} key={''}>
+                        {''}
+                      </MenuItem>
+                      {Object.keys(props.allOutputs).map((key, index) => (
+                        <MenuItem value={key} key={key}>
+                          {key}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Select label="Channel"
+                            value={props.outputs[name].ch}
+                            onChange = {(event) => props.changeChannel(event, name)}
+                            >
+                      {[...Array(8).keys()].map((key, index) => (
+                        <MenuItem value={key} key={key}>
+                          {key}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Select label="Operation"
+                            value={props.outputs[name].operation}
+                            onChange={(event) => props.updateOperation(event, name)}
+                            >
+                      {['mean', 'min', 'max', 'first', 'last'].map((key, index) => (
+                        <MenuItem value={key} key={key}>
+                          {key}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Button onClick={() => props.removeOutput(name)}>
+                      <ClearIcon/>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            }
+            <TableRow>
+              <TableCell>
+                <Button onClick={() => props.newOutput(firstUnusedVariable, 0)}>
+                  <AddIcon/>
+                </Button>
+              </TableCell>
+            </TableRow>
+            </TableBody>
+          </Table>
+        </Box>
       </Popover>
     </TableCell>
   )
@@ -140,24 +181,43 @@ function mapDispatchToProps (dispatch, props) {
   }
 
   return {
-    setVariable: (value, ch) => dispatch({
-      type: 'adc/variable',
-      value: value,
-      path: Object.assign(path, {ch: ch})
-    }),
 
-    newOutput: (ch, variable) => {
+    newOutput: (variable, ch) => {
       dispatch({
-        type: 'adc/variable',
+        type: 'adc/outputs/add',
         value: variable,
         path: Object.assign(path, {ch: ch})
       })
     },
 
-    changeChannel: (event, ch) => dispatch({
-      type: 'adc/changeChannel',
-      value: event.target.value,
-      path: Object.assign(path, {ch: ch})
+    removeOutput: (variable) => {
+      dispatch({
+        type: 'adc/outputs/remove',
+        value: variable,
+        path: Object.assign(path)
+      })
+    },
+
+    replaceOutput: (oldOutput, newOutput) => {
+      dispatch({
+        type: 'adc/outputs/replace',
+        oldOutput: oldOutput,
+        newOutput: newOutput,
+        path: Object.assign(path)
+      })
+    },
+
+    changeChannel: (event, name) => dispatch({
+      type: 'adc/outputs/changeChannel',
+      value: name,
+      path: Object.assign(path, {ch: event.target.value})
+    }),
+
+    updateOperation: (event, name) => dispatch({
+      type: 'adc/outputs/operation',
+      operation: event.target.value,
+      variable: name,
+      path: Object.assign(path)
     }),
 
     toggle: () => dispatch({
@@ -168,6 +228,18 @@ function mapDispatchToProps (dispatch, props) {
     setDelay: (value) => dispatch({
       type: 'adc/delay',
       value: value,
+      path: path
+    }),
+
+    setDuration: (value) => dispatch({
+      type: 'adc/duration',
+      value: value,
+      path: path
+    }),
+
+    setSamples: (event) => dispatch({
+      type: 'adc/samples',
+      value: event.target.value,
       path: path
     })
   }
@@ -180,7 +252,9 @@ function mapStateToProps (state, props) {
     delay: channel.delay,
     channel: channel,
     outputs: channel.variables,
-    allOutputs: state.sequences[props.sequenceName].outputs
+    allOutputs: state.sequences[props.sequenceName].outputs,
+    samples: channel.samples || 1,
+    duration: channel.duration || state.sequences[props.sequenceName].steps[props.timestep].duration
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(ADCButton)

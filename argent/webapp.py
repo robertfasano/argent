@@ -99,7 +99,7 @@ class App:
                 elif info['class'] in ['AD9910', 'AD9912']:
                     channel_dict['DDS'].append(key)
                 elif info['class'] == 'Zotino':
-                    channel_dict['DAC'][key] = list(range(32))
+                    channel_dict['DAC'][key] = [key+str(x) for x in range(32)]
                 elif info['class'] == 'Sampler':
                     channel_dict['ADC'].append(key)
                 elif info['class'] == 'CPLD':
