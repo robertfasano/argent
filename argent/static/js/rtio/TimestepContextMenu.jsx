@@ -52,7 +52,7 @@ TimestepContextMenu.propTypes = {
 }
 
 function mapStateToProps (state, props) {
-  return { open: Boolean(props.anchorEl) && props.anchorName === 'timestep' + props.timestep }
+  return { open: Boolean(props.anchorEl) }
 }
 
 function mapDispatchToProps (dispatch, props) {

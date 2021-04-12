@@ -11,7 +11,6 @@ import { connect } from 'react-redux'
 import omitDeep from 'omit-deep-lodash'
 import { v4 as uuidv4 } from 'uuid'
 
-
 function AppMenu (props) {
   const flexContainer = {
     display: 'flex',
@@ -19,16 +18,16 @@ function AppMenu (props) {
     padding: 0
   }
 
-  function submit() {
+  function submit () {
     const pid = uuidv4()
     post('/inputs', props.inputs)
-    post('/submit', {macrosequence: props.macrosequence, pid: pid})
-    props.dispatch({type: 'ui/pid', value: pid})
+    post('/submit', { macrosequence: props.macrosequence, pid: pid })
+    props.dispatch({ type: 'ui/pid', value: pid })
   }
 
-  function generate() {
+  function generate () {
     const pid = uuidv4()
-    post('/generate', {macrosequence: props.macrosequence, pid: pid})
+    post('/generate', { macrosequence: props.macrosequence, pid: pid })
   }
 
   return (
@@ -57,37 +56,23 @@ function mapStateToProps (state, ownProps) {
   const inactiveTTLs = state.channels.TTL.filter(e => !state.ui.channels.TTL.includes(e))
   const inactiveDDS = state.channels.DDS.filter(e => !state.ui.channels.DDS.includes(e))
   let inactiveDACs = []
-  for (let board of Object.keys(state.channels.DAC)) {
+  for (const board of Object.keys(state.channels.DAC)) {
     inactiveDACs = [...inactiveDACs, ...state.channels.DAC[board].filter(e => !state.ui.channels.DAC[board].includes(e))]
   }
-  const inactiveChannels =[...inactiveTTLs, ...inactiveDDS, ...inactiveDACs]
-  
-  const macrosequence = []
-
-  if (ownProps.tableChoice === 'master') {
-    for (const stage of state.macrosequence) {
-      macrosequence.push({
-        name: stage.name,
-        reps: stage.reps,
-        sequence: omitDeep(state.sequences[stage.name], ...inactiveChannels)
-      })
-    }
-  } else {
-    const sequence = omitDeep(state.sequences[state.active_sequence], ...inactiveChannels)
-    macrosequence.push({ name: state.active_sequence, reps: 1, sequence: sequence })
-  }
+  const inactiveChannels = [...inactiveTTLs, ...inactiveDDS, ...inactiveDACs]
+  const sequence = omitDeep(state.sequences[state.active_sequence], ...inactiveChannels)
+  const macrosequence = [{ name: state.active_sequence, reps: 1, sequence: sequence }]
 
   return {
-    sequence: state.sequences[state.active_sequence],
     macrosequence: macrosequence,
-    channels: state.channels,
-    ui: state.ui,
     inputs: state.sequences[state.active_sequence].inputs
   }
 }
 
 AppMenu.propTypes = {
-  macrosequence: PropTypes.array
+  macrosequence: PropTypes.array,
+  inputs: PropTypes.object,
+  dispatch: PropTypes.func
 }
 
 export default connect(mapStateToProps)(AppMenu)

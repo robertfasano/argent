@@ -13,14 +13,14 @@ function ChannelMenu (props) {
   }
 
   const dispatch = (type) => {
-    props.dispatch({ type: type, channel: props.channel, channel_type: props.type, board: props.board })
+    props.dispatch({ type: type, channel: props.anchorName, channel_type: props.anchorType, board: props.anchorBoard })
     handleClose()
   }
 
   return (
       <Menu
         anchorEl={props.anchorEl}
-        open={Boolean(props.anchorEl) && (props.anchorName === props.channel)}
+        open={Boolean(props.anchorEl)}
         onClose={handleClose}
         anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
@@ -43,9 +43,10 @@ ChannelMenu.propTypes = {
   anchorEl: PropTypes.object,
   setAnchorEl: PropTypes.func,
   anchorName: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  channel: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   type: PropTypes.string,
-  dispatch: PropTypes.func
+  dispatch: PropTypes.func,
+  anchorType: PropTypes.string,
+  anchorBoard: PropTypes.string
 }
 
 function mapStateToProps (state, ownProps) {

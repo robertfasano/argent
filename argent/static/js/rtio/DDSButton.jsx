@@ -4,7 +4,6 @@ import Button from '@material-ui/core/Button'
 import Popover from '@material-ui/core/Popover'
 import TableCell from '@material-ui/core/TableCell'
 import Box from '@material-ui/core/Box'
-import Switch from '@material-ui/core/Switch'
 import Typography from '@material-ui/core/Typography'
 import FixedUnitInput from '../components/FixedUnitInput.jsx'
 import { connect } from 'react-redux'
@@ -21,7 +20,7 @@ function DDSButton (props) {
   const style = {
     background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
     opacity: 1,
-    color: props.enable? 'white': 'black',
+    color: props.enable ? 'white' : 'black',
     fontSize: 10,
     textTransform: 'none'
   }
@@ -40,7 +39,7 @@ function DDSButton (props) {
               onClick={props.toggleSwitch}
               >
         <Typography style={style}>
-          {props.frequency === ''? '' : props.frequency + ' MHz'}
+          {props.frequency === '' ? '' : props.frequency + ' MHz'}
         </Typography>
       </Button>
       <Popover
@@ -57,7 +56,7 @@ function DDSButton (props) {
         }}
       >
           <Box p={1}>
-          <Typography style={{fontWeight: 'bold', fontSize: 24}}>
+          <Typography style={{ fontWeight: 'bold', fontSize: 24 }}>
               DDS options
           </Typography>
           <Box m={1}>
@@ -65,7 +64,7 @@ function DDSButton (props) {
                                onChange = {props.updateFrequency}
                                unit = 'MHz'
                                label='Frequency'
-                               style={{width: '100%'}}
+                               style={{ width: '100%' }}
             />
           </Box>
           <Box m={1}>
@@ -73,7 +72,7 @@ function DDSButton (props) {
                                onChange = {props.updateAttenuation}
                                unit = 'dB'
                                label='Attenuation'
-                               style={{width: '100%'}}
+                               style={{ width: '100%' }}
             />
           </Box>
           </Box>

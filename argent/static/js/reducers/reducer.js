@@ -11,7 +11,6 @@ function swap (array, a, b) {
 
 export default function reducer (state = [], action) {
   switch (action.type) {
-
     case 'adc/delay':
       return produce(state, draft => {
         draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].delay = action.value
@@ -36,7 +35,7 @@ export default function reducer (state = [], action) {
 
     case 'adc/outputs/add':
       return produce(state, draft => {
-        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.value] = {ch: action.path.ch, operation: 'first'}
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].adc[action.path.board].variables[action.value] = { ch: action.path.ch, operation: 'first' }
       })
 
     case 'adc/outputs/changeChannel':
@@ -71,10 +70,10 @@ export default function reducer (state = [], action) {
         delete draft.sequences[state.active_sequence].arguments[action.name]
       })
 
-      case 'dac/mode':
-        return produce(state, draft => {
-          draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch].mode = action.value
-        })
+    case 'dac/mode':
+      return produce(state, draft => {
+        draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board][action.path.ch].mode = action.value
+      })
 
     case 'dac/setpoint':
       // Update a DAC setpoint for a given timestep and channel. The setpoint string
@@ -96,8 +95,8 @@ export default function reducer (state = [], action) {
 
     case 'dac/ramp/steps':
       return produce(state, draft => {
-        for (let ch of range(32)) {
-          draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board]['zotino'+action.path.board+ch].ramp.steps = action.value
+        for (const ch of range(32)) {
+          draft.sequences[action.path.sequenceName].steps[action.path.timestep].dac[action.path.board]['zotino' + action.path.board + ch].ramp.steps = action.value
         }
       })
 
@@ -265,11 +264,9 @@ export default function reducer (state = [], action) {
       // DDS rf switches will preserve the previous state, but no other states
       // will be updated by default.
       return produce(state, draft => {
-
         const sequenceName = action.sequenceName || state.active_sequence
         const newTimestep = defaultSequence(state.channels)[0]
-        const previousIndex = Math.max(action.timestep-1, 0)
-        const previousTimestep = state.sequences[sequenceName].steps[previousIndex]
+        const previousTimestep = state.sequences[sequenceName].steps[action.timestep]
         for (const ch of Object.keys(previousTimestep.ttl)) {
           newTimestep.ttl[ch] = previousTimestep.ttl[ch]
         }
@@ -316,52 +313,61 @@ export default function reducer (state = [], action) {
         const newChannels = []
         let oldChannels = state.ui.channels[action.channelType]
         let allChannels = state.channels[action.channelType]
-        if (typeof(action.board) != 'undefined') {
+        if (typeof (action.board) !== 'undefined') {
           oldChannels = oldChannels[action.board]
           allChannels = allChannels[action.board]
         }
         for (const ch of allChannels) {
-          if (ch == action.channel || oldChannels.includes(ch)) {
+          if (ch === action.channel || oldChannels.includes(ch)) {
             newChannels.push(ch)
           }
         }
-        if (typeof(action.board) == 'undefined') {
+        if (typeof (action.board) === 'undefined') {
           draft.ui.channels[action.channelType] = newChannels
-        }
-        else {
+        } else {
           draft.ui.channels[action.channelType][action.board] = newChannels
         }
 
         // if the channel is a boolean type (e.g. TTL, DDS enable), set to false in all timesteps and all channels
-        if (action.channelType == 'TTL') {
+        if (action.channelType === 'TTL') {
           for (const [name, sequence] of Object.entries(state.sequences)) {
             // console.log(name, sequence)
             for (const [index, step] of sequence.steps.entries()) {
-              let channelState = state.sequences[name].steps[index].ttl[action.channel]
+              const channelState = step.ttl[action.channel]
               draft.sequences[name].steps[index].ttl[action.channel] = channelState || false
             }
           }
         }
 
-        if (action.channelType == 'DDS') {
+        if (action.channelType === 'DDS') {
           for (const [name, sequence] of Object.entries(state.sequences)) {
             // console.log(name, sequence)
             for (const [index, step] of sequence.steps.entries()) {
-              let channelState = state.sequences[name].steps[index].dds[action.channel]
-              draft.sequences[name].steps[index].dds[action.channel] =  channelState || {enable: false}
+              const channelState = step.dds[action.channel]
+              draft.sequences[name].steps[index].dds[action.channel] = channelState || { enable: false }
             }
           }
         }
 
+        // initialize DAC channels to a default value if not yet present
+        if (action.channelType === 'DAC') {
+          const defaultState = { mode: 'constant', constant: ' V', ramp: { start: ' V', stop: ' V', steps: 100 }, variable: '' }
+
+          for (const [name, sequence] of Object.entries(state.sequences)) {
+            for (const [index, step] of sequence.steps.entries()) {
+              const channelState = step.dac[action.board][action.channel]
+              draft.sequences[name].steps[index].dac[action.board][action.channel] = channelState || defaultState
+            }
+          }
+        }
       })
 
     case 'ui/setInactive':
       // Designate a channel as inactive.
       return produce(state, draft => {
-        if (typeof(action.board) == 'undefined') {
+        if (typeof (action.board) === 'undefined') {
           draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e !== action.channel)
-        }
-        else {
+        } else {
           draft.ui.channels[action.channel_type][action.board] = draft.ui.channels[action.channel_type][action.board].filter(e => e !== action.channel)
         }
       })
@@ -381,8 +387,8 @@ export default function reducer (state = [], action) {
 
     case 'variables/output/update':
       return produce(state, draft => {
-        for (let [key, val] of Object.entries(action.variables)) {
-            draft.sequences[state.active_sequence].outputs[key] = action.variables[key]
+        for (const [key, val] of Object.entries(action.variables)) {
+          draft.sequences[state.active_sequence].outputs[key] = val
         }
       })
 

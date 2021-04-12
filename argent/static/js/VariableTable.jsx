@@ -6,32 +6,14 @@ import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
-import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
-import IconButton from '@material-ui/core/IconButton'
 import { connect } from 'react-redux'
 import { post } from './utilities.js'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import ExpandLessIcon from '@material-ui/icons/ExpandLess'
-import TTLButton from './rtio/TTLButton.jsx'
-import VariableUnitInput from './components/VariableUnitInput.jsx'
-import MacroContextMenu from './MacroContextMenu.jsx'
-import TimestepContextMenu from './rtio/TimestepContextMenu.jsx'
 import Button from '@material-ui/core/Button'
 import AddIcon from '@material-ui/icons/Add'
-import Select from '@material-ui/core/Select'
-import MenuItem from '@material-ui/core/MenuItem'
-import DACButton from './rtio/DACButton.jsx'
-import ADCButton from './rtio/ADCButton.jsx'
-import DDSButton from './rtio/DDSButton.jsx'
-import ChannelMenu from './rtio/ChannelMenu.jsx'
-import NewChannelButton from './rtio/NewChannelButton.jsx'
-import ClearIcon from '@material-ui/icons/Clear';
-import SendIcon from '@material-ui/icons/Send';
+import ClearIcon from '@material-ui/icons/Clear'
+import SendIcon from '@material-ui/icons/Send'
 
 function VariableTable (props) {
   function addInput () {
@@ -45,7 +27,8 @@ function VariableTable (props) {
     const name = prompt('New variable name:')
     if (name !== null) {
       props.updateOutput(name, '')
-    }  }
+    }
+  }
 
   function deleteInput (name) {
     // if (checkInput(name)) {
@@ -87,9 +70,9 @@ function VariableTable (props) {
   function checkOutput (name) {
     // Return true if the variable is used in the sequence
     for (const step of props.sequence.steps) {
-      for (let board of Object.keys(step.adc)) {
+      for (const board of Object.keys(step.adc)) {
         if (Object.values(step.adc[board].variables || {}).includes(name)) {
-            return true
+          return true
         }
       }
     }
@@ -102,8 +85,8 @@ function VariableTable (props) {
         <Typography style={{ fontSize: 18 }}> <b>Inputs</b> </Typography>
         <Table>
           <colgroup>
-             <col style={{width:'90%'}}/>
-             <col style={{width:'10%'}}/>
+             <col style={{ width: '90%' }}/>
+             <col style={{ width: '10%' }}/>
           </colgroup>
           <TableHead>
             <TableRow>
@@ -142,12 +125,11 @@ function VariableTable (props) {
           </TableBody>
         </Table>
 
-
         <Typography style={{ fontSize: 18 }}> <b>Outputs</b> </Typography>
         <Table>
           <colgroup>
-             <col style={{width:'90%'}}/>
-             <col style={{width:'10%'}}/>
+             <col style={{ width: '90%' }}/>
+             <col style={{ width: '10%' }}/>
           </colgroup>
           <TableHead>
             <TableRow>
@@ -185,16 +167,21 @@ function VariableTable (props) {
 }
 
 VariableTable.propTypes = {
+  sequence: PropTypes.object,
   inputs: PropTypes.object,
-  updateInput: PropTypes.func
+  updateInput: PropTypes.func,
+  deleteInput: PropTypes.func,
+  outputs: PropTypes.object,
+  deleteOutput: PropTypes.func,
+  updateOutput: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
   return {
-    updateInput: (name, value) => dispatch({type: 'variables/input/update', name: name, value: value}),
-    updateOutput: (name, value) => dispatch({type: 'variables/output/update', variables: Object.fromEntries([[name, value]])}),
-    deleteInput: (name) => dispatch({type: 'variables/input/delete', name: name}),
-    deleteOutput: (name) => dispatch({type: 'variables/output/delete', name: name})
+    updateInput: (name, value) => dispatch({ type: 'variables/input/update', name: name, value: value }),
+    updateOutput: (name, value) => dispatch({ type: 'variables/output/update', variables: Object.fromEntries([[name, value]]) }),
+    deleteInput: (name) => dispatch({ type: 'variables/input/delete', name: name }),
+    deleteOutput: (name) => dispatch({ type: 'variables/output/delete', name: name })
   }
 }
 function mapStateToProps (state, props) {

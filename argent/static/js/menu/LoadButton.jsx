@@ -29,7 +29,6 @@ function LoadButton (props) {
         for (const ch of Object.keys(step.dds)) {
           if (!(props.channels.DDS.includes(ch))) {
             props.dispatch({ type: 'ui/setActive', channelType: 'DDS', channel: ch })
-
           }
         }
 
@@ -37,11 +36,9 @@ function LoadButton (props) {
           for (const ch of Object.keys(step.dac[board])) {
             if (!(props.channels.DAC[board].includes(ch))) {
               props.dispatch({ type: 'ui/setActive', channelType: 'DAC', channel: ch, board: board })
-
             }
           }
         }
-
       }
     }
   }

@@ -43,6 +43,7 @@ VariableUnitInput.propTypes = {
   variant: PropTypes.string,
   size: PropTypes.string,
   placeholder: PropTypes.string,
-  units: PropTypes.array
+  units: PropTypes.array,
+  style: PropTypes.object
 }
 export default VariableUnitInput

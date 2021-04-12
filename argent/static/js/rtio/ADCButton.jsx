@@ -12,23 +12,17 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import VariableUnitInput from '../components/VariableUnitInput.jsx'
 import TextField from '@material-ui/core/TextField'
-import ModeSelector from '../ModeSelector.jsx'
-import Switch from '@material-ui/core/Switch'
-import InputAdornment from '@material-ui/core/InputAdornment'
 import { connect } from 'react-redux'
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-import InputLabel from '@material-ui/core/InputLabel';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import FormControl from '@material-ui/core/FormControl';
-import ClearIcon from '@material-ui/icons/Clear';
-import AddIcon from '@material-ui/icons/Add';
+import Select from '@material-ui/core/Select'
+import MenuItem from '@material-ui/core/MenuItem'
+import ClearIcon from '@material-ui/icons/Clear'
+import AddIcon from '@material-ui/icons/Add'
 
 function ADCButton (props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
   const open = Boolean(anchorEl)
 
-  const color = props.enable? '#67001a' : '#D3D3D3'
+  const color = props.enable ? '#67001a' : '#D3D3D3'
 
   const style = {
     background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
@@ -67,7 +61,7 @@ function ADCButton (props) {
         }}
       >
         <Box p={1}>
-          <Typography style={{fontWeight: 'bold', fontSize: 24}}>
+          <Typography style={{ fontWeight: 'bold', fontSize: 24 }}>
               ADC options
           </Typography>
           <Box m={1}>
@@ -94,9 +88,9 @@ function ADCButton (props) {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell> <Typography style={{fontWeight: "bold"}}> Variable </Typography> </TableCell>
-                <TableCell> <Typography style={{fontWeight: "bold"}}> Channel </Typography> </TableCell>
-                <TableCell> <Typography style={{fontWeight: "bold"}}> Operation </Typography> </TableCell>
+                <TableCell> <Typography style={{ fontWeight: 'bold' }}> Variable </Typography> </TableCell>
+                <TableCell> <Typography style={{ fontWeight: 'bold' }}> Channel </Typography> </TableCell>
+                <TableCell> <Typography style={{ fontWeight: 'bold' }}> Operation </Typography> </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -106,7 +100,7 @@ function ADCButton (props) {
                     <Select label="Variable"
                             value={name || ''}
                             onChange = {(event) => props.replaceOutput(name, event.target.value)}
-                            style={{width: '100%'}}
+                            style={{ width: '100%' }}
                             >
                       <MenuItem value={''} key={''}>
                         {''}
@@ -122,7 +116,7 @@ function ADCButton (props) {
                     <Select label="Channel"
                             value={props.outputs[name].ch}
                             onChange = {(event) => props.changeChannel(event, name)}
-                            style={{width: '100%'}}
+                            style={{ width: '100%' }}
                             >
                       {[...Array(8).keys()].map((key, index) => (
                         <MenuItem value={key} key={key}>
@@ -135,7 +129,7 @@ function ADCButton (props) {
                     <Select label="Operation"
                             value={props.outputs[name].operation}
                             onChange={(event) => props.updateOperation(event, name)}
-                            style={{width: '100%'}}
+                            style={{ width: '100%' }}
                             >
                       {['mean', 'min', 'max', 'first', 'last'].map((key, index) => (
                         <MenuItem value={key} key={key}>
@@ -171,10 +165,18 @@ ADCButton.propTypes = {
   enable: PropTypes.bool,
   delay: PropTypes.string,
   toggle: PropTypes.func,
-  setDelay: PropTypes.func,
   channel: PropTypes.object,
   changeChannel: PropTypes.func,
-  newOutput: PropTypes.func
+  newOutput: PropTypes.func,
+  outputs: PropTypes.object,
+  allOutputs: PropTypes.object,
+  removeOutput: PropTypes.func,
+  updateOperation: PropTypes.func,
+  replaceOutput: PropTypes.func,
+  duration: PropTypes.string,
+  setDuration: PropTypes.func,
+  samples: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  setSamples: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -190,7 +192,7 @@ function mapDispatchToProps (dispatch, props) {
       dispatch({
         type: 'adc/outputs/add',
         value: variable,
-        path: Object.assign(path, {ch: ch})
+        path: Object.assign(path, { ch: ch })
       })
     },
 
@@ -214,7 +216,7 @@ function mapDispatchToProps (dispatch, props) {
     changeChannel: (event, name) => dispatch({
       type: 'adc/outputs/changeChannel',
       value: name,
-      path: Object.assign(path, {ch: event.target.value})
+      path: Object.assign(path, { ch: event.target.value })
     }),
 
     updateOperation: (event, name) => dispatch({
@@ -226,12 +228,6 @@ function mapDispatchToProps (dispatch, props) {
 
     toggle: () => dispatch({
       type: 'adc/toggle',
-      path: path
-    }),
-
-    setDelay: (value) => dispatch({
-      type: 'adc/delay',
-      value: value,
       path: path
     }),
 

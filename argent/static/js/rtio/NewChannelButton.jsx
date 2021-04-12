@@ -13,7 +13,7 @@ function NewChannelButton (props) {
   // inactive channels to choose from and a Button to add the selected channel.
   const [channel, setChannel] = React.useState(props.inactiveChannels[0])
   function addChannel (ch) {
-    props.dispatch({ type: 'ui/setActive', channelType: props.channelType, channel: channel, board: props.board})
+    props.dispatch({ type: 'ui/setActive', channelType: props.channelType, channel: channel, board: props.board })
     const suggestion = props.inactiveChannels.filter(ch => ch !== channel)[0]
     setChannel(suggestion)
   }
@@ -22,7 +22,7 @@ function NewChannelButton (props) {
     setChannel(props.inactiveChannels[0])
   }
   return (
-    <TableRow key={"new-"+props.channelType}>
+    <TableRow key={'new-' + props.channelType}>
     <TableCell>
       <Select value={channel}
               width='100%'
@@ -52,20 +52,20 @@ NewChannelButton.propTypes = {
   inactiveChannels: PropTypes.array,
   channelType: PropTypes.string,
   aliases: PropTypes.object,
-  dispatch: PropTypes.func
+  dispatch: PropTypes.func,
+  board: PropTypes.string
 }
 
 function mapStateToProps (state, props) {
   let inactiveChannels = []
-  if (typeof(props.board) != 'undefined') {
+  if (typeof (props.board) !== 'undefined') {
     inactiveChannels = state.channels[props.channelType][props.board].filter(ch => !state.ui.channels[props.channelType][props.board].includes(ch))
-  }
-  else {
+  } else {
     inactiveChannels = state.channels[props.channelType].filter(ch => !state.ui.channels[props.channelType].includes(ch))
   }
 
   let aliases = state.aliases[props.channelType]
-  if (typeof(props.board) != 'undefined') {
+  if (typeof (props.board) !== 'undefined') {
     aliases = aliases[props.board]
   }
   return {

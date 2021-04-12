@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { defaultMemoize } from 'reselect'
 
 export const range = n => [...Array(n).keys()]
 
@@ -19,9 +20,6 @@ export function post (url, payload = {}, callback = (response) => null) {
     resp.then((response) => callback(response.data))
   }
 }
-
-
-import { defaultMemoize } from 'reselect';
 
 const createMemoizeArray = (array) => {
   const memArray = defaultMemoize((...array) => array)

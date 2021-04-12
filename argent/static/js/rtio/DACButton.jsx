@@ -9,15 +9,13 @@ import Typography from '@material-ui/core/Typography'
 import VariableUnitInput from '../components/VariableUnitInput.jsx'
 import TextField from '@material-ui/core/TextField'
 import ModeSelector from '../ModeSelector.jsx'
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-import InputLabel from '@material-ui/core/InputLabel';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import FormControl from '@material-ui/core/FormControl';
-import LinkIcon from '@material-ui/icons/Link';
-import TrendingUpIcon from '@material-ui/icons/TrendingUp';
+import Select from '@material-ui/core/Select'
+import MenuItem from '@material-ui/core/MenuItem'
+import InputLabel from '@material-ui/core/InputLabel'
+import FormControl from '@material-ui/core/FormControl'
+import LinkIcon from '@material-ui/icons/Link'
+import TrendingUpIcon from '@material-ui/icons/TrendingUp'
 import { connect } from 'react-redux'
-
 
 function DACButton (props) {
   // A Button which opens a Popover allowing the user to define the state of a
@@ -30,15 +28,14 @@ function DACButton (props) {
   const open = Boolean(anchorEl)
 
   const constantValue = props.constant.split(' ')[0]
-  let displayValue = constantValue == ''? '': props.constant
+  const displayValue = constantValue === '' ? '' : props.constant
 
   let color = '#D3D3D3'
   if (props.mode === 'constant' && constantValue !== '') {
     color = '#67001a'
   } else if (props.mode === 'ramp') {
     color = '#004e67'
-  }
-  else if (props.mode == 'variable') {
+  } else if (props.mode === 'variable') {
     color = '#67001a'
   }
 
@@ -62,13 +59,12 @@ function DACButton (props) {
               style={constantStyle}
               onContextMenu={handleContextMenu}
               >
-        {props.mode == 'variable'? <LinkIcon/>
-        : props.mode == 'ramp'? <TrendingUpIcon/>
-        : <Typography style={constantStyle}> {displayValue} </Typography>
-
+        {props.mode === 'variable'
+          ? <LinkIcon/>
+          : props.mode === 'ramp'
+            ? <TrendingUpIcon/>
+            : <Typography style={constantStyle}> {displayValue} </Typography>
       }
-
-
       </Button>
       <Popover
         open={open}
@@ -84,7 +80,7 @@ function DACButton (props) {
         }}
       >
       <Box p={1}>
-        <Typography style={{fontWeight: 'bold', fontSize: 24}}>
+        <Typography style={{ fontWeight: 'bold', fontSize: 24 }}>
             DAC options
         </Typography>
         <Box m={1}>
@@ -101,7 +97,7 @@ function DACButton (props) {
                                  onChange = {(value) => props.updateSetpoint(value)}
                                  units = {['V', 'mV', 'uV']}
                                  label = 'Setpoint'
-                                 style={{width: '100%'}}
+                                 style={{ width: '100%' }}
               />
             </Box>
 
@@ -112,7 +108,7 @@ function DACButton (props) {
       {props.mode === 'ramp'
         ? (
           <React.Fragment>
-          <Grid container spacing={1}  style={{width: '300px'}}>
+          <Grid container spacing={1} style={{ width: '300px' }}>
           <Grid item xs={4}>
             <VariableUnitInput value={props.ramp.start}
                            onChange = {props.updateStart}
@@ -147,7 +143,7 @@ function DACButton (props) {
               <Select label="Variable"
                       value={props.variable}
                       onChange = {(event) => props.updateVariable(event.target.value)}
-                      style={{width: '300px'}}
+                      style={{ width: '300px' }}
                       >
                 {Object.keys(props.variables).map((key, index) => (
                   <MenuItem value={key} key={key}>
@@ -161,10 +157,10 @@ function DACButton (props) {
           : null
       }
 
-      {(props.mode == 'variable' && Object.keys(props.variables).length == 0)
+      {(props.mode === 'variable' && Object.keys(props.variables).length === 0)
         ? (
           <Typography> Define a variable first. </Typography>
-        )
+          )
         : null
     }
 
@@ -176,12 +172,21 @@ function DACButton (props) {
 
 DACButton.propTypes = {
   setpoint: PropTypes.string,
-  updateSetpoint: PropTypes.func,
-  sequenceName: PropTypes.string,
   ch: PropTypes.string,
   board: PropTypes.string,
   timestep: PropTypes.number,
-  dispatch: PropTypes.func
+  dispatch: PropTypes.func,
+  constant: PropTypes.string,
+  ramp: PropTypes.object,
+  variable: PropTypes.string,
+  mode: PropTypes.string,
+  variables: PropTypes.object,
+  updateMode: PropTypes.func,
+  updateSetpoint: PropTypes.func,
+  updateStart: PropTypes.func,
+  updateStop: PropTypes.func,
+  updateSteps: PropTypes.func,
+  updateVariable: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
