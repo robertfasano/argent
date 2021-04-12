@@ -1,131 +1,104 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import reducer from './js/reducers/reducer.js'
-import {compose, createStore, applyMiddleWare } from 'redux'
+import { compose, createStore } from 'redux'
 import persistState from 'redux-localstorage'
 import { Provider } from 'react-redux'
 import { ThemeProvider } from '@material-ui/core'
-import { createMuiTheme } from '@material-ui/core/styles';
 import App from './js/App.jsx'
 import { range } from './js/utilities.js'
-const cellWidth = '80px'
-const cellHeight = '30px'
+import theme from './theme.js'
 
-const theme = createMuiTheme({
-  palette: {
-    secondary: {main: "#67001a"},
-    primary: {main: "#004e67"}
-    },
-    overrides: {
-        MuiTableCell: {
-            root: {  //This can be referred from Material UI API documentation.
-                width: cellWidth,
-                height: cellHeight,
-                minWidth: cellWidth,
-                minHeight: cellHeight,
-                borderBottom: false,
-                padding: '2px 1px 2px 1px'
-            },
-        },
-        MuiButton: {
-          root: {
-            padding: 'none',
-            width: cellWidth,
-            height: cellHeight,
-          }
-        }
-    },
-});
-
-export function defaultSequence(channels) {
-  const default_timestep = {'duration': '1 s',
-                            'ttl': {},
-                            'dac': {},
-                            'dds': {},
-                            'adc': {}
-                           }
-
-  for (let channel of channels.TTL) {
-    default_timestep['ttl'][channel] = false
+export function defaultSequence (channels) {
+  const defaultTimestep = {
+    duration: '1 s',
+    ttl: {},
+    dac: {},
+    dds: {},
+    adc: {}
   }
 
-  for (let board of Object.keys(channels.DAC)) {
-    default_timestep.dac[board] = {}
-    for (let ch of range(32)) {
-      default_timestep.dac[board][board+ch] = {mode: 'constant', constant: ' V', ramp: {start: ' V', stop: ' V', steps: 100}, variable: ''}
+  for (const channel of channels.TTL) {
+    defaultTimestep.ttl[channel] = false
+  }
+
+  for (const board of Object.keys(channels.DAC)) {
+    defaultTimestep.dac[board] = {}
+    for (const ch of range(32)) {
+      defaultTimestep.dac[board][board + ch] = { mode: 'constant', constant: ' V', ramp: { start: ' V', stop: ' V', steps: 100 }, variable: '' }
     }
   }
 
-  for (let ch of channels.DDS) {
-    default_timestep['dds'][ch] = {'enable': false}
+  for (const ch of channels.DDS) {
+    defaultTimestep.dds[ch] = { enable: false }
   }
 
-  for (let board of channels.ADC) {
-    default_timestep['adc'][board] = {enable: false, variables: {}, delay: '0 s', samples: 1, duration: '1 s'}
+  for (const board of channels.ADC) {
+    defaultTimestep.adc[board] = { enable: false, variables: {}, delay: '0 s', samples: 1, duration: '1 s' }
   }
 
-
-  return [default_timestep]
+  return [defaultTimestep]
 }
 
-function prepareAliases(channels, aliases) {
+function prepareAliases (channels, aliases) {
   // Prepare the display names of channels by merging user inputs from config.yml
   // with default channel names
-  let mergedAliases = {'TTL': {}, 'DAC': {}, 'DDS': {}}
+  const mergedAliases = { TTL: {}, DAC: {}, DDS: {} }
 
   aliases.ttl = aliases.ttl || {}
-  for (let ch of channels.TTL) {
+  for (const ch of channels.TTL) {
     mergedAliases.TTL[ch] = aliases.ttl[ch] || ch
   }
 
   aliases.dac = aliases.dac || {}
-  for (let board of Object.keys(channels.DAC)) {
+  for (const board of Object.keys(channels.DAC)) {
     mergedAliases.DAC[board] = {}
-    for (let ch of channels.DAC[board]) {
+    for (const ch of channels.DAC[board]) {
       mergedAliases.DAC[board][ch] = aliases.dac[board][ch] || ch
     }
   }
 
   aliases.dds = aliases.dds || {}
-  for (let ch of channels.DDS) {
+  for (const ch of channels.DDS) {
     mergedAliases.DDS[ch] = aliases.dds[ch] || ch
   }
 
   return mergedAliases
 }
 
-function initializeState(channels, sequences, aliases, version) {
-  let state = {}
-  state['channels'] = channels
-  state['sequences'] = sequences
-  state['sequences'] = {'new sequence': {steps: defaultSequence(channels), inputs: {}, arguments: {}, outputs: {}}}
-  state['active_sequence'] = 'new sequence'
-  state['macrosequence'] = [{name: 'new sequence', reps: 1}]
+function initializeState (channels, sequences, aliases, version) {
+  const state = {}
+  state.channels = channels
+  state.sequences = sequences
+  state.sequences = { 'new sequence': { steps: defaultSequence(channels), inputs: {}, arguments: {}, outputs: {} } }
+  state.active_sequence = 'new sequence'
+  state.macrosequence = [{ name: 'new sequence', reps: 1 }]
 
-  let activeDACChannels = {}
-  for (let board of Object.keys(state.channels.DAC)) {
+  const activeDACChannels = {}
+  for (const board of Object.keys(state.channels.DAC)) {
     activeDACChannels[board] = []
   }
 
-  state['ui'] = {channels: {'TTL': [],
-                            'DAC': activeDACChannels,
-                            'DDS': [],
-                            'ADC': state.channels.ADC},
-                 heartbeat: false,
-                 pid: {active: null, submitted: null}
-                }
+  state.ui = {
+    channels: {
+      TTL: [],
+      DAC: activeDACChannels,
+      DDS: [],
+      ADC: state.channels.ADC
+    },
+    heartbeat: false,
+    pid: { active: null, submitted: null }
+  }
 
-  state['aliases'] = prepareAliases(channels, aliases)
-  state['version'] = version
+  state.aliases = prepareAliases(channels, aliases)
+  state.version = version
   return state
-
 }
 
-
-export function createGUI(sequences, channels, aliases, version) {
+export function createGUI (sequences, channels, aliases, version) {
   sequences = JSON.parse(sequences)
   const state = initializeState(channels, sequences, aliases, version)
-  const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+  const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
   const enhancer = composeEnhancers(persistState(['sequences', 'channels', 'active_sequence', 'macrosequence', 'ui']))
   const store = createStore(reducer, state, enhancer)
 
@@ -133,5 +106,5 @@ export function createGUI(sequences, channels, aliases, version) {
                     <ThemeProvider theme={theme}>
                       <App/>
                     </ThemeProvider>
-                  </Provider>, document.getElementById("root"))
+                  </Provider>, document.getElementById('root'))
 }
