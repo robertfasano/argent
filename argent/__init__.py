@@ -27,4 +27,5 @@ class Configurator:
         config[field] = new_value
         self.save(config)
 
+from .api_client import Client
 # from .generator.generator import run
