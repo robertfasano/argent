@@ -1,6 +1,7 @@
+''' Convenience functions for array operations and ADC conversion '''
 @kernel
-def convert(val):
-    return adc_mu_to_volt(val)
+def convert(val, calibration=1.024):
+    return calibration*adc_mu_to_volt(val)
 
 @kernel
 def array_sum(array, ch):
