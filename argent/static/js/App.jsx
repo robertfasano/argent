@@ -37,9 +37,8 @@ function App (props) {
 
     socket.on('heartbeat', (data) => {
       props.dispatch({ type: 'ui/heartbeat', pid: data.pid })
-      get('/outputs', (result) => {
-        delete result.__pid__
-        props.dispatch({ type: 'variables/output/update', variables: result })
+      get('/results', (result) => {
+        props.dispatch({ type: 'variables/output/update', variables: result.outputs })
       })
     })
   },

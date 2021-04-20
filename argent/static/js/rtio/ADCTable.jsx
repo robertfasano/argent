@@ -43,13 +43,12 @@ function ADCTable (props) {
                 {board}
               </Typography>
             </TableCell>
-            {props.macrosequence.map((stage) => (
-              stage.sequence.map((step, index) => (
-                  <ADCButton timestep={index} key={'adc-' + board + index} sequenceName={stage.name} board={board}/>
+            {
+              props.steps.map((step, index) => (
+                  <ADCButton timestep={index} key={'adc-' + board + index} board={board}/>
               )
               )
-
-            ))}
+            }
           </TableRow>
 
       ))}
@@ -63,20 +62,16 @@ function ADCTable (props) {
 
 ADCTable.propTypes = {
   dispatch: PropTypes.func,
-  macrosequence: PropTypes.array,
-  sequences: PropTypes.object,
+  steps: PropTypes.array,
   channels: PropTypes.array,
   expanded: PropTypes.bool,
   setExpanded: PropTypes.func
 }
 
 function mapStateToProps (state, ownProps) {
-  const macrosequence = [{ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence].steps }]
-
   return {
     channels: state.ui.channels.ADC,
-    macrosequence: macrosequence,
-    sequences: state.sequences
+    steps: state.sequences[state.active_sequence].steps
   }
 }
 export default connect(mapStateToProps)(ADCTable)

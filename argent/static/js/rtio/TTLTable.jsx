@@ -42,11 +42,9 @@ function TTLTable (props) {
           </Typography>
         </TableCell>
         {
-          props.macrosequence.map((stage) => (
-            stage.sequence.map((step, index) => (
-              <TTLButton timestep={index} channel={i} key={'ttl-' + i + index} on={step.ttl[i]} sequenceName={stage.name}/>
+            props.steps.map((step, index) => (
+              <TTLButton timestep={index} channel={i} key={'ttl-' + i + index} on={step.ttl[i]}/>
             ))
-          ))
         }
       </TableRow>
     ))}
@@ -62,7 +60,7 @@ function TTLTable (props) {
 TTLTable.propTypes = {
   dispatch: PropTypes.func,
   channels: PropTypes.array,
-  macrosequence: PropTypes.array,
+  steps: PropTypes.array,
   aliases: PropTypes.object,
   expanded: PropTypes.bool,
   setExpanded: PropTypes.func,
@@ -70,12 +68,10 @@ TTLTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
-  const macrosequence = [{ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence].steps }]
-
   return {
     channels: state.ui.channels.TTL,
-    macrosequence: macrosequence,
-    aliases: state.aliases.TTL
+    aliases: state.aliases.TTL,
+    steps: state.sequences[state.active_sequence].steps
   }
 }
 export default connect(mapStateToProps)(TTLTable)

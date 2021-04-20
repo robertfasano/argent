@@ -6,31 +6,30 @@ import MenuItem from '@material-ui/core/MenuItem'
 
 function TimestepContextMenu (props) {
   // A context menu allowing timesteps to be inserted, reordered, or deleted.
-
   return (
     <Menu
-      anchorEl={props.anchorEl}
+      anchorEl={props.state.anchor}
       open={props.open}
-      onClose={() => props.setAnchorEl(null)}
+      onClose={props.close}
     >
       {props.timestep > 0
-        ? <MenuItem onClick={props.moveLeft}>
+        ? <MenuItem onClick={() => props.moveLeft(props.timestep)}>
           Move left
         </MenuItem>
         : null}
       {props.timestep < props.length - 1
-        ? <MenuItem onClick={props.moveRight}>
+        ? <MenuItem onClick={() => props.moveRight(props.timestep)}>
           Move right
         </MenuItem>
         : null}
-      <MenuItem onClick={props.insertLeft}>
+      <MenuItem onClick={() => props.insertLeft(props.timestep)}>
         Insert left
       </MenuItem>
-      <MenuItem onClick={props.insertRight}>
+      <MenuItem onClick={() => props.insertRight(props.timestep)}>
         Insert right
       </MenuItem>
       {props.length > 1
-        ? <MenuItem onClick={props.deleteTimestep}>
+        ? <MenuItem onClick={() => props.deleteTimestep(props.timestep)}>
           Delete
         </MenuItem>
         : null}
@@ -39,11 +38,11 @@ function TimestepContextMenu (props) {
 }
 
 TimestepContextMenu.propTypes = {
+  state: PropTypes.object,
   open: PropTypes.bool,
   timestep: PropTypes.number,
   length: PropTypes.number,
-  anchorEl: PropTypes.object,
-  setAnchorEl: PropTypes.func,
+  close: PropTypes.func,
   moveLeft: PropTypes.func,
   moveRight: PropTypes.func,
   insertLeft: PropTypes.func,
@@ -52,30 +51,33 @@ TimestepContextMenu.propTypes = {
 }
 
 function mapStateToProps (state, props) {
-  return { open: Boolean(props.anchorEl) }
+  return {
+    open: Boolean(props.state.anchor),
+    timestep: props.state.index
+  }
 }
 
 function mapDispatchToProps (dispatch, props) {
   return {
-    moveLeft: () => {
-      dispatch({ type: 'timestep/swap', a: props.timestep, b: props.timestep - 1, sequenceName: props.sequenceName })
-      props.setAnchorEl(null)
+    moveLeft: (timestep) => {
+      dispatch({ type: 'timestep/swap', a: timestep, b: timestep - 1 })
+      props.close()
     },
-    moveRight: () => {
-      dispatch({ type: 'timestep/swap', a: props.timestep, b: props.timestep + 1, sequenceName: props.sequenceName })
-      props.setAnchorEl(null)
+    moveRight: (timestep) => {
+      dispatch({ type: 'timestep/swap', a: timestep, b: timestep + 1 })
+      props.close()
     },
-    insertLeft: () => {
-      dispatch({ type: 'timestep/insert', timestep: props.timestep - 1, sequenceName: props.sequenceName })
-      props.setAnchorEl(null)
+    insertLeft: (timestep) => {
+      dispatch({ type: 'timestep/insert', timestep: timestep - 1 })
+      props.close()
     },
-    insertRight: () => {
-      dispatch({ type: 'timestep/insert', timestep: props.timestep, sequenceName: props.sequenceName })
-      props.setAnchorEl(null)
+    insertRight: (timestep) => {
+      dispatch({ type: 'timestep/insert', timestep: timestep })
+      props.close()
     },
-    deleteTimestep: () => {
-      dispatch({ type: 'timestep/delete', timestep: props.timestep, sequenceName: props.sequenceName })
-      props.setAnchorEl(null)
+    deleteTimestep: (timestep) => {
+      dispatch({ type: 'timestep/delete', timestep: timestep })
+      props.close()
     }
   }
 }

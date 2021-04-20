@@ -30,7 +30,7 @@ export function defaultSequence (channels) {
   }
 
   for (const ch of channels.DDS) {
-    defaultTimestep.dds[ch] = { enable: false }
+    defaultTimestep.dds[ch] = { enable: false, frequency: { mode: 'constant', constant: '', variable: ''}, attenuation: '' }
   }
 
   for (const board of channels.ADC) {

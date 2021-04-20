@@ -7,6 +7,12 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import FixedUnitInput from '../components/FixedUnitInput.jsx'
 import { connect } from 'react-redux'
+import ModeSelector from '../ModeSelector.jsx'
+import FormControl from '@material-ui/core/FormControl'
+import Select from '@material-ui/core/Select'
+import MenuItem from '@material-ui/core/MenuItem'
+import InputLabel from '@material-ui/core/InputLabel'
+import LinkIcon from '@material-ui/icons/Link'
 
 function DDSButton (props) {
   // A Button which opens a Popover allowing the user to define the state of a
@@ -38,9 +44,11 @@ function DDSButton (props) {
               onContextMenu={handleContextMenu}
               onClick={props.toggleSwitch}
               >
-        <Typography style={style}>
-          {props.frequency === '' ? '' : props.frequency + ' MHz'}
-        </Typography>
+      {props.mode === 'variable'
+        ? <LinkIcon/>
+        : <Typography style={style}> {props.constant === '' ? '' : props.constant + ' MHz'} </Typography>
+      }
+
       </Button>
       <Popover
         open={open}
@@ -60,13 +68,44 @@ function DDSButton (props) {
               DDS options
           </Typography>
           <Box m={1}>
-            <FixedUnitInput value={props.frequency}
+            <ModeSelector label={'Frequency mode'}
+                          value={props.mode}
+                          ramp={false}
+                          onChange = {(event) => props.updateMode(event.target.value)}
+            />
+        </Box>
+        {(props.mode === 'constant') ?
+          <Box m={1}>
+            <FixedUnitInput value={props.constant}
                                onChange = {props.updateFrequency}
                                unit = 'MHz'
                                label='Frequency'
                                style={{ width: '100%' }}
             />
           </Box>
+          : null
+        }
+        {(props.mode === 'variable' && Object.keys(props.variables).length > 0)
+          ? (
+            <Box m={1}>
+              <FormControl>
+              <InputLabel shrink={true}> Variable </InputLabel>
+              <Select label="Variable"
+                      value={props.variable}
+                      onChange = {(event) => props.updateVariable(event.target.value)}
+                      style={{ width: '300px' }}
+                      >
+                {Object.keys(props.variables).map((key, index) => (
+                  <MenuItem value={key} key={key}>
+                    {key}
+                  </MenuItem>
+                ))}
+              </Select>
+              </FormControl>
+            </Box>
+            )
+          : null
+      }
           <Box m={1}>
             <FixedUnitInput value={props.attenuation}
                                onChange = {props.updateAttenuation}
@@ -92,12 +131,16 @@ DDSButton.propTypes = {
 
 function mapDispatchToProps (dispatch, props) {
   const path = {
-    sequenceName: props.sequenceName,
     ch: props.ch,
     timestep: props.timestep
   }
 
   return {
+    updateMode: (value) => dispatch({
+      type: 'dds/mode',
+      value: value,
+      path: path
+    }),
     updateAttenuation: (event) => dispatch({
       type: 'dds/attenuation',
       value: event.target.value,
@@ -111,16 +154,26 @@ function mapDispatchToProps (dispatch, props) {
     toggleSwitch: () => dispatch({
       type: 'dds/toggle',
       path: path
+    }),
+    updateVariable: (value) => dispatch({
+      type: 'dds/variable',
+      value: value,
+      path: path
     })
   }
 }
 
 function mapStateToProps (state, props) {
-  const channel = state.sequences[props.sequenceName].steps[props.timestep].dds[props.ch]
+  const channel = state.sequences[state.active_sequence].steps[props.timestep].dds[props.ch]
+  const frequency = channel.frequency
+
   return {
     enable: channel.enable,
-    frequency: channel.frequency || '',
-    attenuation: channel.attenuation || ''
+    mode: frequency.mode,
+    constant: frequency.constant,
+    variable: frequency.variable,
+    attenuation: channel.attenuation,
+    variables: state.sequences[state.active_sequence].inputs
   }
 }
 

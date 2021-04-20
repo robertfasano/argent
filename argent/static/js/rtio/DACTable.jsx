@@ -45,14 +45,14 @@ function DACTable (props) {
                     {props.aliases[board][ch]}
                   </Typography>
                 </TableCell>
-                {props.macrosequence.map((stage) => (
-                  stage.sequence.map((step, index) => (
-                      <DACButton timestep={index} ch={ch} key={'dac-' + board + ch + index} sequenceName={stage.name} board={board}/>
+                {
+                  props.steps.map((step, index) => (
+                      <DACButton timestep={index} ch={ch} key={'dac-' + board + ch + index} board={board}/>
 
                   )
                   )
 
-                ))}
+                }
               </TableRow>
             ))
           }
@@ -73,8 +73,7 @@ function DACTable (props) {
 
 DACTable.propTypes = {
   dispatch: PropTypes.func,
-  macrosequence: PropTypes.array,
-  sequences: PropTypes.object,
+  steps: PropTypes.array,
   channels: PropTypes.object,
   aliases: PropTypes.object,
   expanded: PropTypes.bool,
@@ -83,13 +82,10 @@ DACTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
-  const macrosequence = [{ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence].steps }]
-
   return {
     channels: state.ui.channels.DAC,
-    macrosequence: macrosequence,
-    sequences: state.sequences,
-    aliases: state.aliases.DAC
+    aliases: state.aliases.DAC,
+    steps: state.sequences[state.active_sequence].steps
   }
 }
 export default connect(mapStateToProps)(DACTable)

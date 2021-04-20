@@ -26,12 +26,12 @@ def generate_experiment(macrosequence, config, pid):
     code += 'from artiq.coredevice.sampler import adc_mu_to_volt\n\n'
     with open(os.path.join(path, 'generator/array_ops.py')) as file:
         code += file.read() + '\n'
+    with open(os.path.join(path, 'generator/sync.py')) as file:
+        code += file.read() + '\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
     code += textwrap.indent(generate_build(macrosequence, pid), '\t')
     code += textwrap.indent(generate_init(macrosequence), '\t')
-    code += textwrap.indent(generate_run(macrosequence), '\t')
-    code += textwrap.indent(generate_sync(macrosequence, config), '\t')
-    code += textwrap.indent(generate_pull(macrosequence, config), '\t')
+    code += textwrap.indent(generate_run(macrosequence, config), '\t')
 
     return code
 
@@ -116,7 +116,7 @@ def generate_init(macrosequence):
 
     return code + '\n'
 
-def generate_run(macrosequence):
+def generate_run(macrosequence, config):
     ''' Generates the main loop of the experiment. Different stages of the overall
         macrosequence are written into individual kernel functions for readability,
         which are then executed repeatedly in a While block.
@@ -124,8 +124,6 @@ def generate_run(macrosequence):
     code = '@kernel\ndef run(self):\n'
     code += '\tself.init()\n\n'
     code += '\twhile True:\n'
-    if len(get_input_variables(macrosequence)) > 0:
-        code += '\t\t' + 'self.pull()\n'
 
     for stage in macrosequence:
         function_call = f"\t\tself.{stage['name'].replace(' ', '_')}()\n"
@@ -136,17 +134,19 @@ def generate_run(macrosequence):
             code += '\t' + function_call
 
     ## broadcast output variables
-    vars = get_adc_variables(macrosequence)
-    # if len(vars) > 0:
-    self_vars = ['self.'+var for var in vars]
-    code += '\t\t' + f'self.sync({", ".join(self_vars)})'
+    outputs = get_adc_variables(macrosequence)
+    inputs = list(get_input_variables(macrosequence).keys())
+    self_outputs = str(['self.'+var for var in outputs]).replace("'", "")
+    self_inputs = str(['self.'+var for var in inputs]).replace("'", "")
+    code += '\t\t' + f'__sync__(self, {outputs}, {self_outputs}, {inputs}, {self_inputs}, "{config["addr"]}")'
+
     code += '\n'
 
     ## update input variables
     vars = get_input_variables(macrosequence)
     if len(vars) > 0:
         for var in vars:
-            code += '\t\t' + f'self.{var} = self.__update__("{var}")\n'
+            code += '\t\t' + f'self.{var} = __update__(self, "{var}")\n'
         code += '\t\t' + 'self.core.break_realtime()\n'
         code += '\t\t' + 'delay(5*ms)\n'
 
@@ -159,8 +159,6 @@ def generate_run(macrosequence):
             continue
         code += generate_loop(stage)
         loops.append(stage['name'])
-
-    # code += generate_sync(macrosequence)
 
     return code
 
@@ -255,6 +253,9 @@ def generate_loop(stage):
                         code += f'\tself.{var} = array_first(self.{array_name}, {ch})\n'
                     elif operation == 'last':
                         code += f'\tself.{var} = array_last(self.{array_name}, {ch})\n'
+                    elif operation == 'peak-peak':
+                        code += f'\tself.{var} = array_peak_to_peak(self.{array_name}, {ch})\n'
+
                 # code += textwrap.indent(Sampler(board).record(sampler_state[board]['variables']), '\t')
 
         ## write ramps, if applicable
@@ -272,43 +273,6 @@ def generate_loop(stage):
 
     code = f'@kernel\ndef {name}(self):\n'
     code += textwrap.indent(all_code, '\t')
-    return code
-
-def generate_sync(macrosequence, config):
-    code = '@rpc(flags={"async"})\ndef sync(self, *variables):\n'
-
-    vars = get_adc_variables(macrosequence)
-
-    if len(vars) == 0:
-        code += '\ttry:\n'
-        code += '\t\tpayload={"__pid__": self.__pid__}\n'
-        code += f'\t\trequests.post("http://{config["addr"]}/heartbeat", json=payload)\n'
-        code += '\texcept:\n\t\tpass\n'
-    else:
-        code += f'\tvars = dict(zip({vars}, variables))\n'
-        code += '\tprint(vars)\n'
-        code += '\tvars["__pid__"] = self.__pid__\n'
-        code += '\ttry:\n'
-        code += f'\t\trequests.post("http://{config["addr"]}/outputs", json=vars)\n'
-        code += '\texcept:\n\t\tpass\n'
-    code += '\n'
-    return code
-
-def generate_pull(macrosequence, config):
-    inputs = get_input_variables(macrosequence)
-
-    code = '@rpc(flags={"async"})\ndef pull(self):\n'
-    code += '\t' + f'self.inputs = requests.get("http://{config["addr"]}/inputs").json()\n'
-
-    # for var in inputs:
-    #     code += '\t' + f'self.{var} = inputs["{var}"]\n'
-
-    code += '\n'
-
-    code += 'def __update__(self, name) -> TFloat:\n'
-    code += '\t' + 'return float(self.inputs[name])\n'
-
-
     return code
 
 

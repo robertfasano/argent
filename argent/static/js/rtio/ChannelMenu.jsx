@@ -8,20 +8,17 @@ import { connect } from 'react-redux'
 function ChannelMenu (props) {
   // A context menu with options for RTIO channels, such as designating a given
   // channel or all other channels as inactive.
-  const handleClose = () => {
-    props.setAnchorEl(null)
-  }
 
   const dispatch = (type) => {
-    props.dispatch({ type: type, channel: props.anchorName, channel_type: props.anchorType, board: props.anchorBoard })
-    handleClose()
+    props.dispatch({ type: type, channel: props.state.ch, channel_type: props.state.type, board: props.state.board })
+    props.close()
   }
 
   return (
       <Menu
-        anchorEl={props.anchorEl}
-        open={Boolean(props.anchorEl)}
-        onClose={handleClose}
+        anchorEl={props.state.anchor}
+        open={Boolean(props.state.anchor)}
+        onClose={props.close}
         anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
         getContentAnchorEl={null}
@@ -40,13 +37,9 @@ function ChannelMenu (props) {
 }
 
 ChannelMenu.propTypes = {
-  anchorEl: PropTypes.object,
-  setAnchorEl: PropTypes.func,
-  anchorName: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  type: PropTypes.string,
-  dispatch: PropTypes.func,
-  anchorType: PropTypes.string,
-  anchorBoard: PropTypes.string
+  state: PropTypes.object,
+  close: PropTypes.func,
+  dispatch: PropTypes.func
 }
 
 function mapStateToProps (state, ownProps) {

@@ -58,12 +58,19 @@ class Urukul:
         if enable is not None:
             commands.append(f'self.{self.channel}.cfg_sw({enable})\n')
 
-        frequency = step['dds'][self.channel].get('frequency', None)
-        if frequency is not None:
-            commands.append(f'self.{self.channel}.set({frequency}*MHz)\n')
+        frequency = step['dds'][self.channel].get('frequency', {})
+        # if frequency is not None:
+        #     commands.append(f'self.{self.channel}.set({frequency}*MHz)\n')
+        if frequency != {}:
+            if frequency['mode'] == 'constant' and frequency['constant'] != '':
+                commands.append(f'self.{self.channel}.set({frequency["constant"]}*MHz)\n')
 
-        attenuation = step['dds'][self.channel].get('attenuation', None)
-        if attenuation is not None:
+            elif frequency['mode'] == 'variable':
+                cmd = f'self.{self.channel}.set(self.{frequency["variable"]}*MHz)\n'
+                commands.append(cmd)
+
+        attenuation = step['dds'][self.channel].get('attenuation', '')
+        if attenuation != '':
             commands.append(f'self.{self.channel}.set_att({float(attenuation)})\n')
 
         return commands

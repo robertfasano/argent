@@ -17,29 +17,25 @@ import ChannelMenu from './rtio/ChannelMenu.jsx'
 function SequenceTable (props) {
   // Displays a grid of widgets allowing sequences to be defined.
   const [expanded, setExpanded] = React.useState({ ttl: true, dac: true, dds: true, adc: true, script: true })
-
-  // anchor and state for ChannelMenu
-  const [anchorEl, setAnchorEl] = React.useState(null)
-  const [anchorName, setAnchorName] = React.useState('')
-  const [anchorType, setAnchorType] = React.useState('')
-  const [anchorBoard, setAnchorBoard] = React.useState('')
-
-  // anchor and state for TimestepContextMenu
-  const [timestepAnchorEl, setTimestepAnchorEl] = React.useState(null)
-  const [timestepAnchorIndex, setTimestepAnchorIndex] = React.useState(null)
+  const [channelMenu, setChannelMenu] = React.useState({ anchor: null, ch: '', board: '', type: '' })
+  const [timestepMenu, setTimestepMenu] = React.useState({ anchor: null, index: null })
 
   function handleChannelMenu (event, name, channelType, board) {
     event.preventDefault()
-    setAnchorEl(event.currentTarget)
-    setAnchorName(name)
-    setAnchorType(channelType)
-    setAnchorBoard(board)
+    setChannelMenu({ anchor: event.currentTarget, ch: name, board: board, type: channelType })
+  }
+
+  function closeChannelMenu () {
+    setChannelMenu({ anchor: null, ch: '', board: '', type: '' })
   }
 
   function handleTimestepMenu (event, name, index) {
     event.preventDefault()
-    setTimestepAnchorEl(event.currentTarget)
-    setTimestepAnchorIndex(index)
+    setTimestepMenu({ anchor: event.currentTarget, index: index })
+  }
+
+  function closeTimestepMenu () {
+    setTimestepMenu({ anchor: null, index: null })
   }
 
   function expand (name) {
@@ -48,12 +44,11 @@ function SequenceTable (props) {
 
   return (
     <>
-      <TimestepContextMenu anchorEl={timestepAnchorEl}
-                            setAnchorEl={setTimestepAnchorEl}
-                            timestep={timestepAnchorIndex}
-                            length={props.macrosequence[0].sequence.length}
+      <TimestepContextMenu state={timestepMenu}
+                           close={closeTimestepMenu}
+                           length={props.steps.length}
             />
-      <ChannelMenu anchorEl={anchorEl} setAnchorEl={setAnchorEl} anchorName={anchorName} anchorType={anchorType} anchorBoard={anchorBoard}/>
+      <ChannelMenu state={channelMenu} close={closeChannelMenu}/>
       <Paper elevation={6} style={{ overflowX: 'auto' }}>
         <Box p={2} style={{ display: 'inline-block' }}>
           <Table>
@@ -75,20 +70,12 @@ function SequenceTable (props) {
 
 SequenceTable.propTypes = {
   dispatch: PropTypes.func,
-  macrosequence: PropTypes.array,
-  sequences: PropTypes.object,
-  channels: PropTypes.object,
-  aliases: PropTypes.object
+  steps: PropTypes.array
 }
 
 function mapStateToProps (state, ownProps) {
-  const macrosequence = [{ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence].steps }]
-
   return {
-    channels: state.ui.channels,
-    macrosequence: macrosequence,
-    sequences: state.sequences,
-    aliases: state.aliases
+    steps: state.sequences[state.active_sequence].steps
   }
 }
 export default connect(mapStateToProps)(SequenceTable)

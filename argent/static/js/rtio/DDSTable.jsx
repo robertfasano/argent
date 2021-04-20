@@ -41,13 +41,13 @@ function DDSTable (props) {
                 {props.aliases[ch]}
               </Typography>
             </TableCell>
-            {props.macrosequence.map((stage) => (
-              stage.sequence.map((step, index) => (
-                  <DDSButton timestep={index} ch={ch} key={'dds-' + ch + index} sequenceName={stage.name}/>
+            {
+              props.steps.map((step, index) => (
+                  <DDSButton timestep={index} ch={ch} key={'dds-' + ch + index}/>
               )
               )
 
-            ))}
+            }
           </TableRow>
 
       ))}
@@ -62,23 +62,19 @@ function DDSTable (props) {
 
 DDSTable.propTypes = {
   dispatch: PropTypes.func,
-  macrosequence: PropTypes.array,
-  sequences: PropTypes.object,
   channels: PropTypes.array,
   aliases: PropTypes.object,
   expanded: PropTypes.bool,
   setExpanded: PropTypes.func,
-  onContextMenu: PropTypes.func
+  onContextMenu: PropTypes.func,
+  steps: PropTypes.array
 }
 
 function mapStateToProps (state, ownProps) {
-  const macrosequence = [{ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence].steps }]
-
   return {
     channels: state.ui.channels.DDS,
-    macrosequence: macrosequence,
-    sequences: state.sequences,
-    aliases: state.aliases.DDS
+    aliases: state.aliases.DDS,
+    steps: state.sequences[state.active_sequence].steps
   }
 }
 export default connect(mapStateToProps)(DDSTable)

@@ -78,7 +78,11 @@ function mapDispatchToProps (dispatch, props) {
 function mapStateToProps (state, props) {
   const inactiveTTLs = state.channels.TTL.filter(ch => !state.ui.channels.TTL.includes(ch))
   const inactiveDDS = state.channels.DDS.filter(ch => !state.ui.channels.DDS.includes(ch))
-  const inactiveChannels = [...inactiveTTLs, ...inactiveDDS]
+  let inactiveDACs = []
+  for (const board of Object.keys(state.channels.DAC)) {
+    inactiveDACs = [...inactiveDACs, ...state.channels.DAC[board].filter(e => !state.ui.channels.DAC[board].includes(e))]
+  }
+  const inactiveChannels = [...inactiveTTLs, ...inactiveDDS, ...inactiveDACs]
   const sequence = { ...state.sequences[props.name], steps: omitDeep(state.sequences[props.name].steps, ...inactiveChannels) }
   return {
     sequence: sequence,

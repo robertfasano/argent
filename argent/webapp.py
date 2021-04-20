@@ -27,7 +27,7 @@ class App:
 
         self.inputs = {}
         self.outputs = {}
-
+        self.results = {}
         self.host()
 
     def host(self):
@@ -123,15 +123,27 @@ class App:
                 for key, val in request.json.items():
                     self.outputs[key] = val
 
-                socketio.emit('heartbeat', {"pid": request.json['__pid__']})
+                socketio.emit('heartbeat', {"pid": request.json['pid']})
                 return ''
 
             elif request.method == 'GET':
                 return json.dumps(self.outputs)
 
+        @app.route("/results", methods=['GET', 'POST'])
+        def results():
+            if request.method == 'POST':
+                for key, val in request.json.items():
+                    self.results[key] = val
+
+                socketio.emit('heartbeat', self.results)
+                return ''
+
+            elif request.method == 'GET':
+                return json.dumps(self.results)
+
         @app.route("/heartbeat", methods=['POST'])
         def heartbeat():
-            socketio.emit('heartbeat', {"pid": request.json['__pid__']})
+            socketio.emit('heartbeat', self.results)
             return ''
 
         @app.route("/version")

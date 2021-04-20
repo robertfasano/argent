@@ -181,7 +181,6 @@ ADCButton.propTypes = {
 
 function mapDispatchToProps (dispatch, props) {
   const path = {
-    sequenceName: props.sequenceName,
     board: props.board,
     timestep: props.timestep
   }
@@ -246,15 +245,15 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  const channel = state.sequences[props.sequenceName].steps[props.timestep].adc[props.board]
+  const channel = state.sequences[state.active_sequence].steps[props.timestep].adc[props.board]
   return {
     enable: channel.enable,
     delay: channel.delay,
     channel: channel,
     outputs: channel.variables,
-    allOutputs: state.sequences[props.sequenceName].outputs,
+    allOutputs: state.sequences[state.active_sequence].outputs,
     samples: channel.samples || 1,
-    duration: channel.duration || state.sequences[props.sequenceName].steps[props.timestep].duration
+    duration: channel.duration || state.sequences[state.active_sequence].steps[props.timestep].duration
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(ADCButton)

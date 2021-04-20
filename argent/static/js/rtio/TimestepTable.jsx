@@ -9,11 +9,11 @@ import AddIcon from '@material-ui/icons/Add'
 
 function TimestepTable (props) {
   function setDuration (timestep, duration, sequenceName) {
-    props.dispatch({ type: 'timestep/duration', timestep: timestep, duration: duration, sequenceName: sequenceName })
+    props.dispatch({ type: 'timestep/duration', timestep: timestep, duration: duration })
   }
 
   function addTimestep () {
-    props.dispatch({ type: 'timestep/insert', timestep: props.macrosequence[0].sequence.length-1, sequenceName: props.macrosequence[0].name })
+    props.dispatch({ type: 'timestep/insert', timestep: props.steps.length - 1 })
   }
 
   return (
@@ -21,16 +21,14 @@ function TimestepTable (props) {
       <TableRow>
         <TableCell/>
         {
-          props.macrosequence.map((stage) => (
-            stage.sequence.map((step, index) => (
+            props.steps.map((step, index) => (
               <TableCell key={index} onContextMenu={(event) => props.onContextMenu(event, 'timestep' + index, index)}>
                 <VariableUnitInput value={step.duration}
-                                onChange = {(value) => setDuration(index, value, stage.name)}
+                                onChange = {(value) => setDuration(index, value)}
                                 units = {['s', 'ms', 'us']}
                 />
               </TableCell>
             ))
-          ))
         }
         <TableCell>
           <Button onClick={addTimestep}>
@@ -44,14 +42,13 @@ function TimestepTable (props) {
 
 TimestepTable.propTypes = {
   dispatch: PropTypes.func,
-  macrosequence: PropTypes.array,
-  onContextMenu: PropTypes.func
+  onContextMenu: PropTypes.func,
+  steps: PropTypes.array
 }
 
 function mapStateToProps (state, ownProps) {
-  const macrosequence = [{ name: state.active_sequence, reps: 1, sequence: state.sequences[state.active_sequence].steps }]
   return {
-    macrosequence: macrosequence
+    steps: state.sequences[state.active_sequence].steps
   }
 }
 export default connect(mapStateToProps)(TimestepTable)

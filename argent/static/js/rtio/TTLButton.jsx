@@ -26,7 +26,6 @@ TTLButton.propTypes = {
 
 function mapDispatchToProps (dispatch, props) {
   const path = {
-    sequenceName: props.sequenceName,
     channel: props.channel,
     timestep: props.timestep
   }
@@ -41,7 +40,7 @@ function mapDispatchToProps (dispatch, props) {
 
 function mapStateToProps (state, props) {
   return {
-    on: state.sequences[props.sequenceName].steps[props.timestep].ttl[props.channel]
+    on: state.sequences[state.active_sequence].steps[props.timestep].ttl[props.channel]
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(TTLButton)

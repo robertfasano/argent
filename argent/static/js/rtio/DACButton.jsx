@@ -87,6 +87,7 @@ function DACButton (props) {
           <ModeSelector label={'Setpoint mode'}
                         value={props.mode}
                         onChange = {(event) => props.updateMode(event.target.value)}
+                        ramp = {true}
           />
         </Box>
 
@@ -191,7 +192,6 @@ DACButton.propTypes = {
 
 function mapDispatchToProps (dispatch, props) {
   const path = {
-    sequenceName: props.sequenceName,
     ch: props.ch,
     timestep: props.timestep,
     board: props.board
@@ -238,13 +238,13 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  const channel = state.sequences[props.sequenceName].steps[props.timestep].dac[props.board][props.ch] || {}
+  const channel = state.sequences[state.active_sequence].steps[props.timestep].dac[props.board][props.ch] || {}
   return {
     mode: channel.mode,
     constant: channel.constant,
     ramp: channel.ramp,
     variable: channel.variable,
-    variables: state.sequences[props.sequenceName].inputs
+    variables: state.sequences[state.active_sequence].inputs
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(DACButton)
