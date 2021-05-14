@@ -239,11 +239,14 @@ function mapDispatchToProps (dispatch, props) {
 
 function mapStateToProps (state, props) {
   const channel = state.sequences[state.active_sequence].steps[props.timestep].dac[props.board][props.ch] || {}
+  const ramp = channel.ramp || {start: ' V', stop: ' V', steps: 100}
+  // const mode = typeof (channel.variable) !== 'undefined' ? 'variable': typeof (channel.ramp) !== 'undefined' ? 'ramp': 'constant'
+  const mode = channel.mode
   return {
-    mode: channel.mode,
-    constant: channel.constant,
-    ramp: channel.ramp,
-    variable: channel.variable,
+    mode: mode,
+    constant: channel.constant || '',
+    ramp: ramp,
+    variable: channel.variable || '',
     variables: state.sequences[state.active_sequence].inputs
   }
 }
