@@ -51,3 +51,8 @@ def array_last(array, ch):
 def array_peak_to_peak(array, ch):
     ''' Returns the last element from one channel '''
     return array_max(array, ch) - array_min(array, ch)
+
+@kernel
+def array_max_minus_last(array, ch):
+    ''' Returns the difference of the max and last elements from one channel '''
+    return array_max(array, ch) - array_last(array, ch)

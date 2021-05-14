@@ -255,7 +255,8 @@ def generate_loop(stage):
                         code += f'\tself.{var} = array_last(self.{array_name}, {ch})\n'
                     elif operation == 'peak-peak':
                         code += f'\tself.{var} = array_peak_to_peak(self.{array_name}, {ch})\n'
-
+                    elif operation == 'max-last':
+                        code += f'\tself.{var} = array_max_minus_last(self.{array_name}, {ch})\n'
                 # code += textwrap.indent(Sampler(board).record(sampler_state[board]['variables']), '\t')
 
         ## write ramps, if applicable
