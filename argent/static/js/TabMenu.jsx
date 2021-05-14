@@ -7,6 +7,7 @@ import ListItemText from '@material-ui/core/ListItemText'
 import CreateIcon from '@material-ui/icons/Create'
 import DeleteIcon from '@material-ui/icons/Delete'
 import SaveIcon from '@material-ui/icons/Save'
+import AddIcon from '@material-ui/icons/Add'
 import omitDeep from 'omit-deep-lodash'
 import yaml from 'js-yaml'
 import { connect } from 'react-redux'
@@ -46,6 +47,12 @@ function TabMenu (props) {
         </ListItemIcon>
         <ListItemText primary="Save" />
       </MenuItem>
+      <MenuItem onClick={props.addToMacrosequence}>
+        <ListItemIcon>
+          <AddIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText primary="Add to macrosequence" />
+      </MenuItem>
     </Menu>
   )
 }
@@ -58,6 +65,7 @@ TabMenu.propTypes = {
   open: PropTypes.bool,
   rename: PropTypes.func,
   delete: PropTypes.func,
+  addToMacrosequence: PropTypes.func,
   version: PropTypes.string
 }
 
@@ -70,6 +78,10 @@ function mapDispatchToProps (dispatch, props) {
     },
     delete: () => {
       dispatch({ type: 'sequence/close', name: props.name })
+      props.setAnchorEl(null)
+    },
+    addToMacrosequence: () => {
+      dispatch({ type: 'macrosequence/append', sequence: { name: props.name, reps: 1 } })
       props.setAnchorEl(null)
     }
   }

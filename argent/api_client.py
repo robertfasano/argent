@@ -1,43 +1,31 @@
 import socketio
 from multiprocessing import SimpleQueue
 import pandas as pd
+import numpy as np
 import requests
-from labAPI import Environment 
 import datetime 
+from .dataset import Dataset
+from tqdm.auto import tqdm
 
 class Client:
+    ''' A client for a Flask-SocketIO server '''
     def __init__(self, address='127.0.0.1:8051'):
         self.address = address
-#         self.queue = SimpleQueue()
-        self.client = socketio.Client()
-        self.paths = {}
-        
+        self.client = socketio.Client()        
+        self.data = pd.DataFrame()
+
         @self.client.on('heartbeat')
         def heartbeat(results):
             data = {**results['inputs'], **results['outputs']}
-#             self.queue.put(pd.DataFrame(data, index=[results['timestamp']]))
-
-            payload = {}
-            for var, path in self.paths.items():
-                payload[path] = data[var]
-
-                with Environment.lookup(path) as parameter:
-                    # parameter.set(data[var])
-                    parameter.value = data[var]
-
-            with Environment.handle() as env:
-                timestamp = datetime.datetime.fromisoformat(results['timestamp'])
-                for path, value in payload.items():
-                    env.monitor.data.loc[timestamp, path] = value
-
-                
+            timestamp = datetime.datetime.fromisoformat(results['timestamp'])
+            data['__stage__'] = results['stage']
+            data['__cycle__'] = results['cycle']
+            self.data = self.data.append(pd.DataFrame(data, index=[timestamp]))
+  
         self.client.connect(f'http://{self.address}')
 
-#     def measure(self):
-#         data = pd.DataFrame()
-#         while not self.queue.empty():
-#             data = data.append(self.queue.get(), sort=False)
-#         return data
+    def dataset(self):
+        return Dataset(self)
 
     def get(self, name):
         try:
@@ -48,5 +36,11 @@ class Client:
     def set(self, name, value):
         requests.post(f"http://{self.address}/inputs", json={name: value})
         
-    def register(self, path, variable):
-        self.paths[variable] = path
+    def sweep(self, var, min, max, steps, points=1):
+        sweep_points = np.linspace(min, max, steps)
+        for point in tqdm(sweep_points):
+            cycle = self.data['__cycle__'].iloc[-1]
+            self.set(var, point)
+            
+            while self.data['__cycle__'].iloc[-1] - cycle < points:
+                continue

@@ -9,6 +9,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { connect } from 'react-redux'
 import AppMenu from './menu/AppMenu.jsx'
 import SequenceSelector from './SequenceSelector.jsx'
+import MacrosequencePanel from './macrosequencing/MacrosequencePanel.jsx'
 import Grid from '@material-ui/core/Grid'
 import Paper from '@material-ui/core/Paper'
 import Heartbeat from './menu/Heartbeat.jsx'
@@ -58,19 +59,24 @@ function App (props) {
       <div className={classes.appBarSpacer} />
 
       <main className={classes.content}>
-        <Grid container item xs={12} spacing={2} justify='space-evenly'>
+        <Grid container xs={12} justify='space-evenly' spacing={2}>
+        <Grid container item xs={10} spacing={2} justify='space-evenly'>
           <Grid item xs={12}>
             <SequenceSelector/>
           </Grid>
-            <Grid item>
-              <Paper elevation={6} style={{ minWidth: '350px' }}>
-                <ArgumentTable/>
-                <VariableTable/>
-              </Paper>
-            </Grid>
+          <Grid item>
+            <Paper elevation={6} style={{ minWidth: '350px' }}>
+              <ArgumentTable/>
+              <VariableTable/>
+            </Paper>
+          </Grid>
           <Grid item xl lg md sm xs>
             <SequenceTable />
           </Grid>
+        </Grid>
+        <Grid container item xs={2} spacing={2} justify='space-evenly'>
+          <MacrosequencePanel/>
+        </Grid>
         </Grid>
       </main>
     </React.Fragment>

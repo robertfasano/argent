@@ -135,7 +135,7 @@ class App:
                 for key, val in request.json.items():
                     self.results[key] = val
 
-                socketio.emit('heartbeat', self.results)
+                socketio.emit('heartbeat', request.json)
                 return ''
 
             elif request.method == 'GET':

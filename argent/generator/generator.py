@@ -28,6 +28,8 @@ def generate_experiment(macrosequence, config, pid):
         code += file.read() + '\n'
     with open(os.path.join(path, 'generator/sync.py')) as file:
         code += file.read() + '\n'
+    with open(os.path.join(path, 'generator/sampling.py')) as file:
+        code += file.read() + '\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
     code += textwrap.indent(generate_build(macrosequence, pid), '\t')
     code += textwrap.indent(generate_init(macrosequence), '\t')
@@ -78,6 +80,9 @@ def generate_build(macrosequence, pid):
     code += f'self.inputs = {inputs}\n'
     for name, value in inputs.items():
         code += f'self.{name} = {float(value)}\n'
+
+    ## build metadata variables
+    code += '\n\nself.__cycle__ = 0\n'
     code = 'def build(self):\n' + textwrap.indent(code, '\t') + '\n'
 
     return code
@@ -125,6 +130,7 @@ def generate_run(macrosequence, config):
     code += '\tself.init()\n\n'
     code += '\twhile True:\n'
 
+    i = 0
     for stage in macrosequence:
         function_call = f"\t\tself.{stage['name'].replace(' ', '_')}()\n"
         if int(stage['reps']) == 1:
@@ -133,14 +139,19 @@ def generate_run(macrosequence, config):
             code += f'\t\tfor i in range({stage["reps"]}):\n'
             code += '\t' + function_call
 
-    ## broadcast output variables
-    outputs = get_adc_variables(macrosequence)
-    inputs = list(get_input_variables(macrosequence).keys())
-    self_outputs = str(['self.'+var for var in outputs]).replace("'", "")
-    self_inputs = str(['self.'+var for var in inputs]).replace("'", "")
-    code += '\t\t' + f'__sync__(self, {outputs}, {self_outputs}, {inputs}, {self_inputs}, "{config["addr"]}")'
+        outputs = list(stage['sequence']['outputs'].keys())
+        all_outputs = ['self.'+var for var in outputs]
+        self_outputs = str(all_outputs).replace("'", "")
+        inputs = list(stage['sequence']['inputs'].keys())
+        self_inputs = str(['self.'+var for var in inputs]).replace("'", "")
+        code += '\t\t' + f'__push__(self, {i}, self.__cycle__, {outputs}, {self_outputs}, {inputs}, {self_inputs}, "{config["addr"]}")\n'
 
-    code += '\n'
+        i += 1
+
+    ## broadcast output variables
+    code += '\n\t\t##Sync input variables with server\n'
+    code += '\t\t' + f'__pull__(self, "{config["addr"]}")\n'
+
 
     ## update input variables
     vars = get_input_variables(macrosequence)
@@ -149,7 +160,7 @@ def generate_run(macrosequence, config):
             code += '\t\t' + f'self.{var} = __update__(self, "{var}")\n'
         code += '\t\t' + 'self.core.break_realtime()\n'
         code += '\t\t' + 'delay(5*ms)\n'
-
+    code += '\t\t' + 'self.__cycle__ += 1\n'
     code += '\n'
 
     ## write individual stage functions
@@ -228,9 +239,8 @@ def generate_loop(stage):
                 else:
                     duration = float(state['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[state['duration'].split(' ')[1]]
                     delay = duration / int(state['samples'])
-                    cmd = f'\tfor i in range({state["samples"]}):\n'
-                    cmd += '\t\t' + f'self.{board}.sample_mu(self.{stage["name"].replace(" ", "_")}_{i}[i])\n'
-                    cmd += '\t\t' + f'delay({delay})\n'
+                    array_name = stage["name"].replace(" ", "_") + f'_{i}'
+                    cmd = f'\tsample(self.{board}, data=self.{array_name}, samples={state["samples"]}, wait={delay})\n'
                 adc_events.append(cmd)
 
         for cmd in adc_events:
