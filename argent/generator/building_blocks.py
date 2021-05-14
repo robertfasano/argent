@@ -149,7 +149,7 @@ class Zotino:
         duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
         delay = duration / int(state['ramp']['steps'])
         for voltages in ramp[1::]:
-            ramp_cmd += f'self.delay({delay})\n'
+            ramp_cmd += f'delay({delay})\n'
             ramp_cmd += f'self.{self.board}.set_dac({voltages}, {channels})\n'
         return ramp_cmd
 
