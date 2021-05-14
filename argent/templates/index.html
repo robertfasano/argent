@@ -4,7 +4,10 @@
 <head>
 	<title> ARTIQ </title>
 	<script src="{{ url_for('static', filename='dist/bundle.js')}}" type="text/javascript"></script>
-
+	<link
+	rel="stylesheet"
+	href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+  	/>
 </head>
 <body onload='index.createGUI({{sequences|tojson}}, {{channels|tojson}}, {{aliases|tojson}}, {{version}});'>
 	<div id='root'>

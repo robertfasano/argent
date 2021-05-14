@@ -4,6 +4,9 @@ const cellWidth = '80px'
 const cellHeight = '30px'
 
 const theme = createMuiTheme({
+  typography: {
+    fontFamily: ['Roboto', 'Arial']
+  },
   palette: {
     secondary: { main: '#67001a' },
     primary: { main: '#004e67' }
