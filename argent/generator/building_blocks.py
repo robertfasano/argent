@@ -150,7 +150,9 @@ class Zotino:
         delay = duration / int(state['ramp']['steps'])
         for voltages in ramp[1::]:
             ramp_cmd += f'delay({delay})\n'
-            ramp_cmd += f'self.{self.board}.set_dac({voltages}, {channels})\n'
+            ramp_cmd += f'self.{self.board}.set_dac([{", ".join(voltages.astype(str))}], {channels})\n'
+
+            
         return ramp_cmd
 
 class TTL:
