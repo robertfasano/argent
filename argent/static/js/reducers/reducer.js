@@ -384,8 +384,9 @@ export default function reducer (state = [], action) {
 
     case 'variables/output/update':
       return produce(state, draft => {
+        const sequence = action.sequence || state.active_sequence
         for (const [key, val] of Object.entries(action.variables)) {
-          draft.sequences[state.active_sequence].outputs[key] = val
+          draft.sequences[sequence].outputs[key] = val
         }
       })
 

@@ -144,7 +144,7 @@ def generate_run(macrosequence, config):
         self_outputs = str(all_outputs).replace("'", "")
         inputs = list(stage['sequence']['inputs'].keys())
         self_inputs = str(['self.'+var for var in inputs]).replace("'", "")
-        code += '\t\t' + f'__push__(self, {i}, self.__cycle__, {outputs}, {self_outputs}, {inputs}, {self_inputs}, "{config["addr"]}")\n'
+        code += '\t\t' + f'__push__(self, {i}, "{stage["name"]}", self.__cycle__, {outputs}, {self_outputs}, {inputs}, {self_inputs}, "{config["addr"]}")\n'
 
         i += 1
 
