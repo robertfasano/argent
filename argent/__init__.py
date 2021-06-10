@@ -26,6 +26,7 @@ class Configurator:
         config = self.load()
         config[field] = new_value
         self.save(config)
-
+        
+from .webapp import InfluxDBClient
 from .api_client import Client
 # from .generator.generator import run

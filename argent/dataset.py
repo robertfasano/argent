@@ -1,25 +1,29 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from .influx import InfluxDBClient 
 
 class Dataset:
-    def __init__(self, client):
+    def __init__(self, client, name=''):
         self.client = client
         self.start_time = None
         self.stop_time = None
         self._data = None
+        self.name = name
         
         self.start()
         
     def start(self):
         if self.start_time is None:
             self.start_time = self.timestamp()
+            self.client.record(self.name)
         else:
             raise Exception('Dataset has already been started!')
             
     def stop(self):
         if self.stop_time is None:
             self.stop_time = self.timestamp()
+            self.client.record('')
         else:
             raise Exception('Dataset has already been stopped!')
         
@@ -36,6 +40,9 @@ class Dataset:
         return self._data.dropna(axis=1, how='all')
 
     def pivot(self, var, stage=None):
+        ''' Returns a pivot table of a variable with different columns for each stage. If a stage
+            is passed, only that stage is returned. 
+        '''
         data = self.data.dropna(subset=[var, '__stage__'])
         data = data.astype({var: float, '__stage__': int})
         data = data.set_index('__cycle__')[[var, '__stage__']]

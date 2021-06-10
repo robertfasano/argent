@@ -2,12 +2,15 @@ import json
 import os
 import sys
 import click
+import datetime
 import subprocess
+import pandas as pd
 from flask import Flask, request
 from flask import render_template, send_from_directory
 from flask_socketio import SocketIO, emit
 from argent.generator.generator import generate_experiment
 from argent import Configurator, path
+from .influx import InfluxDBClient
 
 class App:
     ''' Handles the server backend which forms the link between the webapp client
@@ -25,10 +28,17 @@ class App:
         self.device_db = self.config['device_db']
         print('Using device_db at', os.path.abspath(self.device_db))
 
+
+        ## load InfluxDB client if specified
+        self.influx = InfluxDBClient(self.config['influx'])
+
         self.inputs = {}
         self.outputs = {}
         self.results = {}
+        self.__run__ = ''
+
         self.host()
+
 
     def host(self):
         ''' Run the Flask server on a given address and port '''
@@ -51,6 +61,10 @@ class App:
                                    version=version()
                                   )
 
+        @app.route("/config")
+        def get_config():
+            return json.dumps(self.config)
+
         @app.route("/generate", methods=['POST'])
         def generate():
             ''' Posting a macrosequence to this endpoint will trigger code
@@ -63,6 +77,11 @@ class App:
                 file.write(code)
 
             return json.dumps(code)
+
+        @app.route("/record", methods=['POST'])
+        def record():
+            ''' POST to this endpoint to start saving data in a named run '''
+            self.__run__ = request.json['__run__']
 
         @app.route("/submit", methods=['POST'])
         def submit():
@@ -136,6 +155,21 @@ class App:
                     self.results[key] = val
 
                 socketio.emit('heartbeat', request.json)
+
+                ## write data to Influx
+                results = request.json
+                data = {**results['inputs'], **results['outputs']}
+                timestamp = datetime.datetime.fromisoformat(results['timestamp'])
+                data['__stage__'] = results['stage']
+                data['__cycle__'] = results['cycle']
+
+                
+                new_data = pd.DataFrame(data, index=[timestamp])
+                if self.__run__ != '':
+                    new_data['__run__'] = self.__run__
+                    self.influx.write(new_data, self.config['influx']['data_bucket'])
+                self.influx.write(new_data, self.config['influx']['master_bucket'])
+
                 return ''
 
             elif request.method == 'GET':
