@@ -247,7 +247,7 @@ function mapStateToProps (state, props) {
     constant: channel.constant || '',
     ramp: ramp,
     variable: channel.variable || '',
-    variables: state.sequences[state.active_sequence].inputs
+    variables: state.inputs
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(DACButton)

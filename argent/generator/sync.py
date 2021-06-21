@@ -12,7 +12,6 @@ def __push__(self, stage, stage_name, cycle, output_names, output_values, input_
     try:
         results = {"outputs": outputs, "inputs": inputs, "pid": self.__pid__, "stage": int(stage), 'cycle': int(cycle), 'timestamp': timestamp, 'sequence': stage_name}
         requests.post("http://{}/results".format(addr), json=results)
-        # self.inputs = requests.get("http://{}/inputs".format(addr)).json()
     except Exception as e:
         print(e)
 

@@ -173,7 +173,7 @@ function mapStateToProps (state, props) {
     constant: frequency.constant,
     variable: frequency.variable,
     attenuation: channel.attenuation,
-    variables: state.sequences[state.active_sequence].inputs
+    variables: state.inputs
   }
 }
 

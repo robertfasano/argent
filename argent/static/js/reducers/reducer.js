@@ -210,8 +210,18 @@ export default function reducer (state = [], action) {
     case 'sequence/load':
       // Store a passed sequence object in state.sequences.
       return produce(state, draft => {
+        for (const [key, val] of Object.entries(action.sequence.inputs)) {
+          draft.inputs[key] = val
+        }
+        for (const [key, val] of Object.entries(action.sequence.outputs)) {
+          draft.outputs[key] = val
+        }
+        delete action.sequence.inputs 
+        delete action.sequence.outputs
+
         draft.sequences[action.name] = action.sequence
         draft.active_sequence = action.name
+
       })
 
     case 'sequence/rename':
@@ -384,25 +394,25 @@ export default function reducer (state = [], action) {
 
     case 'variables/output/update':
       return produce(state, draft => {
-        const sequence = action.sequence || state.active_sequence
+        // update master outputs table
         for (const [key, val] of Object.entries(action.variables)) {
-          draft.sequences[sequence].outputs[key] = val
+          draft.outputs[key] = val
         }
       })
 
     case 'variables/input/update':
       return produce(state, draft => {
-        draft.sequences[state.active_sequence].inputs[action.name] = action.value
+        draft.inputs[action.name] = action.value
       })
 
     case 'variables/input/delete':
       return produce(state, draft => {
-        delete draft.sequences[state.active_sequence].inputs[action.name]
+        delete draft.inputs[action.name]
       })
 
     case 'variables/output/delete':
       return produce(state, draft => {
-        delete draft.sequences[state.active_sequence].outputs[action.name]
+        delete draft.outputs[action.name]
       })
 
     default : return state

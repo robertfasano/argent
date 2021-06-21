@@ -38,20 +38,6 @@ def get_adc_boards(macrosequence):
                     boards.append(board)
     return list(np.unique(boards))
 
-def get_adc_variables(macrosequence):
-    ''' Crawls through the macrosequence to assemble a list of all ADC variables
-        to define in the build() stage. Returns a list of the format
-        ['variable1', 'variable2'].
-    '''
-    vars = []
-    for stage in macrosequence:
-        sequence = stage['sequence']['steps']
-        for step in sequence:
-            for board in step['adc']:
-                if step['adc'][board]['enable']:
-                    vars.extend(step['adc'][board]['variables'].keys())
-    return list(np.unique(vars))
-
 def get_data_arrays(macrosequence):
     arrays = {}
     for stage in macrosequence:
@@ -83,10 +69,3 @@ def get_dds_channels(macrosequence):
         for step in stage['sequence']['steps']:
             channels.extend(step.get('dds', {}).keys())
     return list(np.unique(channels))
-
-def get_input_variables(macrosequence):
-    inputs = {}
-    for stage in macrosequence:
-        for name, value in stage['sequence']['inputs'].items():
-            inputs[name] = float(value)
-    return inputs

@@ -23,13 +23,13 @@ function AppMenu (props) {
   function submit (macrosequence) {
     const pid = uuidv4()
     post('/inputs', props.inputs)
-    post('/submit', { macrosequence: macrosequence, pid: pid })
+    post('/submit', { macrosequence: macrosequence, pid: pid, inputs: props.inputs, outputs: props.outputs })
     props.dispatch({ type: 'ui/pid', value: pid })
   }
 
   function generate () {
     const pid = uuidv4()
-    post('/generate', { macrosequence: props.sequence, pid: pid })
+    post('/generate', { macrosequence: props.sequence, pid: pid, inputs: props.inputs, outputs: props.outputs })
   }
 
   return (
@@ -95,7 +95,8 @@ function mapStateToProps (state, ownProps) {
   return {
     sequence: sequence,
     macrosequence: macrosequence,
-    inputs: state.sequences[state.active_sequence].inputs
+    inputs: state.inputs,
+    outputs: state.outputs
   }
 }
 

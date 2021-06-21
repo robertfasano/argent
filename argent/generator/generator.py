@@ -7,7 +7,7 @@ from .channel_parsing import *
 from .sequence_parsing import *
 
 ''' Code generation '''
-def generate_experiment(macrosequence, config, pid):
+def generate_experiment(macrosequence, config, pid, inputs={}, outputs={}):
     ''' The main entrypoint for the code generator. The overall process is:
         1. Remove redundant events from the sequence to minimize RTIO overhead.
         2. Generate the build stage of the experiment (defining hardware).
@@ -31,13 +31,13 @@ def generate_experiment(macrosequence, config, pid):
     with open(os.path.join(path, 'generator/sampling.py')) as file:
         code += file.read() + '\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
-    code += textwrap.indent(generate_build(macrosequence, pid), '\t')
+    code += textwrap.indent(generate_build(macrosequence, pid, inputs, outputs), '\t')
     code += textwrap.indent(generate_init(macrosequence), '\t')
-    code += textwrap.indent(generate_run(macrosequence, config), '\t')
+    code += textwrap.indent(generate_run(macrosequence, config, inputs, outputs), '\t')
 
     return code
 
-def generate_build(macrosequence, pid):
+def generate_build(macrosequence, pid, inputs, outputs):
     ''' Generates the build() function, in which all hardware accessed by the
         sequence is defined.
     '''
@@ -70,13 +70,11 @@ def generate_build(macrosequence, pid):
 
     ## build output variables
     code += '\n## Output variables\n'
-    vars = get_adc_variables(macrosequence)
-    for var in vars:
+    for var in outputs:
         code += f'self.{var} = 0.0\n'
 
     ## build input variables
     code += '\n## Input variables\n'
-    inputs = get_input_variables(macrosequence)
     code += f'self.inputs = {inputs}\n'
     for name, value in inputs.items():
         code += f'self.{name} = {float(value)}\n'
@@ -121,7 +119,7 @@ def generate_init(macrosequence):
 
     return code + '\n'
 
-def generate_run(macrosequence, config):
+def generate_run(macrosequence, config, inputs, outputs):
     ''' Generates the main loop of the experiment. Different stages of the overall
         macrosequence are written into individual kernel functions for readability,
         which are then executed repeatedly in a While block.
@@ -138,13 +136,10 @@ def generate_run(macrosequence, config):
         else:
             code += f'\t\tfor i in range({stage["reps"]}):\n'
             code += '\t' + function_call
-
-        outputs = list(stage['sequence']['outputs'].keys())
         all_outputs = ['self.'+var for var in outputs]
         self_outputs = str(all_outputs).replace("'", "")
-        inputs = list(stage['sequence']['inputs'].keys())
         self_inputs = str(['self.'+var for var in inputs]).replace("'", "")
-        code += '\t\t' + f'__push__(self, {i}, "{stage["name"]}", self.__cycle__, {outputs}, {self_outputs}, {inputs}, {self_inputs}, "{config["addr"]}")\n'
+        code += '\t\t' + f'__push__(self, {i}, "{stage["name"]}", self.__cycle__, {list(outputs.keys())}, {self_outputs}, {list(inputs.keys())}, {self_inputs}, "{config["addr"]}")\n'
 
         i += 1
 
@@ -154,10 +149,10 @@ def generate_run(macrosequence, config):
 
 
     ## update input variables
-    vars = get_input_variables(macrosequence)
-    if len(vars) > 0:
-        for var in vars:
+    if len(inputs) > 0:
+        for var in inputs:
             code += '\t\t' + f'self.{var} = __update__(self, "{var}")\n'
+        code += '\t\t' + 'print("Finished with slack", (now_mu() - self.core.get_rtio_counter_mu())*1e-6, "ms")\n'
         code += '\t\t' + 'self.core.break_realtime()\n'
         code += '\t\t' + 'delay(5*ms)\n'
     code += '\t\t' + 'self.__cycle__ += 1\n'
@@ -183,6 +178,8 @@ def write_batch(events):
         * A small delay is inserted every 8 events to avoid sequence collisions
     '''
     if len(events) == 0:
+        return ''
+    if len(events) == 1:
         return events[0]
     code = 'with sequential:\n'
     indented = ''
@@ -202,7 +199,6 @@ def generate_loop(stage):
     '''
     name = stage['name'].replace(' ', '_')
     sequence = stage['sequence']
-    variables = stage['sequence'].get('inputs', {})
     timesteps = []
 
     for i, step in enumerate(sequence['steps']):
@@ -218,13 +214,14 @@ def generate_loop(stage):
         dac_events = []
         # for board in step['events'][0].get('dac', {}):
         for board in step.get('dac', {}):
-            dac_events.append(Zotino(board).initial(step))
+            zotino_events = Zotino(board).initial(step)
+            if zotino_events is not None:
+                dac_events.append(zotino_events)
 
         dds_events = []
         # for channel in step['events'][0].get('dds', {}):
         for channel in step.get('dds', {}):
             dds_events.extend(Urukul(channel).run(step))
-
         code += write_batch([*ttl_events, *dac_events, *dds_events])
 
 
@@ -240,7 +237,7 @@ def generate_loop(stage):
                     duration = float(state['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[state['duration'].split(' ')[1]]
                     delay = duration / int(state['samples'])
                     array_name = stage["name"].replace(" ", "_") + f'_{i}'
-                    cmd = f'\tsample(self.{board}, data=self.{array_name}, samples={state["samples"]}, wait={delay})\n'
+                    cmd = f'sample(self.{board}, data=self.{array_name}, samples={state["samples"]}, wait={delay})\n'
                 adc_events.append(cmd)
 
         for cmd in adc_events:
@@ -254,19 +251,19 @@ def generate_loop(stage):
                     operation = state['operation']
                     array_name = stage['name'].replace(' ', '_') + '_' + str(i)
                     if operation == 'min':
-                        code += f'\tself.{var} = array_min(self.{array_name}, {ch})\n'
+                        code += f'self.{var} = array_min(self.{array_name}, {ch})\n'
                     elif operation == 'max':
-                        code += f'\tself.{var} = array_max(self.{array_name}, {ch})\n'
+                        code += f'self.{var} = array_max(self.{array_name}, {ch})\n'
                     elif operation == 'mean':
-                        code += f'\tself.{var} = array_mean(self.{array_name}, {ch})\n'
+                        code += f'self.{var} = array_mean(self.{array_name}, {ch})\n'
                     elif operation == 'first':
-                        code += f'\tself.{var} = array_first(self.{array_name}, {ch})\n'
+                        code += f'self.{var} = array_first(self.{array_name}, {ch})\n'
                     elif operation == 'last':
-                        code += f'\tself.{var} = array_last(self.{array_name}, {ch})\n'
+                        code += f'self.{var} = array_last(self.{array_name}, {ch})\n'
                     elif operation == 'peak-peak':
-                        code += f'\tself.{var} = array_peak_to_peak(self.{array_name}, {ch})\n'
+                        code += f'self.{var} = array_peak_to_peak(self.{array_name}, {ch})\n'
                     elif operation == 'max-last':
-                        code += f'\tself.{var} = array_max_minus_last(self.{array_name}, {ch})\n'
+                        code += f'self.{var} = array_max_minus_last(self.{array_name}, {ch})\n'
                 # code += textwrap.indent(Sampler(board).record(sampler_state[board]['variables']), '\t')
 
         ## write ramps, if applicable

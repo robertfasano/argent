@@ -15,7 +15,6 @@ import { connect } from 'react-redux'
 function TabMenu (props) {
   // A context menu for the SequenceSelector allowing sequences to be renamed,
   // closed, or saved.
-
   const text = '# Created with Argent commit ' + props.version + '\n' + yaml.dump(props.sequence)
   return (
     <Menu
@@ -96,6 +95,8 @@ function mapStateToProps (state, props) {
   }
   const inactiveChannels = [...inactiveTTLs, ...inactiveDDS, ...inactiveDACs]
   const sequence = { ...state.sequences[props.name], steps: omitDeep(state.sequences[props.name].steps, ...inactiveChannels) }
+  sequence.inputs = state.inputs
+  sequence.outputs = state.outputs
   return {
     sequence: sequence,
     version: state.version,

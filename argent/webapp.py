@@ -72,7 +72,9 @@ class App:
             '''
             sequence = request.json['macrosequence']
             pid = request.json['pid']
-            code = generate_experiment(sequence, self.config, pid)
+            inputs = request.json['inputs']
+            outputs = request.json['outputs']
+            code = generate_experiment(sequence, self.config, pid, inputs, outputs)            
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
 
@@ -90,7 +92,9 @@ class App:
             '''
             sequence = request.json['macrosequence']
             pid = request.json['pid']
-            code = generate_experiment(sequence, self.config, pid)
+            inputs = request.json['inputs']
+            outputs = request.json['outputs']
+            code = generate_experiment(sequence, self.config, pid, inputs, outputs)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             env_name = self.config['environment_name']
@@ -187,7 +191,7 @@ class App:
 
         addr, port = self.config['addr'].split(':')
         # app.run(host=addr, port=port, debug=True)
-        socketio.run(app, host=addr, port=int(port), debug=True)
+        socketio.run(app, host=addr, port=int(port), debug=False)
 
 @click.command()
 @click.option('--config', default='./config.yml', help='config path')

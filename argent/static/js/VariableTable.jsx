@@ -187,8 +187,8 @@ function mapDispatchToProps (dispatch, props) {
 function mapStateToProps (state, props) {
   return {
     sequence: state.sequences[state.active_sequence],
-    inputs: state.sequences[state.active_sequence].inputs,
-    outputs: state.sequences[state.active_sequence].outputs || {}
+    inputs: state.inputs,
+    outputs: state.outputs
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(VariableTable)

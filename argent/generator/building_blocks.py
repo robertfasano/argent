@@ -124,7 +124,7 @@ class Zotino:
                 channels.append(int(ch.split(self.board)[1]))
 
         if len(voltages) == 0:
-            return ''
+            return None
         return f'self.{self.board}.set_dac({voltages}, {channels})\n'.replace("'", "")
 
     def ramp(self, step):

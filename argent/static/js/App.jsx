@@ -66,7 +66,6 @@ function App (props) {
           </Grid>
           <Grid item>
             <Paper elevation={6} style={{ minWidth: '350px' }}>
-              <ArgumentTable/>
               <VariableTable/>
             </Paper>
           </Grid>

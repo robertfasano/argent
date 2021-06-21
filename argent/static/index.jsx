@@ -70,10 +70,11 @@ function initializeState (channels, sequences, aliases, version) {
   const state = {}
   state.channels = channels
   state.sequences = sequences
-  state.sequences = { 'new sequence': { steps: defaultSequence(channels), inputs: {}, arguments: {}, outputs: {} } }
+  state.sequences = { 'new sequence': { steps: defaultSequence(channels) } }
   state.active_sequence = 'new sequence'
   state.macrosequence = [{ name: 'new sequence', reps: 1 }]
-
+  state.inputs = {}
+  state.outputs = {}
   const activeDACChannels = {}
   for (const board of Object.keys(state.channels.DAC)) {
     activeDACChannels[board] = []
@@ -99,7 +100,7 @@ export function createGUI (sequences, channels, aliases, version) {
   sequences = JSON.parse(sequences)
   const state = initializeState(channels, sequences, aliases, version)
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
-  const enhancer = composeEnhancers(persistState(['sequences', 'channels', 'active_sequence', 'macrosequence', 'ui']))
+  const enhancer = composeEnhancers(persistState(['sequences', 'channels', 'active_sequence', 'macrosequence', 'ui', 'inputs', 'outputs']))
   const store = createStore(reducer, state, enhancer)
 
   ReactDOM.render(<Provider store={store}>

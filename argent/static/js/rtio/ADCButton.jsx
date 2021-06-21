@@ -251,7 +251,7 @@ function mapStateToProps (state, props) {
     delay: channel.delay,
     channel: channel,
     outputs: channel.variables,
-    allOutputs: state.sequences[state.active_sequence].outputs,
+    allOutputs: state.outputs,
     samples: channel.samples || 1,
     duration: channel.duration || state.sequences[state.active_sequence].steps[props.timestep].duration
   }
