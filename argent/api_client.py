@@ -1,5 +1,4 @@
 import socketio
-from multiprocessing import SimpleQueue
 import pandas as pd
 import numpy as np
 import requests
@@ -42,7 +41,7 @@ class Client:
         
     def sweep(self, var, min, max, steps, points=1, sweeps=1):
         sweep_points = np.linspace(min, max, steps)
-        for sweep in sweeps:
+        for sweep in range(sweeps):
             for point in tqdm(sweep_points):
                 self.set(var, point)
                 self.collect(points)
