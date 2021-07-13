@@ -2,24 +2,31 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import TableCell from '@material-ui/core/TableCell'
 import TableRow from '@material-ui/core/TableRow'
+import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import { connect } from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
-import DACButton from './DACButton.jsx'
+import DACTimeline from './DACTimeline.jsx'
 
-function DACTable (props) {
+function DACTimelines (props) {
   return (
     <>
         <TableRow>
           <TableCell>
-            <IconButton onClick={props.setExpanded} >
-              {props.expanded
-                ? <ExpandLessIcon/>
-                : <ExpandMoreIcon /> }
-              <Typography style={{ fontSize: 24, color: 'black' }}> <b>DAC</b> </Typography>
-            </IconButton>
+            <Grid container>
+              <Grid item xs={6}>
+                <IconButton onClick={props.setExpanded} >
+                  {props.expanded
+                    ? <ExpandLessIcon/>
+                    : <ExpandMoreIcon /> }
+                </IconButton>
+              </Grid>
+              <Grid container item xs={6} alignItems='center'>
+                <Typography style={{ fontSize: 24 }}> <b>DAC</b> </Typography>
+              </Grid>
+            </Grid>
           </TableCell>
         </TableRow>
 
@@ -37,14 +44,7 @@ function DACTable (props) {
                     {props.channels[board][ch]}
                   </Typography>
                 </TableCell>
-                {
-                  props.steps.map((step, index) => (
-                      <DACButton timestep={index} ch={ch} key={'dac-' + board + ch + index} board={board}/>
-
-                  )
-                  )
-
-                }
+                <DACTimeline board={board} ch={ch}/>
               </TableRow>
             ))
           }
@@ -62,7 +62,7 @@ function DACTable (props) {
   )
 }
 
-DACTable.propTypes = {
+DACTimelines.propTypes = {
   dispatch: PropTypes.func,
   steps: PropTypes.array,
   channels: PropTypes.object,
@@ -76,4 +76,4 @@ function mapStateToProps (state, ownProps) {
     steps: state.sequences[state.active_sequence].steps
   }
 }
-export default connect(mapStateToProps)(DACTable)
+export default connect(mapStateToProps)(DACTimelines)

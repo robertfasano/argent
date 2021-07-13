@@ -9,10 +9,9 @@ import ListItem from '@material-ui/core/ListItem'
 import Box from '@material-ui/core/Box'
 import Button from '@material-ui/core/Button'
 import AddIcon from '@material-ui/icons/Add'
-import TabMenu from './TabMenu.jsx'
 import LoadButton from './menu/LoadButton.jsx'
 import { connect } from 'react-redux'
-import { defaultSequence } from '../index.jsx'
+import defaultSequence from './schema.js'
 import { createSelector } from 'reselect'
 import { memoizeArray } from './utilities.js'
 
@@ -29,9 +28,6 @@ function SequenceSelector (props) {
   // The active sequence is the one which is displayed in the table area and
   // sent to the code generator.
   const classes = useStyles()
-  const [anchorEl, setAnchorEl] = React.useState(null)
-  const [anchorName, setAnchorName] = React.useState('')
-
   const value = props.sequenceNames.indexOf(props.activeSequence)
   const handleChange = (event, newValue) => {
     const name = props.sequenceNames[newValue]
@@ -45,13 +41,7 @@ function SequenceSelector (props) {
       i = i + 1
       name = `new sequence (${i})`
     }
-    props.load(name, { steps: defaultSequence(props.channels), inputs: {}, outputs: {}, arguments: {} })
-  }
-
-  function handleClick (event, name) {
-    event.preventDefault()
-    setAnchorEl(event.currentTarget)
-    setAnchorName(name)
+    props.load(name, { steps: defaultSequence(props.channels) })
   }
 
   const AddTab = () => {
@@ -80,14 +70,11 @@ function SequenceSelector (props) {
       <AppBar position="static" color="default">
         <Tabs value={value} onChange={handleChange}>
           {props.sequenceNames.map((name, index) => (
-            <Tab key={name} onContextMenu={(event) => handleClick(event, name)} label={name} value={index} style={{ textTransform: 'none' }}/>
+            <Tab key={name} label={name} value={index} style={{ textTransform: 'none' }}/>
           ))}
 
           <AddTab/>
         </Tabs>
-        {props.sequenceNames.map((name, index) => (
-          <TabMenu key={name} anchorEl={anchorEl} setAnchorEl={setAnchorEl} name={name} anchorName={anchorName}/>
-        ))}
       </AppBar>
     </div>
   )

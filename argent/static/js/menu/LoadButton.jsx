@@ -15,31 +15,8 @@ function LoadButton (props) {
     fileReader.readAsText(file, 'UTF-8')
     const name = file.name.split('.yml')[0]
     fileReader.onload = e => {
-      // const sequence = JSON.parse(e.target.result)
       const sequence = yaml.load(e.target.result)
       props.dispatch({ type: 'sequence/load', sequence: sequence, name: name })
-
-      // update active channels
-      for (const step of sequence.steps) {
-        for (const ch of Object.keys(step.ttl)) {
-          if (!(props.channels.TTL.includes(ch))) {
-            props.dispatch({ type: 'ui/setActive', channelType: 'TTL', channel: ch })
-          }
-        }
-        for (const ch of Object.keys(step.dds)) {
-          if (!(props.channels.DDS.includes(ch))) {
-            props.dispatch({ type: 'ui/setActive', channelType: 'DDS', channel: ch })
-          }
-        }
-
-        for (const board of Object.keys(step.dac)) {
-          for (const ch of Object.keys(step.dac[board])) {
-            if (!(props.channels.DAC[board].includes(ch))) {
-              props.dispatch({ type: 'ui/setActive', channelType: 'DAC', channel: ch, board: board })
-            }
-          }
-        }
-      }
     }
   }
 
@@ -74,8 +51,4 @@ LoadButton.propTypes = {
   channels: PropTypes.object
 }
 
-function mapStateToProps (state, ownProps) {
-  return { channels: state.ui.channels }
-}
-
-export default connect(mapStateToProps)(LoadButton)
+export default connect()(LoadButton)

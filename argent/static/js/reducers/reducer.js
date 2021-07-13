@@ -1,6 +1,6 @@
 import produce from 'immer'
-import { defaultSequence } from '../../index.jsx'
-import { range } from '../utilities.js'
+import { defaultTimestep, fill } from '../schema.js'
+import { merge } from 'lodash'
 
 function swap (array, a, b) {
   // Swaps elements with indices a and b of a passed array in place
@@ -59,27 +59,14 @@ export default function reducer (state = [], action) {
         draft.sequences[state.active_sequence].steps[action.path.timestep].adc[action.path.board].variables[action.variable].operation = action.operation
       })
 
-    case 'arguments/update':
-      return produce(state, draft => {
-        draft.sequences[state.active_sequence].arguments[action.name] = action.value
-      })
-
-    case 'arguments/delete':
-      return produce(state, draft => {
-        delete draft.sequences[state.active_sequence].arguments[action.name]
-      })
-
     case 'dac/mode':
       return produce(state, draft => {
         draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][action.path.ch].mode = action.value
       })
 
     case 'dac/setpoint':
-      // Update a DAC setpoint for a given timestep and channel. The setpoint string
-      // is unitful, e.g. '1 V' or '0.3 mV'. If the value part of the setpoint string
-      // is not defined, remove the channel from the timestep's 'dac' field.
       return produce(state, draft => {
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][action.path.ch].constant = action.value
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][action.path.ch].setpoint = action.value
       })
 
     case 'dac/ramp/start':
@@ -94,34 +81,66 @@ export default function reducer (state = [], action) {
 
     case 'dac/ramp/steps':
       return produce(state, draft => {
-        for (const ch of range(32)) {
-          draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board]['zotino' + action.path.board + ch].ramp.steps = action.value
+        const channels = Object.keys(state.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board])
+        for (const ch of channels) {
+          draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][ch].ramp.steps = action.value
         }
       })
 
-    case 'dac/variable':
+    case 'dds/attenuation/setpoint':
       return produce(state, draft => {
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][action.path.ch].variable = action.value
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.setpoint = action.value
       })
 
-    case 'dds/attenuation':
-      // Update a DDS attenuation for a given timestep and channel. If the value
-      // string is empty, remove the channel from the timestep's 'dds' field.
+    case 'dds/frequency/setpoint':
       return produce(state, draft => {
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation = action.value
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.setpoint = action.value
       })
 
-    case 'dds/frequency':
-      // Update a DDS frequency for a given timestep and channel. The setpoint string
-      // is unitful, e.g. '1 MHz'. If the value part of the setpoint string
-      // is not defined, remove the channel from the timestep's 'dds' field.
-      return produce(state, draft => {
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.constant = action.value
-      })
-
-    case 'dds/mode':
+    case 'dds/frequency/mode':
       return produce(state, draft => {
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.mode = action.value
+      })
+
+    case 'dds/attenuation/mode':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.mode = action.value
+      })
+
+    case 'dds/frequency/ramp/start':
+      return produce(state, draft => {
+        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, start: action.value }
+      })
+
+    case 'dds/frequency/ramp/stop':
+      return produce(state, draft => {
+        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, stop: action.value }
+      })
+
+    case 'dds/frequency/ramp/steps':
+      return produce(state, draft => {
+        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, steps: action.value }
+      })
+
+    case 'dds/attenuation/ramp/start':
+      return produce(state, draft => {
+        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, start: action.value }
+      })
+
+    case 'dds/attenuation/ramp/stop':
+      return produce(state, draft => {
+        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, stop: action.value }
+      })
+
+    case 'dds/attenuation/ramp/steps':
+      return produce(state, draft => {
+        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, steps: action.value }
       })
 
     case 'dds/toggle':
@@ -131,18 +150,13 @@ export default function reducer (state = [], action) {
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].enable = !ddsEnabled
       })
 
-    case 'dds/variable':
-      return produce(state, draft => {
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.variable = action.value
-      })
-
-    case 'macrosequence/append':
+    case 'playlist/append':
       // Append a sequence to the master sequence.
       return produce(state, draft => {
-        draft.macrosequence.push(action.sequence)
+        draft.playlist.push(action.sequence)
       })
 
-    case 'macrosequence/insert':
+    case 'playlist/insert':
       // Insert a new sequence in the master sequence. The inserted sequence is
       // a duplicate of the previous one, or the next one if inserted in the
       // first stage.
@@ -150,33 +164,33 @@ export default function reducer (state = [], action) {
         if (action.timestep === -1) {
           action.timestep = 0
         }
-        const newTimestep = draft.macrosequence[action.timestep]
-        draft.macrosequence.splice(action.timestep + 1, 0, newTimestep)
+        const newTimestep = draft.playlist[action.timestep]
+        draft.playlist.splice(action.timestep + 1, 0, newTimestep)
       })
 
-    case 'macrosequence/remove':
+    case 'playlist/remove':
       // Remove a sequence from the master sequence.
       return produce(state, draft => {
-        draft.macrosequence.splice(action.index, 1)
+        draft.playlist.splice(action.index, 1)
       })
 
-    case 'macrosequence/swap':
+    case 'playlist/swap':
       // Swap two stages in the master sequence.
       return produce(state, draft => {
-        swap(draft.macrosequence, action.a, action.b)
+        swap(draft.playlist, action.a, action.b)
       })
 
-    case 'macrosequence/updateReps':
+    case 'playlist/updateReps':
       // Update the number of reps for a given stage of the master sequence.
       return produce(state, draft => {
-        draft.macrosequence[action.index].reps = action.reps
+        draft.playlist[action.index].reps = action.reps
       })
 
-    case 'macrosequence/updateSequence':
+    case 'playlist/updateSequence':
       // Choose which sequence is run in a given stage of the master sequence.
       return produce(state, draft => {
-        draft.macrosequence[action.index].name = action.name
-        draft.macrosequence[action.index].reps = 1
+        draft.playlist[action.index].name = action.name
+        draft.playlist[action.index].reps = 1
       })
 
     case 'sequence/close':
@@ -185,7 +199,7 @@ export default function reducer (state = [], action) {
       return produce(state, draft => {
         // check if the sequence is used in the master sequence
         let found = false
-        for (const stage of draft.macrosequence) {
+        for (const stage of draft.playlist) {
           if (stage.name === action.name) {
             found = true
           }
@@ -210,18 +224,19 @@ export default function reducer (state = [], action) {
     case 'sequence/load':
       // Store a passed sequence object in state.sequences.
       return produce(state, draft => {
-        for (const [key, val] of Object.entries(action.sequence.inputs)) {
+        const sequence = { ...action.sequence, steps: fill(action.sequence.steps, state.channels) }
+
+        for (const [key, val] of Object.entries(sequence.inputs)) {
           draft.inputs[key] = val
         }
-        for (const [key, val] of Object.entries(action.sequence.outputs)) {
+        for (const [key, val] of Object.entries(sequence.outputs)) {
           draft.outputs[key] = val
         }
-        delete action.sequence.inputs 
-        delete action.sequence.outputs
+        delete sequence.inputs
+        delete sequence.outputs
 
-        draft.sequences[action.name] = action.sequence
+        draft.sequences[action.name] = sequence
         draft.active_sequence = action.name
-
       })
 
     case 'sequence/rename':
@@ -231,8 +246,8 @@ export default function reducer (state = [], action) {
         if (draft.active_sequence === action.name) {
           draft.active_sequence = action.newName
         }
-        // rename all occurrences in macrosequence
-        for (const stage of draft.macrosequence) {
+        // rename all occurrences in playlist
+        for (const stage of draft.playlist) {
           if (stage.name === action.name) {
             stage.name = action.newName
           }
@@ -274,8 +289,9 @@ export default function reducer (state = [], action) {
       // DDS rf switches will preserve the previous state, but no other states
       // will be updated by default.
       return produce(state, draft => {
-        const newTimestep = defaultSequence(state.channels)[0]
+        const newTimestep = merge({}, defaultTimestep(state.channels))
         const previousTimestep = state.sequences[state.active_sequence].steps[action.timestep]
+        console.log(newTimestep, previousTimestep)
         for (const ch of Object.keys(previousTimestep.ttl)) {
           newTimestep.ttl[ch] = previousTimestep.ttl[ch]
         }
@@ -311,85 +327,9 @@ export default function reducer (state = [], action) {
         draft.ui.pid.submitted = action.value
       })
 
-    case 'ui/setActive':
-      // Designate a given channel as active. Inactive channels will not be
-      // rendered or sent to the code generator, allowing users to avoid
-      // accessing certain channels on the hardware, e.g. to persist a setpoint
-      // from a previous experiment.
+    case 'ui/changeVariableTab':
       return produce(state, draft => {
-        const newChannels = []
-        let oldChannels = state.ui.channels[action.channelType]
-        let allChannels = state.channels[action.channelType]
-        if (typeof (action.board) !== 'undefined') {
-          oldChannels = oldChannels[action.board]
-          allChannels = allChannels[action.board]
-        }
-        for (const ch of allChannels) {
-          if (ch === action.channel || oldChannels.includes(ch)) {
-            newChannels.push(ch)
-          }
-        }
-        if (typeof (action.board) === 'undefined') {
-          draft.ui.channels[action.channelType] = newChannels
-        } else {
-          draft.ui.channels[action.channelType][action.board] = newChannels
-        }
-
-        // if the channel is a boolean type (e.g. TTL, DDS enable), set to false in all timesteps and all channels
-        if (action.channelType === 'TTL') {
-          for (const [name, sequence] of Object.entries(state.sequences)) {
-            // console.log(name, sequence)
-            for (const [index, step] of sequence.steps.entries()) {
-              const channelState = step.ttl[action.channel]
-              draft.sequences[name].steps[index].ttl[action.channel] = channelState || false
-            }
-          }
-        }
-
-        if (action.channelType === 'DDS') {
-          for (const [name, sequence] of Object.entries(state.sequences)) {
-            // console.log(name, sequence)
-            for (const [index, step] of sequence.steps.entries()) {
-              const channelState = step.dds[action.channel]
-              draft.sequences[name].steps[index].dds[action.channel] = channelState || { enable: false, frequency: { mode: 'constant', constant: '', variable: '' }, attenuation: '' }
-            }
-          }
-        }
-
-        // initialize DAC channels to a default value if not yet present
-        if (action.channelType === 'DAC') {
-          const defaultState = { mode: 'constant', constant: ' V', ramp: { start: ' V', stop: ' V', steps: 100 }, variable: '' }
-
-          for (const [name, sequence] of Object.entries(state.sequences)) {
-            for (const [index, step] of sequence.steps.entries()) {
-              const channelState = step.dac[action.board][action.channel]
-              draft.sequences[name].steps[index].dac[action.board][action.channel] = channelState || defaultState
-            }
-          }
-        }
-      })
-
-    case 'ui/setInactive':
-      // Designate a channel as inactive.
-      return produce(state, draft => {
-        if (typeof (action.board) === 'undefined') {
-          draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e !== action.channel)
-        } else {
-          draft.ui.channels[action.channel_type][action.board] = draft.ui.channels[action.channel_type][action.board].filter(e => e !== action.channel)
-        }
-      })
-
-    case 'ui/setOthersInactive':
-      // Designate channels other than the selected one as inactive.
-      return produce(state, draft => {
-        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].filter(e => e === action.channel)
-      })
-
-    case 'ui/setBelowInactive':
-      // Designate channels listed after the selected one as inactive.
-      return produce(state, draft => {
-        const index = draft.ui.channels[action.channel_type].indexOf(action.channel)
-        draft.ui.channels[action.channel_type] = draft.ui.channels[action.channel_type].slice(0, index + 1)
+        draft.ui.variableTab = action.name
       })
 
     case 'variables/output/update':

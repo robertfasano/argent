@@ -7,7 +7,7 @@ from .channel_parsing import *
 from .sequence_parsing import *
 
 ''' Code generation '''
-def generate_experiment(macrosequence, config, pid, inputs={}, outputs={}):
+def generate_experiment(playlist, config, pid, inputs={}, outputs={}):
     ''' The main entrypoint for the code generator. The overall process is:
         1. Remove redundant events from the sequence to minimize RTIO overhead.
         2. Generate the build stage of the experiment (defining hardware).
@@ -15,10 +15,10 @@ def generate_experiment(macrosequence, config, pid, inputs={}, outputs={}):
         4. Generate the run stage of the experiment (the main sequence loop).
         5. Assemble the code from 2-4 into a complete file.
     '''
-    print('Generating macrosequence')
-    print(macrosequence)
-    for i, stage in enumerate(macrosequence):
-        macrosequence[i]['sequence']['steps'] = remove_redundant_events(macrosequence[i]['sequence']['steps'])
+    print('Generating playlist')
+    print(playlist)
+    for i, stage in enumerate(playlist):
+        playlist[i]['sequence']['steps'] = remove_redundant_events(playlist[i]['sequence']['steps'])
 
     code = 'import requests\n'
     code += 'import numpy as np\n'
@@ -28,16 +28,16 @@ def generate_experiment(macrosequence, config, pid, inputs={}, outputs={}):
         code += file.read() + '\n'
     with open(os.path.join(path, 'generator/sync.py')) as file:
         code += file.read() + '\n'
-    with open(os.path.join(path, 'generator/sampling.py')) as file:
+    with open(os.path.join(path, 'generator/rtio_ops.py')) as file:
         code += file.read() + '\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
-    code += textwrap.indent(generate_build(macrosequence, pid, inputs, outputs), '\t')
-    code += textwrap.indent(generate_init(macrosequence), '\t')
-    code += textwrap.indent(generate_run(macrosequence, config, inputs, outputs), '\t')
+    code += textwrap.indent(generate_build(playlist, pid, inputs, outputs), '\t')
+    code += textwrap.indent(generate_init(playlist), '\t')
+    code += textwrap.indent(generate_run(playlist, config, inputs, outputs), '\t')
 
     return code
 
-def generate_build(macrosequence, pid, inputs, outputs):
+def generate_build(playlist, pid, inputs, outputs):
     ''' Generates the build() function, in which all hardware accessed by the
         sequence is defined.
     '''
@@ -45,26 +45,26 @@ def generate_build(macrosequence, pid, inputs, outputs):
     code += f'self.__pid__ = "{pid}"\n'
     code += Core().build()
 
-    ttls = get_ttl_channels(macrosequence)
+    ttls = get_ttl_channels(playlist)
     code += f"for ttl in {ttls}:\n\tself.setattr_device(ttl)\n"
 
-    dacs = get_dac_channels(macrosequence)
+    dacs = get_dac_channels(playlist)
     for board in dacs:
         code += Zotino(board).build()
 
-    dds = get_dds_boards(macrosequence)
+    dds = get_dds_boards(playlist)
     for board in dds:
         code += f'self.setattr_device("{board}_cpld")\n'
-    channels = get_dds_channels(macrosequence)
+    channels = get_dds_channels(playlist)
     code += f'for dds in {channels}:\n\tself.setattr_device(dds)\n'
 
-    adcs = get_adc_boards(macrosequence)
+    adcs = get_adc_boards(playlist)
     for board in adcs:
         code += Sampler(board).build()
 
     ## build data arrays for sampling
     code += '\n## Data arrays\n'
-    arrays = get_data_arrays(macrosequence)
+    arrays = get_data_arrays(playlist)
     for key, val in arrays.items():
         code += f'self.{key} = {val}\n'
 
@@ -85,7 +85,7 @@ def generate_build(macrosequence, pid, inputs, outputs):
 
     return code
 
-def generate_init(macrosequence):
+def generate_init(playlist):
     ''' Generates the init() function, in which hardware defined in the build()
         function is initialized.
     '''
@@ -94,15 +94,15 @@ def generate_init(macrosequence):
     code += '\t' + Core().break_realtime()
 
     ## initialize DAC boards
-    dacs = get_dac_channels(macrosequence)
+    dacs = get_dac_channels(playlist)
     for board in dacs:
         code += '\t' + Zotino(board).init()
 
     ## initialize DDS channels
-    dds = get_dds_boards(macrosequence)
+    dds = get_dds_boards(playlist)
     for board in dds:
         code += f'\tself.{board}_cpld.init()\n'
-    channels = get_dds_channels(macrosequence)
+    channels = get_dds_channels(playlist)
     if len(channels) > 1:
         channels_str = str(['self.' + ch for ch in channels]).replace("'", "")
         code += f'\tfor dds in {channels_str}:\n\t\tdds.init()\n'
@@ -111,7 +111,7 @@ def generate_init(macrosequence):
         code += f'\t{channel_str}.init()\n'
 
     ## initialize ADC channels
-    adcs = get_adc_boards(macrosequence)
+    adcs = get_adc_boards(playlist)
     for board in adcs:
         code += '\t' + Sampler(board).init()
 
@@ -119,9 +119,9 @@ def generate_init(macrosequence):
 
     return code + '\n'
 
-def generate_run(macrosequence, config, inputs, outputs):
+def generate_run(playlist, config, inputs, outputs):
     ''' Generates the main loop of the experiment. Different stages of the overall
-        macrosequence are written into individual kernel functions for readability,
+        playlist are written into individual kernel functions for readability,
         which are then executed repeatedly in a While block.
     '''
     code = '@kernel\ndef run(self):\n'
@@ -129,7 +129,7 @@ def generate_run(macrosequence, config, inputs, outputs):
     code += '\twhile True:\n'
 
     i = 0
-    for stage in macrosequence:
+    for stage in playlist:
         function_call = f"\t\tself.{stage['name'].replace(' ', '_')}()\n"
         if int(stage['reps']) == 1:
             code += function_call
@@ -160,7 +160,7 @@ def generate_run(macrosequence, config, inputs, outputs):
 
     ## write individual stage functions
     loops = []
-    for stage in macrosequence:
+    for stage in playlist:
         if stage['name'] in loops:
             continue
         code += generate_loop(stage)
@@ -191,7 +191,7 @@ def write_batch(events):
     return code + textwrap.indent(indented, '\t')
 
 def generate_loop(stage):
-    ''' Generates a kernel function for a single stage of a macrosequence. For
+    ''' Generates a kernel function for a single stage of a playlist. For
         each timestep in the stage, events for different RTIO types are written
         in parallel with an overall delay defined by the step duration. Ramps
         are written in a sequential block which follows the execution of the
@@ -268,7 +268,10 @@ def generate_loop(stage):
 
         ## write ramps, if applicable
         for board in step.get('dac', {}):
-            code += textwrap.indent(Zotino(board).ramp(step), '\t')
+            if 'with sequential:' in code:
+                code += textwrap.indent(Zotino(board).ramp(step), '\t')
+            else:
+                code += Zotino(board).ramp(step)
 
 
         timesteps.append(code+'\n')
@@ -285,9 +288,9 @@ def generate_loop(stage):
 
 
 ''' Convenience functions '''
-def run(macrosequence, filename='generated_experiment.py', device_db='./device_db.py', config='./config.yml'):
+def run(playlist, filename='generated_experiment.py', device_db='./device_db.py', config='./config.yml'):
     config = Configurator(config, device_db).load()
-    code = generate_experiment(macrosequence, config)
+    code = generate_experiment(playlist, config)
     with open(filename, 'w') as file:
         file.write(code)
     env_name = config['environment_name']

@@ -1,6 +1,6 @@
 import { createMuiTheme } from '@material-ui/core/styles'
 
-const cellWidth = '80px'
+const cellWidth = '82px'
 const cellHeight = '30px'
 
 const theme = createMuiTheme({

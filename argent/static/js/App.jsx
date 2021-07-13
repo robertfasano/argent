@@ -4,13 +4,12 @@ import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import SequenceTable from './SequenceTable.jsx'
 import VariableTable from './VariableTable.jsx'
-import ArgumentTable from './ArgumentTable.jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { connect } from 'react-redux'
-import AppMenu from './menu/AppMenu.jsx'
 import SequenceSelector from './SequenceSelector.jsx'
-import MacrosequencePanel from './macrosequencing/MacrosequencePanel.jsx'
+import PlaylistPanel from './playlists/PlaylistPanel.jsx'
 import Grid from '@material-ui/core/Grid'
+import Box from '@material-ui/core/Box'
 import Paper from '@material-ui/core/Paper'
 import Heartbeat from './menu/Heartbeat.jsx'
 import io from 'socket.io-client'
@@ -50,7 +49,6 @@ function App (props) {
 
       <AppBar position="fixed" color="primary" className={classes.appBar} style={{ background: 'linear-gradient(45deg, #67001a 30%, #004e67 90%)' }}>
         <Toolbar>
-          <AppMenu/>
           <Typography style={{ flexGrow: 1 }}>  </Typography>
           <Heartbeat/>
         </Toolbar>
@@ -59,23 +57,30 @@ function App (props) {
       <div className={classes.appBarSpacer} />
 
       <main className={classes.content}>
-        <Grid container xs={12} justify='space-evenly' spacing={2}>
-        <Grid container item xs={10} spacing={2} justify='space-evenly'>
-          <Grid item xs={12}>
-            <SequenceSelector/>
-          </Grid>
+        <Grid container>
           <Grid item>
-            <Paper elevation={6} style={{ minWidth: '350px' }}>
-              <VariableTable/>
-            </Paper>
+            <Box mx={2}>
+              <Paper elevation={6} style={{ width: '400px' }}>
+                <VariableTable/>
+              </Paper>
+              <Paper elevation={6} style={{ width: '400px' }}>
+                <PlaylistPanel/>
+              </Paper>
+            </Box>
           </Grid>
-          <Grid item xl lg md sm xs>
-            <SequenceTable />
+
+          <Grid item xs>
+              <Grid container direction='column'>
+                <Grid item>
+                  <Box mb={2}>
+                    <SequenceSelector/>
+                  </Box>
+                </Grid>
+                <Grid item>
+                  <SequenceTable />
+                </Grid>
+              </Grid>
           </Grid>
-        </Grid>
-        <Grid container item xs={2} spacing={2} justify='space-evenly'>
-          <MacrosequencePanel/>
-        </Grid>
         </Grid>
       </main>
     </React.Fragment>

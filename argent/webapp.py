@@ -14,12 +14,7 @@ from .influx import InfluxDBClient
 
 class App:
     ''' Handles the server backend which forms the link between the webapp client
-        and the code generator/ARTIQ experiment submission. Requires a config.yml
-        file with the following fields:
-        - device_db: the path of the device_db.py file for the ARTIQ system
-        - environment_name: the conda environment where ARTIQ is installed
-        - aliases: optional display names to override the default channel names.
-                   For example, 'ttlA0' could be replaced with 'probe rf'.
+        and the code generator/ARTIQ experiment submission. 
     '''
     def __init__(self, config='./config.yml'):
         print('Running Argent webapp...')
@@ -56,8 +51,7 @@ class App:
             ''' The main entrypoint for the webapp '''
             return render_template('index.html',
                                    sequences=json.dumps({}),
-                                   channels=channels(),
-                                   aliases=self.config['aliases'],
+                                   channels=self.config['channels'],
                                    version=version()
                                   )
 
@@ -67,10 +61,10 @@ class App:
 
         @app.route("/generate", methods=['POST'])
         def generate():
-            ''' Posting a macrosequence to this endpoint will trigger code
+            ''' Posting a playlist to this endpoint will trigger code
                 generation. The experiment will not be sent to the hardware.
             '''
-            sequence = request.json['macrosequence']
+            sequence = request.json['playlist']
             pid = request.json['pid']
             inputs = request.json['inputs']
             outputs = request.json['outputs']
@@ -87,10 +81,10 @@ class App:
 
         @app.route("/submit", methods=['POST'])
         def submit():
-            ''' Posting a macrosequence to this endpoint will generate an ARTIQ
+            ''' Posting a playlist to this endpoint will generate an ARTIQ
                 experiment and execute it on the hardware using artiq_run.
             '''
-            sequence = request.json['macrosequence']
+            sequence = request.json['playlist']
             pid = request.json['pid']
             inputs = request.json['inputs']
             outputs = request.json['outputs']

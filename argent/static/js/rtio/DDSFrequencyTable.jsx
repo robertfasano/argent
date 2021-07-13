@@ -7,9 +7,9 @@ import IconButton from '@material-ui/core/IconButton'
 import { connect } from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
-import DDSButton from './DDSButton.jsx'
+import DDSFrequencyTimeline from './DDSFrequencyTimeline.jsx'
 
-function DDSTable (props) {
+function DDSFrequencyTable (props) {
   return (
     <>
     <TableRow>
@@ -18,7 +18,7 @@ function DDSTable (props) {
           {props.expanded
             ? <ExpandLessIcon/>
             : <ExpandMoreIcon /> }
-          <Typography style={{ fontSize: 24, color: 'black' }}> <b>DDS enable</b> </Typography>
+          <Typography style={{ fontSize: 24, color: 'black' }}> <b>DDS frequency</b> </Typography>
         </IconButton>
       </TableCell>
     </TableRow>
@@ -34,13 +34,7 @@ function DDSTable (props) {
                 {props.channels[ch]}
               </Typography>
             </TableCell>
-            {
-              props.steps.map((step, index) => (
-                <DDSButton timestep={index} ch={ch} key={'dds-' + ch + index}/>
-              )
-              )
-
-            }
+              <DDSFrequencyTimeline ch={ch}/>
           </TableRow>
         </React.Fragment>
       ))}
@@ -52,18 +46,15 @@ function DDSTable (props) {
   )
 }
 
-DDSTable.propTypes = {
-  dispatch: PropTypes.func,
+DDSFrequencyTable.propTypes = {
   channels: PropTypes.object,
   expanded: PropTypes.bool,
-  setExpanded: PropTypes.func,
-  steps: PropTypes.array
+  setExpanded: PropTypes.func
 }
 
 function mapStateToProps (state, ownProps) {
   return {
-    channels: state.channels.DDS,
-    steps: state.sequences[state.active_sequence].steps
+    channels: state.channels.DDS
   }
 }
-export default connect(mapStateToProps)(DDSTable)
+export default connect(mapStateToProps)(DDSFrequencyTable)

@@ -9,25 +9,16 @@ import { connect } from 'react-redux'
 import TimestepContextMenu from './rtio/TimestepContextMenu.jsx'
 import TimestepTable from './rtio/TimestepTable.jsx'
 import TTLTable from './rtio/TTLTable.jsx'
-import DACTable from './rtio/DACTable.jsx'
+import DACTimelines from './rtio/DACTimelines.jsx'
 import DDSTable from './rtio/DDSTable.jsx'
+import DDSFrequencyTable from './rtio/DDSFrequencyTable.jsx'
 import ADCTable from './rtio/ADCTable.jsx'
-import ChannelMenu from './rtio/ChannelMenu.jsx'
+import SequenceToolbar from './SequenceToolbar.jsx'
 
 function SequenceTable (props) {
   // Displays a grid of widgets allowing sequences to be defined.
-  const [expanded, setExpanded] = React.useState({ ttl: true, dac: true, dds: true, adc: true, script: true })
-  const [channelMenu, setChannelMenu] = React.useState({ anchor: null, ch: '', board: '', type: '' })
+  const [expanded, setExpanded] = React.useState({ ttl: true, dac: true, dds: true, dds_freq: true, dds_amp: true, adc: true })
   const [timestepMenu, setTimestepMenu] = React.useState({ anchor: null, index: null })
-
-  function handleChannelMenu (event, name, channelType, board) {
-    event.preventDefault()
-    setChannelMenu({ anchor: event.currentTarget, ch: name, board: board, type: channelType })
-  }
-
-  function closeChannelMenu () {
-    setChannelMenu({ anchor: null, ch: '', board: '', type: '' })
-  }
 
   function handleTimestepMenu (event, name, index) {
     event.preventDefault()
@@ -48,18 +39,21 @@ function SequenceTable (props) {
                            close={closeTimestepMenu}
                            length={props.steps.length}
             />
-      <ChannelMenu state={channelMenu} close={closeChannelMenu}/>
       <Paper elevation={6} style={{ overflowX: 'auto' }}>
+        <Box p={2}>
+          <SequenceToolbar name={props.activeSequence}/>
+        </Box>
         <Box p={2} style={{ display: 'inline-block' }}>
           <Table>
             <TableHead>
               <TimestepTable onContextMenu={handleTimestepMenu}/>
             </TableHead>
             <TableBody>
-              <TTLTable expanded={expanded.ttl} setExpanded={() => expand('ttl')} onContextMenu={handleChannelMenu}/>
-              <DACTable expanded={expanded.dac} setExpanded={() => expand('dac')} onContextMenu={handleChannelMenu}/>
-              <DDSTable expanded={expanded.dds} setExpanded={() => expand('dds')} onContextMenu={handleChannelMenu}/>
-              <ADCTable expanded={expanded.adc} setExpanded={() => expand('adc')} onContextMenu={handleChannelMenu}/>
+              <TTLTable expanded={expanded.ttl} setExpanded={() => expand('ttl')}/>
+              <DACTimelines expanded={expanded.dac} setExpanded={() => expand('dac')}/>
+              <DDSTable expanded={expanded.dds} setExpanded={() => expand('dds')}/>
+              <DDSFrequencyTable expanded={expanded.dds_freq} setExpanded={() => expand('dds_freq')}/>
+              <ADCTable expanded={expanded.adc} setExpanded={() => expand('adc')}/>
             </TableBody>
           </Table>
         </Box>
@@ -70,12 +64,14 @@ function SequenceTable (props) {
 
 SequenceTable.propTypes = {
   dispatch: PropTypes.func,
-  steps: PropTypes.array
+  steps: PropTypes.array,
+  activeSequence: PropTypes.string
 }
 
 function mapStateToProps (state, ownProps) {
   return {
-    steps: state.sequences[state.active_sequence].steps
+    steps: state.sequences[state.active_sequence].steps,
+    activeSequence: state.active_sequence
   }
 }
 export default connect(mapStateToProps)(SequenceTable)

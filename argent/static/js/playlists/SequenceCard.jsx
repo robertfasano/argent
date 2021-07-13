@@ -12,8 +12,8 @@ import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
 
 function SequenceCard (props) {
   return (
-    <Box m={1}>
-      <Paper>
+    <Box>
+      <Paper elevation={4}>
         <Box mx={4} my={1}>
           <Grid container alignItems='center'>
             <Grid item xs={6}>
@@ -55,13 +55,13 @@ SequenceCard.propTypes = {
 function mapDispatchToProps (dispatch, props) {
   return {
     remove: () => {
-      dispatch({ type: 'macrosequence/remove', index: props.index })
+      dispatch({ type: 'playlist/remove', index: props.index })
     },
     moveDown: () => {
-      dispatch({ type: 'macrosequence/swap', a: props.index, b: props.index + 1 })
+      dispatch({ type: 'playlist/swap', a: props.index, b: props.index + 1 })
     },
     moveUp: () => {
-      dispatch({ type: 'macrosequence/swap', a: props.index, b: props.index - 1 })
+      dispatch({ type: 'playlist/swap', a: props.index, b: props.index - 1 })
     }
   }
 }

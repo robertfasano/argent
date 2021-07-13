@@ -2,14 +2,12 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import TableCell from '@material-ui/core/TableCell'
 import TableRow from '@material-ui/core/TableRow'
-import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import { connect } from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import TTLButton from './TTLButton.jsx'
-import NewChannelButton from './NewChannelButton.jsx'
 
 function TTLTable (props) {
   return (
@@ -17,28 +15,22 @@ function TTLTable (props) {
 <>
   <TableRow>
     <TableCell>
-      <Grid container>
-        <Grid item xs={6}>
-          <IconButton onClick={props.setExpanded} >
-            {props.expanded
-              ? <ExpandLessIcon/>
-              : <ExpandMoreIcon /> }
-          </IconButton>
-        </Grid>
-        <Grid container item xs={6} alignItems='center'>
-          <Typography style={{ fontSize: 24 }}> <b>TTL</b> </Typography>
-        </Grid>
-      </Grid>
+      <IconButton onClick={props.setExpanded} >
+        {props.expanded
+          ? <ExpandLessIcon/>
+          : <ExpandMoreIcon /> }
+        <Typography style={{ fontSize: 24, color: 'black' }}> <b>TTL</b> </Typography>
+      </IconButton>
     </TableCell>
   </TableRow>
   {props.expanded
     ? (
     <React.Fragment>
-    {props.channels.map(i => (
+    {Object.keys(props.channels).map(i => (
       <TableRow key={i}>
-        <TableCell onContextMenu={(event) => props.onContextMenu(event, i, 'TTL')} style={{ width: '100px' }}>
+        <TableCell style={{ width: '100px' }}>
           <Typography style={{ fontSize: 14 }}>
-            {props.aliases[i]}
+            {props.channels[i]}
           </Typography>
         </TableCell>
         {
@@ -48,7 +40,6 @@ function TTLTable (props) {
         }
       </TableRow>
     ))}
-    <NewChannelButton channelType="TTL"/>
     </React.Fragment>
       )
     : null
@@ -59,18 +50,15 @@ function TTLTable (props) {
 
 TTLTable.propTypes = {
   dispatch: PropTypes.func,
-  channels: PropTypes.array,
+  channels: PropTypes.object,
   steps: PropTypes.array,
-  aliases: PropTypes.object,
   expanded: PropTypes.bool,
-  setExpanded: PropTypes.func,
-  onContextMenu: PropTypes.func
+  setExpanded: PropTypes.func
 }
 
 function mapStateToProps (state, ownProps) {
   return {
-    channels: state.ui.channels.TTL,
-    aliases: state.aliases.TTL,
+    channels: state.channels.TTL,
     steps: state.sequences[state.active_sequence].steps
   }
 }

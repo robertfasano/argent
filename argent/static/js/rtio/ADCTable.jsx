@@ -2,7 +2,6 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import TableCell from '@material-ui/core/TableCell'
 import TableRow from '@material-ui/core/TableRow'
-import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import { connect } from 'react-redux'
@@ -17,18 +16,12 @@ function ADCTable (props) {
     {/* ADC header */}
     <TableRow>
       <TableCell>
-        <Grid container>
-          <Grid item xs={6}>
-            <IconButton onClick={props.setExpanded} >
-              {props.expanded
-                ? <ExpandLessIcon/>
-                : <ExpandMoreIcon /> }
-            </IconButton>
-          </Grid>
-          <Grid container item xs={6} alignItems='center'>
-            <Typography style={{ fontSize: 24 }}> <b>ADC</b> </Typography>
-          </Grid>
-        </Grid>
+        <IconButton onClick={props.setExpanded} >
+          {props.expanded
+            ? <ExpandLessIcon/>
+            : <ExpandMoreIcon /> }
+          <Typography style={{ fontSize: 24, color: 'black' }}> <b>ADC</b> </Typography>
+        </IconButton>
       </TableCell>
     </TableRow>
 
@@ -36,11 +29,11 @@ function ADCTable (props) {
     {props.expanded
       ? (
       <React.Fragment>
-      {props.channels.map(board => (
+      {Object.keys(props.channels).map(board => (
           <TableRow key={`${board}`}>
             <TableCell>
               <Typography style={{ fontSize: 14 }}>
-                {board}
+                {props.channels[board]}
               </Typography>
             </TableCell>
             {
@@ -63,14 +56,14 @@ function ADCTable (props) {
 ADCTable.propTypes = {
   dispatch: PropTypes.func,
   steps: PropTypes.array,
-  channels: PropTypes.array,
+  channels: PropTypes.object,
   expanded: PropTypes.bool,
   setExpanded: PropTypes.func
 }
 
 function mapStateToProps (state, ownProps) {
   return {
-    channels: state.ui.channels.ADC,
+    channels: state.channels.ADC,
     steps: state.sequences[state.active_sequence].steps
   }
 }

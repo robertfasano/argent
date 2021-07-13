@@ -12,11 +12,6 @@ def Comment(step, i):
     name = step.get('name', f'Sequence timestep {i}')
     return f'## {name}\n'
 
-def Arguments(variables, keys_only=False):
-    if keys_only:
-        return ', '.join(f"{key}" for (key, val) in variables.items())
-    return ', '.join(f"{key}={val}" for (key, val) in variables.items())
-
 class Sampler:
     ''' A container for code generation related to the Sampler ADC '''
     def __init__(self, board):
@@ -62,16 +57,23 @@ class Urukul:
         # if frequency is not None:
         #     commands.append(f'self.{self.channel}.set({frequency}*MHz)\n')
         if frequency != {}:
-            if frequency['mode'] == 'constant' and frequency['constant'] != '':
-                commands.append(f'self.{self.channel}.set({frequency["constant"]}*MHz)\n')
+            if frequency['mode'] == 'setpoint':
+                if 'var:' in frequency['setpoint']:
+                    var = "self." + frequency['setpoint'].split('var:')[1]
+                    commands.append(f'self.{self.channel}.set({var}*MHz)\n')
+                elif frequency['setpoint'] != '':
+                    commands.append(f'self.{self.channel}.set({frequency["setpoint"]}*MHz)\n')
 
-            elif frequency['mode'] == 'variable':
-                cmd = f'self.{self.channel}.set(self.{frequency["variable"]}*MHz)\n'
-                commands.append(cmd)
-
-        attenuation = step['dds'][self.channel].get('attenuation', '')
-        if attenuation != '':
-            commands.append(f'self.{self.channel}.set_att({float(attenuation)})\n')
+        attenuation = step['dds'][self.channel].get('attenuation', {})
+        if attenuation != {}:
+            # if attenuation['mode'] == 'setpoint' and attenuation['setpoint'] != '':
+                # commands.append(f'self.{self.channel}.set_att({float(attenuation["setpoint"])})\n')
+            if attenuation['mode'] == 'setpoint':
+                if 'var:' in attenuation['setpoint']:
+                    var = "self." + attenuation['setpoint'].split('var:')[1]
+                    commands.append(f'self.{self.channel}.set_att({var})\n')
+                elif attenuation['setpoint'] != '':
+                    commands.append(f'self.{self.channel}.set_att({float(attenuation["setpoint"])})\n')
 
         return commands
 
@@ -107,21 +109,29 @@ class Zotino:
             value = float(voltage_str.split(' ')[0])
             unit = voltage_str.split(' ')[1]
             return value * {'V': 1, 'mV': 1e-3, 'uV': 1e-6}[unit]
-
+        
     def initial(self, step):
         channels = []
         voltages = []
 
         for ch, state in step['dac'][self.board].items():
-            if state['mode'] == 'constant' and state['constant'].split(' ')[0] != '':
-                voltages.append(self.parse(state['constant']))
-                channels.append(int(ch.split(self.board)[1]))
+            if state['mode'] == 'setpoint':
+                if 'var:' in state['setpoint']:
+                    var = state['setpoint'].split('var:')[1]
+                    voltages.append("self." + var)
+                    channels.append(int(ch.split(self.board)[1]))
+                elif state['setpoint'] != '':
+                    voltages.append(float(state['setpoint']))
+                    channels.append(int(ch.split(self.board)[1]))
             elif state['mode'] == 'ramp':
-                voltages.append(self.parse(state['ramp']['start']))
+                start = state['ramp']['start']
+                if 'var:' in start:
+                    start = 'self.' + start.split('var:')[1]
+                else:
+                    start = float(start)
+                voltages.append(start)
                 channels.append(int(ch.split(self.board)[1]))
-            elif state['mode'] == 'variable':
-                voltages.append("self." + state['variable'])
-                channels.append(int(ch.split(self.board)[1]))
+
 
         if len(voltages) == 0:
             return None
@@ -129,31 +139,63 @@ class Zotino:
 
     def ramp(self, step):
         channels = []
-        ramp = None
+        starts = []
+        stops = []
+        steps = 0
         for ch, state in step['dac'][self.board].items():
             if state['mode'] != 'ramp':
                 continue
             channels.append(int(ch.split(self.board)[1]))
-            start = self.parse(state['ramp']['start'])
-            stop = self.parse(state['ramp']['stop'])
-            steps = int(state['ramp']['steps'])
-            if ramp is None:
-                ramp = np.atleast_2d(np.linspace(start, stop, steps)).T
+
+            start = state['ramp']['start']
+            if 'var:' in start:
+                start = 'self.' + start.split('var:')[1]
             else:
-                ramp = np.hstack([ramp, np.atleast_2d(np.linspace(start, stop, steps)).T])
+                start = float(start)
+            stop = state['ramp']['stop']
+            if 'var:' in stop:
+                stop = 'self.' + stop.split('var:')[1]
+            else:
+                stop = float(stop)            
+            steps = int(state['ramp']['steps'])
+            starts.append(start)
+            stops.append(stop)
 
-        if ramp is None:
+        if steps == 0:
             return ''
-
-        ramp_cmd = '\n## DAC ramp\n'
+        ramp_cmd = "\n## DAC ramp\n"
         duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
-        delay = duration / int(state['ramp']['steps'])
-        for voltages in ramp[1::]:
-            ramp_cmd += f'delay({delay})\n'
-            ramp_cmd += f'self.{self.board}.set_dac([{", ".join(voltages.astype(str))}], {channels})\n'
+        ramp_cmd += f"ramp(self.{self.board}, {channels}, {starts}, {stops}, {steps}, {duration})\n"
+        ramp_cmd = ramp_cmd.replace("'", "")
+        return ramp_cmd
+
+    # def ramp(self, step):
+    #     channels = []
+    #     ramp = None
+    #     for ch, state in step['dac'][self.board].items():
+    #         if state['mode'] != 'ramp':
+    #             continue
+    #         channels.append(int(ch.split(self.board)[1]))
+    #         start = self.parse(state['ramp']['start'])
+    #         stop = self.parse(state['ramp']['stop'])
+    #         steps = int(state['ramp']['steps'])
+    #         if ramp is None:
+    #             ramp = np.atleast_2d(np.linspace(start, stop, steps)).T
+    #         else:
+    #             ramp = np.hstack([ramp, np.atleast_2d(np.linspace(start, stop, steps)).T])
+
+    #     if ramp is None:
+    #         return ''
+
+    #     ramp_cmd = '\n## DAC ramp\n'
+    #     duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
+    #     delay = duration / int(state['ramp']['steps'])
+    #     for voltages in ramp[1::]:
+    #         ramp_cmd += f'delay({delay})\n'
+    #         ramp_cmd += f'self.{self.board}.set_dac([{", ".join(voltages.astype(str))}], {channels})\n'
 
             
-        return ramp_cmd
+    #     return ramp_cmd
 
 class TTL:
     ''' A container for code generation related to TTL devices. '''

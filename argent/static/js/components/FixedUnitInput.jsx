@@ -5,17 +5,12 @@ import TextField from '@material-ui/core/TextField'
 
 function FixedUnitInput (props) {
   // A text field displaying a fixed unit and label
-  // const value = props.value.split(' ')[0] || ''
-  // let value = ''
-
-  // const value = props.value == '' ? props.value.split(' ')[0] : props.value
-  // console.log(props.value, value)
 
   return (
     <TextField onChange = {(event) => props.onChange(event)}
                value = {props.value}
                placeholder = {props.placeholder}
-               size = "small"
+               size = "medium"
                label={props.label}
                InputLabelProps={{ shrink: true }}
                style={props.style || {}}
@@ -30,7 +25,7 @@ function FixedUnitInput (props) {
 
 FixedUnitInput.propTypes = {
   onChange: PropTypes.func,
-  value: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   placeholder: PropTypes.string,
   label: PropTypes.string,
   unit: PropTypes.string,

@@ -17,7 +17,7 @@ function VariableUnitInput (props) {
              value={value}
              label={(props.label || '')}
              variant={(props.variant) || 'standard'}
-             size={(props.size) || 'medium'}
+             size={(props.size) || 'small'}
              placeholder={value}
              style={props.style || {}}
              InputLabelProps={{ shrink: true }}

@@ -5,26 +5,28 @@ import RadioGroup from '@material-ui/core/RadioGroup'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormControl from '@material-ui/core/FormControl'
 import FormLabel from '@material-ui/core/FormLabel'
+import Box from '@material-ui/core/Box'
 
 function ModeSelector (props) {
-  // Allows a choice of 'constant', 'ramp', or 'variable' modes
-  const ramp = props.ramp || false
+  // Allows a choice of 'setpoint' or 'ramp' modes
   return (
-    <FormControl component="fieldset">
-      <FormLabel component="legend">{props.label}</FormLabel>
-      <RadioGroup row value={props.value} onChange={props.onChange}>
-        <FormControlLabel value="constant" control={<Radio />} label="Constant" />
-        {ramp ? <FormControlLabel value="ramp" control={<Radio />} label="Ramp" /> : null}
-        <FormControlLabel value="variable" control={<Radio />} label="Variable" />
-      </RadioGroup>
-    </FormControl>
+    <Box m={1}>
+      <FormControl component="fieldset">
+        <FormLabel component="legend">{props.label}</FormLabel>
+        <RadioGroup row value={props.value} onChange={props.onChange}>
+          <FormControlLabel value="setpoint" control={<Radio />} label="Setpoint" />
+          <FormControlLabel value="ramp" disabled={!props.ramp} control={<Radio />} label="Ramp" />
+        </RadioGroup>
+      </FormControl>
+    </Box>
   )
 }
 
 ModeSelector.propTypes = {
   label: PropTypes.string,
   onChange: PropTypes.func,
-  value: PropTypes.string
+  value: PropTypes.string,
+  ramp: PropTypes.bool
 }
 
 export default ModeSelector
