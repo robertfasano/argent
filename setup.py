@@ -23,6 +23,6 @@ setup(
     install_requires=['pyyaml', 'click', 'requests', 'pyzmq'],
     entry_points='''
         [console_scripts]
-        argent_run=argent.webapp:main
+        argent_run=argent.server:main
         ''',
 )

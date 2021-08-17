@@ -1,14 +1,15 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import Timeline from './Timeline.jsx'
-import DACPopover from './DACPopover.jsx'
+import Timeline from '../../components/Timeline.jsx'
+import DDSFrequencyPopover from './DDSFrequencyPopover.jsx'
 import { createSelector } from 'reselect'
 
-function DACTimeline (props) {
+function DDSFrequencyTimeline (props) {
   const [anchorPosition, setAnchorPosition] = React.useState([0, 0])
   const [open, setOpen] = React.useState(false)
   const [timestep, setTimestep] = React.useState(0)
+
   function handleClick (timestep, event) {
     setAnchorPosition([event.x, event.y])
     setOpen(true)
@@ -17,28 +18,26 @@ function DACTimeline (props) {
 
   return (
     <>
-      <Timeline data={props.data} onClick={handleClick} unit='V'/>
-      <DACPopover anchorPosition={anchorPosition} setAnchorPosition={setAnchorPosition} ch={props.ch} board={props.board} timestep={timestep} open={open} setOpen={setOpen}/>
+      <Timeline data={props.data} onClick={handleClick} unit='MHz'/>
+      <DDSFrequencyPopover anchorPosition={anchorPosition} setAnchorPosition={setAnchorPosition} ch={props.ch} timestep={timestep} open={open} setOpen={setOpen}/>
     </>
   )
 }
 
-DACTimeline.propTypes = {
+DDSFrequencyTimeline.propTypes = {
   data: PropTypes.array,
-  ch: PropTypes.string,
-  board: PropTypes.string
+  ch: PropTypes.string
 }
 
 const makeSelector = () => createSelector(
   [
     (state) => state.sequences[state.active_sequence].steps,
-    (state, props) => props.board,
     (state, props) => props.ch
   ],
-  (steps, board, channel) => {
+  (steps, channel) => {
     const data = []
     for (const step of steps) {
-      data.push(step.dac[board][channel])
+      data.push(step.dds[channel].frequency)
     }
     return data
   }
@@ -52,4 +51,4 @@ const makeMapStateToProps = () => {
   return mapStateToProps
 }
 
-export default connect(makeMapStateToProps)(DACTimeline)
+export default connect(makeMapStateToProps)(DDSFrequencyTimeline)

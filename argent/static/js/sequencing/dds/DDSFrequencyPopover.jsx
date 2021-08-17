@@ -5,7 +5,7 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
 import ModeSelector from '../ModeSelector.jsx'
-import LinkableParameter from '../components/LinkableParameter.jsx'
+import LinkableParameter from '../../components/LinkableParameter.jsx'
 import TextField from '@material-ui/core/TextField'
 
 function DDSFrequencyPopover (props) {
@@ -31,6 +31,7 @@ function DDSFrequencyPopover (props) {
           <ModeSelector label={'Frequency mode'}
                         value={props.frequency.mode}
                         onChange = {(event) => props.update('dds/frequency/mode', event.target.value)}
+                        ramp={true}
           />
           {(props.frequency.mode === 'setpoint')
             ? <LinkableParameter value={props.frequency.setpoint} inputs={props.inputs} onChange={(value) => props.update('dds/frequency/setpoint', value)} label='Frequency' unit='MHz'/>

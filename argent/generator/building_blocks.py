@@ -63,6 +63,14 @@ class Urukul:
                     commands.append(f'self.{self.channel}.set({var}*MHz)\n')
                 elif frequency['setpoint'] != '':
                     commands.append(f'self.{self.channel}.set({frequency["setpoint"]}*MHz)\n')
+            elif frequency['mode'] == 'ramp':
+                start = frequency['ramp']['start']
+                if 'var:' in start:
+                    start = 'self.' + start.split('var:')[1]
+                else:
+                    start = float(start)
+                commands.append(f'self.{self.channel}.set({start}*MHz)\n')
+
 
         attenuation = step['dds'][self.channel].get('attenuation', {})
         if attenuation != {}:
@@ -76,6 +84,32 @@ class Urukul:
                     commands.append(f'self.{self.channel}.set_att({float(attenuation["setpoint"])})\n')
 
         return commands
+
+    def ramp(self, step):
+        ''' Only one channel can be ramped at once '''
+        if step['dds'][self.channel].get('frequency', {}).get('mode', {}) != 'ramp':
+            return ''
+        ramp = step['dds'][self.channel]['frequency']['ramp']
+
+        start = ramp['start']
+        if 'var:' in start:
+            start = 'self.' + start.split('var:')[1]
+        else:
+            start = float(start)
+
+        stop = ramp['stop']
+        if 'var:' in stop:
+            stop = 'self.' + stop.split('var:')[1]
+        else:
+            stop = float(stop)   
+
+        steps = int(ramp['steps'])
+
+        ramp_cmd = "\n## DDS ramp\n"
+        duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
+        ramp_cmd += f"ramp_DDS(self.{self.channel}, {start}, {stop}, {steps}, {duration}, now)\n"
+        ramp_cmd = ramp_cmd.replace("'", "") 
+        return ramp_cmd
 
 class CPLD:
     ''' A container for code generation related to the Urukul CPLD. '''
@@ -165,37 +199,9 @@ class Zotino:
             return ''
         ramp_cmd = "\n## DAC ramp\n"
         duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
-        ramp_cmd += f"ramp(self.{self.board}, {channels}, {starts}, {stops}, {steps}, {duration})\n"
+        ramp_cmd += f"ramp(self.{self.board}, {channels}, {starts}, {stops}, {steps}, {duration}, now)\n"
         ramp_cmd = ramp_cmd.replace("'", "")
         return ramp_cmd
-
-    # def ramp(self, step):
-    #     channels = []
-    #     ramp = None
-    #     for ch, state in step['dac'][self.board].items():
-    #         if state['mode'] != 'ramp':
-    #             continue
-    #         channels.append(int(ch.split(self.board)[1]))
-    #         start = self.parse(state['ramp']['start'])
-    #         stop = self.parse(state['ramp']['stop'])
-    #         steps = int(state['ramp']['steps'])
-    #         if ramp is None:
-    #             ramp = np.atleast_2d(np.linspace(start, stop, steps)).T
-    #         else:
-    #             ramp = np.hstack([ramp, np.atleast_2d(np.linspace(start, stop, steps)).T])
-
-    #     if ramp is None:
-    #         return ''
-
-    #     ramp_cmd = '\n## DAC ramp\n'
-    #     duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
-    #     delay = duration / int(state['ramp']['steps'])
-    #     for voltages in ramp[1::]:
-    #         ramp_cmd += f'delay({delay})\n'
-    #         ramp_cmd += f'self.{self.board}.set_dac([{", ".join(voltages.astype(str))}], {channels})\n'
-
-            
-    #     return ramp_cmd
 
 class TTL:
     ''' A container for code generation related to TTL devices. '''

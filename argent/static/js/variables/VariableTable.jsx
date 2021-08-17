@@ -9,7 +9,7 @@ import TableRow from '@material-ui/core/TableRow'
 import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
-import { post } from './utilities.js'
+import { post } from '../utilities.js'
 import Button from '@material-ui/core/Button'
 import AddIcon from '@material-ui/icons/Add'
 import ClearIcon from '@material-ui/icons/Clear'
@@ -136,7 +136,7 @@ function VariableTable (props) {
           : (
             <>
             <Box my={2}>
-              <Typography>Input variables can be used to define a single value across multiple sequences for DAC voltages or DDS frequencies. During sequence playback, 
+              <Typography>Input variables can be used to define a single value across multiple sequences for DAC voltages or DDS frequencies. During sequence playback,
                 inputs are updated from the Argent server at the end of each cycle, allowing values to be changed while the sequence is running.
               </Typography>
             </Box>

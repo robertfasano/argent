@@ -266,13 +266,23 @@ def generate_loop(stage):
                         code += f'self.{var} = array_max_minus_last(self.{array_name}, {ch})\n'
                 # code += textwrap.indent(Sampler(board).record(sampler_state[board]['variables']), '\t')
 
+        ramps = ''
         ## write ramps, if applicable
         for board in step.get('dac', {}):
-            if 'with sequential:' in code:
-                code += textwrap.indent(Zotino(board).ramp(step), '\t')
-            else:
-                code += Zotino(board).ramp(step)
+            # if 'with sequential:' in code:
+            #     code += textwrap.indent(Zotino(board).ramp(step), '\t')
+            # else:
+            ramps += Zotino(board).ramp(step)
 
+        for channel in step.get('dds', {}):
+            # if 'with sequential:' in code:
+            #     code += textwrap.indent(Urukul(channel).ramp(step), '\t')
+            # else:
+            ramps += Urukul(channel).ramp(step)
+        if ramps != '':
+            code += 'with parallel:\n'
+            code += textwrap.indent('now = now_mu()\n', '\t')
+            code += textwrap.indent(ramps, '\t')
 
         timesteps.append(code+'\n')
 

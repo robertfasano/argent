@@ -1,65 +1,20 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Button from '@material-ui/core/Button'
 import Popover from '@material-ui/core/Popover'
-import TableCell from '@material-ui/core/TableCell'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import TextField from '@material-ui/core/TextField'
 import ModeSelector from '../ModeSelector.jsx'
-import LinkIcon from '@material-ui/icons/Link'
-import TrendingUpIcon from '@material-ui/icons/TrendingUp'
 import { connect } from 'react-redux'
-import LinkableParameter from '../components/LinkableParameter.jsx'
+import LinkableParameter from '../../components/LinkableParameter.jsx'
 
-function DACButton (props) {
-  // A Button which opens a Popover allowing the user to define the state of a
-  // DAC channel at a timestep. In Setpoint mode, a single value is held
-  // through the timestep. In Ramp mode, the user can generate an
-  // intra-timestep linear ramp parameterized by start and stop voltages and
-  // a number of steps.
-  const [anchorEl, setAnchorEl] = React.useState(null)
-
-  const open = Boolean(anchorEl)
-
-  let color = '#D3D3D3'
-  if (props.mode === 'setpoint' && props.setpoint !== '') {
-    color = '#67001a'
-  } else if (props.mode === 'ramp') {
-    color = '#67001a'
-  }
-
-  const style = {
-    background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
-    opacity: 1,
-    color: 'white',
-    fontSize: 10,
-    textTransform: 'none'
-  }
-
-  const handleContextMenu = (event) => {
-    event.preventDefault()
-    setAnchorEl(event.currentTarget)
-  }
-
+function DACPopover (props) {
   return (
-    <TableCell component="th" scope="row" key={props.timestep}>
-      <Button variant="contained"
-              disableRipple={true}
-              style={style}
-              onContextMenu={handleContextMenu}
-      >
-        {(props.mode === 'setpoint' && props.setpoint.includes('var'))
-          ? <LinkIcon/>
-          : props.mode === 'ramp'
-            ? <TrendingUpIcon/>
-            : <Typography style={style}> {props.setpoint} </Typography>
-      }
-      </Button>
       <Popover
-        open={open}
-        anchorEl={anchorEl}
-        onClose={(event) => setAnchorEl(null)}
+        anchorReference="anchorPosition"
+        open={props.open}
+        anchorPosition={{ top: props.anchorPosition[1], left: props.anchorPosition[0] }}
+        onClose={(event) => props.setOpen(false)}
         anchorOrigin={{
           vertical: 'top',
           horizontal: 'right'
@@ -77,6 +32,7 @@ function DACButton (props) {
         <ModeSelector label={'Setpoint mode'}
                       value={props.mode}
                       onChange = {(event) => props.update('dac/mode', event.target.value)}
+                      ramp={true}
         />
 
         {(props.mode === 'setpoint')
@@ -102,11 +58,10 @@ function DACButton (props) {
 
         </Box>
       </Popover>
-    </TableCell>
   )
 }
 
-DACButton.propTypes = {
+DACPopover.propTypes = {
   ch: PropTypes.string,
   board: PropTypes.string,
   timestep: PropTypes.number,
@@ -114,7 +69,10 @@ DACButton.propTypes = {
   ramp: PropTypes.object,
   mode: PropTypes.string,
   inputs: PropTypes.object,
-  update: PropTypes.func
+  update: PropTypes.func,
+  anchorPosition: PropTypes.array,
+  open: PropTypes.bool,
+  setOpen: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -140,4 +98,4 @@ function mapStateToProps (state, props) {
     inputs: state.inputs
   }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(DACButton)
+export default connect(mapStateToProps, mapDispatchToProps)(DACPopover)

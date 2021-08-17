@@ -12,6 +12,7 @@ class Client:
         self.address = address
         self.client = socketio.Client()        
         self.data = pd.DataFrame()
+        self.callbacks = {}
 
         @self.client.on('heartbeat')
         def heartbeat(results):
@@ -22,15 +23,21 @@ class Client:
             new_data = pd.DataFrame(data, index=[timestamp])
             self.data = self.data.append(new_data)
 
+            for callback in self.callbacks.values():
+                callback(new_data)
+
         self.client.connect(f'http://{self.address}')
 
     def dataset(self, name=''):
         return Dataset(self, name=name)
 
     def get(self, name):
-        try:
-            return requests.get(f"http://{self.address}/results").json()['outputs'][name]
-        except:
+        results = requests.get(f"http://{self.address}/results").json()
+        if name in results['outputs']:
+            return results['outputs'][name]
+        if name in results['inputs']:
+            return results['inputs'][name]
+        else:
             return None
 
     def record(self, name):
@@ -52,3 +59,5 @@ class Client:
 
         while self.data['__cycle__'].iloc[-1] - cycle < points:
             continue
+
+        return self.data.iloc[-points::]

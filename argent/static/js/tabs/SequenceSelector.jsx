@@ -9,11 +9,11 @@ import ListItem from '@material-ui/core/ListItem'
 import Box from '@material-ui/core/Box'
 import Button from '@material-ui/core/Button'
 import AddIcon from '@material-ui/icons/Add'
-import LoadButton from './menu/LoadButton.jsx'
+import LoadButton from './LoadButton.jsx'
 import { connect } from 'react-redux'
-import defaultSequence from './schema.js'
+import defaultSequence from '../schema.js'
 import { createSelector } from 'reselect'
-import { memoizeArray } from './utilities.js'
+import { memoizeArray } from '../utilities.js'
 
 const useStyles = makeStyles((theme) => ({
   root: {

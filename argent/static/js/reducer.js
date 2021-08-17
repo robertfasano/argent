@@ -1,5 +1,5 @@
 import produce from 'immer'
-import { defaultTimestep, fill } from '../schema.js'
+import { defaultTimestep, fill } from './schema.js'
 import { merge } from 'lodash'
 
 function swap (array, a, b) {

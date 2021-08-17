@@ -7,7 +7,7 @@ import subprocess
 import pandas as pd
 from flask import Flask, request
 from flask import render_template, send_from_directory
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 from argent.generator.generator import generate_experiment
 from argent import Configurator, path
 from .influx import InfluxDBClient
@@ -29,7 +29,7 @@ class App:
 
         self.inputs = {}
         self.outputs = {}
-        self.results = {}
+        self.results = {'inputs': {}, 'outputs': {}}
         self.__run__ = ''
 
         self.host()

@@ -1,15 +1,14 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import Timeline from './Timeline.jsx'
-import DDSFrequencyPopover from './DDSFrequencyPopover.jsx'
+import Timeline from '../../components/Timeline.jsx'
+import DACPopover from './DACPopover.jsx'
 import { createSelector } from 'reselect'
 
-function DDSFrequencyTimeline (props) {
+function DACTimeline (props) {
   const [anchorPosition, setAnchorPosition] = React.useState([0, 0])
   const [open, setOpen] = React.useState(false)
   const [timestep, setTimestep] = React.useState(0)
-
   function handleClick (timestep, event) {
     setAnchorPosition([event.x, event.y])
     setOpen(true)
@@ -18,26 +17,28 @@ function DDSFrequencyTimeline (props) {
 
   return (
     <>
-      <Timeline data={props.data} onClick={handleClick} unit='MHz'/>
-      <DDSFrequencyPopover anchorPosition={anchorPosition} setAnchorPosition={setAnchorPosition} ch={props.ch} timestep={timestep} open={open} setOpen={setOpen}/>
+      <Timeline data={props.data} onClick={handleClick} unit='V'/>
+      <DACPopover anchorPosition={anchorPosition} setAnchorPosition={setAnchorPosition} ch={props.ch} board={props.board} timestep={timestep} open={open} setOpen={setOpen}/>
     </>
   )
 }
 
-DDSFrequencyTimeline.propTypes = {
+DACTimeline.propTypes = {
   data: PropTypes.array,
-  ch: PropTypes.string
+  ch: PropTypes.string,
+  board: PropTypes.string
 }
 
 const makeSelector = () => createSelector(
   [
     (state) => state.sequences[state.active_sequence].steps,
+    (state, props) => props.board,
     (state, props) => props.ch
   ],
-  (steps, channel) => {
+  (steps, board, channel) => {
     const data = []
     for (const step of steps) {
-      data.push(step.dds[channel].frequency)
+      data.push(step.dac[board][channel])
     }
     return data
   }
@@ -51,4 +52,4 @@ const makeMapStateToProps = () => {
   return mapStateToProps
 }
 
-export default connect(makeMapStateToProps)(DDSFrequencyTimeline)
+export default connect(makeMapStateToProps)(DACTimeline)

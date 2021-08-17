@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import TableCell from '@material-ui/core/TableCell'
 import TableRow from '@material-ui/core/TableRow'
 import Button from '@material-ui/core/Button'
-import VariableUnitInput from '../components/VariableUnitInput.jsx'
+import VariableUnitInput from '../../components/VariableUnitInput.jsx'
 import { connect } from 'react-redux'
 import AddIcon from '@material-ui/icons/Add'
 

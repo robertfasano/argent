@@ -6,14 +6,15 @@ import TableBody from '@material-ui/core/TableBody'
 import TableHead from '@material-ui/core/TableHead'
 import Paper from '@material-ui/core/Paper'
 import { connect } from 'react-redux'
-import TimestepContextMenu from './rtio/TimestepContextMenu.jsx'
-import TimestepTable from './rtio/TimestepTable.jsx'
-import TTLTable from './rtio/TTLTable.jsx'
-import DACTimelines from './rtio/DACTimelines.jsx'
-import DDSTable from './rtio/DDSTable.jsx'
-import DDSFrequencyTable from './rtio/DDSFrequencyTable.jsx'
-import ADCTable from './rtio/ADCTable.jsx'
+import TimestepContextMenu from './timing/TimestepContextMenu.jsx'
+import TimestepTable from './timing/TimestepTable.jsx'
+import TTLTable from './ttl/TTLTable.jsx'
+import DACTimelines from './dac/DACTimelines.jsx'
+import DDSTable from './dds/DDSTable.jsx'
+import DDSFrequencyTable from './dds/DDSFrequencyTable.jsx'
+import ADCTable from './adc/ADCTable.jsx'
 import SequenceToolbar from './SequenceToolbar.jsx'
+
 
 function SequenceTable (props) {
   // Displays a grid of widgets allowing sequences to be defined.

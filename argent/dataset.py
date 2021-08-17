@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from .influx import InfluxDBClient 
 
 class Dataset:
     def __init__(self, client, name=''):

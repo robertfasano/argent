@@ -1,15 +1,15 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import reducer from './js/reducers/reducer.js'
+import reducer from './js/reducer.js'
 import { compose, createStore } from 'redux'
 import persistState from 'redux-localstorage'
 import { Provider } from 'react-redux'
 import { ThemeProvider } from '@material-ui/core'
 import App from './js/App.jsx'
-import theme from './theme.js'
+import theme from './js/theme.js'
 import defaultSequence from './js/schema.js'
 
-function initializeState (channels, sequences, version) {
+function defaultStore (channels, sequences, version) {
   const state = {}
   state.channels = channels
   state.sequences = sequences
@@ -31,7 +31,7 @@ function initializeState (channels, sequences, version) {
 
 export function createGUI (sequences, channels, version) {
   sequences = JSON.parse(sequences)
-  const state = initializeState(channels, sequences, version)
+  const state = defaultStore(channels, sequences, version)
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
   const enhancer = composeEnhancers(persistState(['sequences', 'active_sequence', 'playlist', 'ui', 'inputs', 'outputs']))
   const store = createStore(reducer, state, enhancer)

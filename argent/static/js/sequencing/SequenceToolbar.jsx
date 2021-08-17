@@ -12,7 +12,7 @@ import PlayArrowIcon from '@material-ui/icons/PlayArrow'
 import yaml from 'js-yaml'
 import { connect } from 'react-redux'
 import { v4 as uuidv4 } from 'uuid'
-import { post } from './utilities.js'
+import { post } from '../utilities.js'
 import CodeIcon from '@material-ui/icons/Code'
 import { merge } from 'lodash'
 

@@ -1,5 +1,4 @@
 import yaml
-import re
 import os
 
 path = os.path.dirname(__file__)
@@ -27,6 +26,4 @@ class Configurator:
         config[field] = new_value
         self.save(config)
         
-from .webapp import InfluxDBClient
-from .api_client import Client
-# from .generator.generator import run
+from .client import Client
