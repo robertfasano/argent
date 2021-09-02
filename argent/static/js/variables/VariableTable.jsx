@@ -107,13 +107,13 @@ function VariableTable (props) {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Object.entries(props.outputs).map(([key, value]) => (
+                {Object.keys(props.outputs).sort(Intl.Collator().compare).map(key => (
                   <TableRow key={key}>
                     <TableCell>
                       <TextField disabled value={key}/>
                     </TableCell>
                     <TableCell>
-                      <TextField disabled value={String(value).substring(0, 5)}/>
+                      <TextField disabled value={String(props.outputs[key]).substring(0, 5)}/>
                     </TableCell>
                     <TableCell>
                       <Button onClick={() => deleteOutput(key)}>
@@ -152,7 +152,7 @@ function VariableTable (props) {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Object.entries(props.inputs).map(([key, value]) => (
+                {Object.entries(props.inputs).sort().map(([key, value]) => (
                   <TableRow key={key}>
                     <TableCell>
                       <TextField disabled value={key} onChange={(event) => props.updateInput(key, event.target.value)} />
