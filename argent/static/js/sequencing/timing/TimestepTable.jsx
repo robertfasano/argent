@@ -3,15 +3,12 @@ import PropTypes from 'prop-types'
 import TableCell from '@material-ui/core/TableCell'
 import TableRow from '@material-ui/core/TableRow'
 import Button from '@material-ui/core/Button'
-import VariableUnitInput from '../../components/VariableUnitInput.jsx'
+import Duration from './Duration.jsx'
 import { connect } from 'react-redux'
 import AddIcon from '@material-ui/icons/Add'
 
 function TimestepTable (props) {
-  function setDuration (timestep, duration, sequenceName) {
-    props.dispatch({ type: 'timestep/duration', timestep: timestep, duration: duration })
-  }
-
+  // A row of buttons representing the durations of all steps in the sequence
   function addTimestep () {
     props.dispatch({ type: 'timestep/insert', timestep: props.steps.length - 1 })
   }
@@ -23,10 +20,7 @@ function TimestepTable (props) {
         {
             props.steps.map((step, index) => (
               <TableCell key={index} onContextMenu={(event) => props.onContextMenu(event, 'timestep' + index, index)}>
-                <VariableUnitInput value={step.duration}
-                                onChange = {(value) => setDuration(index, value)}
-                                units = {['s', 'ms', 'us']}
-                />
+                <Duration timestep={index}/>
               </TableCell>
             ))
         }

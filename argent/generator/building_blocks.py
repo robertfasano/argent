@@ -1,9 +1,9 @@
 ''' Building blocks for code generation '''
-import numpy as np
 
 def Delay(step):
     if 'var' in str(step['duration']):
-        duration = step['duration'].split('var: ')[1]
+        var = step['duration'].split('var:')[1]
+        return f"delay(self.{var}*ms)\n"
     else:
         value, unit = step['duration'].split(' ')
     return f"delay({float(value)}*{unit})\n"
@@ -54,8 +54,6 @@ class Urukul:
             commands.append(f'self.{self.channel}.cfg_sw({enable})\n')
 
         frequency = step['dds'][self.channel].get('frequency', {})
-        # if frequency is not None:
-        #     commands.append(f'self.{self.channel}.set({frequency}*MHz)\n')
         if frequency != {}:
             if frequency['mode'] == 'setpoint':
                 if 'var:' in frequency['setpoint']:
@@ -74,8 +72,6 @@ class Urukul:
 
         attenuation = step['dds'][self.channel].get('attenuation', {})
         if attenuation != {}:
-            # if attenuation['mode'] == 'setpoint' and attenuation['setpoint'] != '':
-                # commands.append(f'self.{self.channel}.set_att({float(attenuation["setpoint"])})\n')
             if attenuation['mode'] == 'setpoint':
                 if 'var:' in attenuation['setpoint']:
                     var = "self." + attenuation['setpoint'].split('var:')[1]
@@ -106,7 +102,10 @@ class Urukul:
         steps = int(ramp['steps'])
 
         ramp_cmd = "\n## DDS ramp\n"
-        duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
+        if 'var' in step['duration']:
+            duration = f'self.{step["duration"].split("var:")[1]}*ms'
+        else:
+            duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
         ramp_cmd += f"ramp_DDS(self.{self.channel}, {start}, {stop}, {steps}, {duration}, now)\n"
         ramp_cmd = ramp_cmd.replace("'", "") 
         return ramp_cmd
@@ -132,17 +131,6 @@ class Zotino:
 
     def init(self):
         return f'self.{self.board}.init()\n\tdelay(10*ms)\n'
-
-    def parse(self, voltage_str):
-        ''' Parse a string of the form "{value} {unit}" and returns a value scaled
-            to the base unit. If no unit is present, no scaling is performed.
-        '''
-        try:
-            return float(voltage_str)
-        except ValueError:
-            value = float(voltage_str.split(' ')[0])
-            unit = voltage_str.split(' ')[1]
-            return value * {'V': 1, 'mV': 1e-3, 'uV': 1e-6}[unit]
         
     def initial(self, step):
         channels = []
@@ -198,7 +186,10 @@ class Zotino:
         if steps == 0:
             return ''
         ramp_cmd = "\n## DAC ramp\n"
-        duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
+        if 'var' in step['duration']:
+            duration = f'self.{step["duration"].split("var:")[1]}*ms'
+        else:
+            duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
         ramp_cmd += f"ramp(self.{self.board}, {channels}, {starts}, {stops}, {steps}, {duration}, now)\n"
         ramp_cmd = ramp_cmd.replace("'", "")
         return ramp_cmd
