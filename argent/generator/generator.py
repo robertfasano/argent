@@ -7,7 +7,7 @@ from .channel_parsing import *
 from .sequence_parsing import *
 
 ''' Code generation '''
-def generate_experiment(playlist, config, pid, inputs={}, outputs={}):
+def generate_experiment(playlist, config, pid, inputs={}, outputs={}, variables={}):
     ''' The main entrypoint for the code generator. The overall process is:
         1. Remove redundant events from the sequence to minimize RTIO overhead.
         2. Generate the build stage of the experiment (defining hardware).
@@ -31,13 +31,13 @@ def generate_experiment(playlist, config, pid, inputs={}, outputs={}):
     with open(os.path.join(path, 'generator/rtio_ops.py')) as file:
         code += file.read() + '\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
-    code += textwrap.indent(generate_build(playlist, pid, inputs, outputs), '\t')
+    code += textwrap.indent(generate_build(playlist, pid, inputs, outputs, variables), '\t')
     code += textwrap.indent(generate_init(playlist), '\t')
     code += textwrap.indent(generate_run(playlist, config, inputs, outputs), '\t')
 
     return code
 
-def generate_build(playlist, pid, inputs, outputs):
+def generate_build(playlist, pid, inputs, outputs, variables):
     ''' Generates the build() function, in which all hardware accessed by the
         sequence is defined.
     '''
@@ -69,14 +69,20 @@ def generate_build(playlist, pid, inputs, outputs):
         code += f'self.{key} = {val}\n'
 
     ## build output variables
-    code += '\n## Output variables\n'
+    code += '\n## Outputs\n'
     for var in outputs:
         code += f'self.{var} = 0.0\n'
 
-    ## build input variables
-    code += '\n## Input variables\n'
+    ## build parameters
+    code += '\n## Parameters\n'
     code += f'self.inputs = {inputs}\n'
     for name, value in inputs.items():
+        code += f'self.{name} = {float(value)}\n'
+
+    ## build variables 
+    code += '\n## Variables\n'
+    code += f'self.variables = {variables}\n'
+    for name, value in variables.items():
         code += f'self.{name} = {float(value)}\n'
 
     ## build metadata variables
@@ -184,7 +190,7 @@ def write_batch(events):
     code = 'with sequential:\n'
     indented = ''
     for i, event in enumerate(events):
-        if not i % 8 and i != 0:
+        if not i % 1 and i != 0:
             indented += 'delay(2*ns)\n'
         indented += event
 

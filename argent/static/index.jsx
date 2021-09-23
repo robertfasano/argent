@@ -18,11 +18,12 @@ function defaultStore (channels, sequences, version) {
   state.playlist = [{ name: 'new sequence', reps: 1 }]
   state.inputs = {}
   state.outputs = {}
+  state.variables = {}
 
   state.ui = {
     heartbeat: false,
     pid: { active: null, submitted: null },
-    variableTab: 'Inputs'
+    variableTab: 'Parameters'
   }
 
   state.version = version

@@ -32,13 +32,13 @@ function SequenceToolbar (props) {
   function submit (playlist) {
     const pid = uuidv4()
     post('/inputs', props.inputs)
-    post('/submit', { playlist: playlist, pid: pid, inputs: props.inputs, outputs: props.outputs })
+    post('/submit', { playlist: playlist, pid: pid, inputs: props.inputs, outputs: props.outputs, variables: props.variables })
     props.setPID(pid)
   }
 
   function generate () {
     const pid = uuidv4()
-    post('/generate', { playlist: props.sequence, pid: pid, inputs: props.inputs, outputs: props.outputs })
+    post('/generate', { playlist: props.sequence, pid: pid, inputs: props.inputs, outputs: props.outputs, variables: props.variables })
   }
 
   return (
@@ -103,6 +103,7 @@ SequenceToolbar.propTypes = {
   version: PropTypes.string,
   inputs: PropTypes.object,
   outputs: PropTypes.object,
+  variables: PropTypes.object,
   setPID: PropTypes.func
 }
 
@@ -130,12 +131,14 @@ function mapStateToProps (state, props) {
 
   steps.inputs = state.inputs
   steps.outputs = state.outputs
+  steps.variables = state.variables
   return {
     sequence: sequence,
     version: state.version,
     inputs: state.inputs,
     outputs: state.outputs,
-    steps: steps
+    steps: steps,
+    variables: state.variables
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(SequenceToolbar)

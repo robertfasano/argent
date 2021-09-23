@@ -68,7 +68,8 @@ class App:
             pid = request.json['pid']
             inputs = request.json['inputs']
             outputs = request.json['outputs']
-            code = generate_experiment(sequence, self.config, pid, inputs, outputs)            
+            variables = request.json['variables']
+            code = generate_experiment(sequence, self.config, pid, inputs, outputs, variables)            
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
 
@@ -88,7 +89,8 @@ class App:
             pid = request.json['pid']
             inputs = request.json['inputs']
             outputs = request.json['outputs']
-            code = generate_experiment(sequence, self.config, pid, inputs, outputs)
+            variables = request.json['variables']
+            code = generate_experiment(sequence, self.config, pid, inputs, outputs, variables)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             env_name = self.config['environment_name']

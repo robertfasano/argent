@@ -60,10 +60,10 @@ function App (props) {
         <Grid container>
           <Grid item>
             <Box mx={2}>
-              <Paper elevation={6} style={{ width: '400px' }}>
+              <Paper elevation={6} style={{ width: '450px' }}>
                 <VariableTable/>
               </Paper>
-              <Paper elevation={6} style={{ width: '400px' }}>
+              <Paper elevation={6} style={{ width: '450px' }}>
                 <PlaylistPanel/>
               </Paper>
             </Box>

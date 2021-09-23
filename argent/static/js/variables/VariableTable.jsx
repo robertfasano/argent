@@ -14,6 +14,7 @@ import Button from '@material-ui/core/Button'
 import AddIcon from '@material-ui/icons/Add'
 import ClearIcon from '@material-ui/icons/Clear'
 import SendIcon from '@material-ui/icons/Send'
+import RefreshIcon from '@material-ui/icons/Refresh'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 
@@ -32,6 +33,12 @@ function VariableTable (props) {
     }
   }
 
+  function addVariable () {
+    const name = prompt('New variable name:')
+    if (name !== null) {
+      props.updateVariable(name, '')
+    }
+  }
   function deleteInput (name) {
     // if (checkInput(name)) {
     //   alert('Cannot delete a variable which is used in the sequence!')
@@ -46,6 +53,10 @@ function VariableTable (props) {
       return
     }
     props.deleteOutput(name)
+  }
+
+  function deleteVariable (name) {
+    props.deleteVariable(name)
   }
 
   function sendInputs () {
@@ -83,16 +94,17 @@ function VariableTable (props) {
 
   return (
     <>
-    <Tabs value={props.variableTab} onChange={(event, newValue) => props.changeVariableTab(newValue)} variant="fullWidth">
-      <Tab key="Inputs" label="Inputs" value="Inputs" style={{ textTransform: 'none' }}/>
-      <Tab key="Outputs" label="Outputs" value="Outputs" style={{ textTransform: 'none' }}/>
+    <Tabs value={props.variableTab} onChange={(event, newValue) => props.changeVariableTab(newValue)} variant="standard">
+      <Tab key="Parameters" label="Parameters" value="Parameters" style={{ textTransform: 'none' }}/>
+      <Tab key="Results" label="Results" value="Results" style={{ textTransform: 'none' }}/>
+      <Tab key="Variables" label="Variables" value="Variables" style={{ textTransform: 'none' }}/>
     </Tabs>
     <Box m={2}>
-        {props.variableTab === 'Outputs'
+        {props.variableTab === 'Results'
           ? (
             <>
             <Box my={2}>
-              <Typography>Output variables are used to store values extracted from ADC measurements. During sequence playback, their values are broadcast to the Argent server at the end of each cycle.
+              <Typography>Results are used to store values extracted from ADC measurements. During sequence playback, their values are broadcast to the Argent server at the end of each cycle.
               </Typography>
             </Box>
             <Table>
@@ -116,7 +128,7 @@ function VariableTable (props) {
                       <TextField disabled value={String(props.outputs[key]).substring(0, 5)}/>
                     </TableCell>
                     <TableCell>
-                      <Button onClick={() => deleteOutput(key)}>
+                      <Button onClick={() => deleteOutput(key)} >
                         <ClearIcon/>
                       </Button>
                     </TableCell>
@@ -133,11 +145,12 @@ function VariableTable (props) {
             </Table>
             </>
             )
-          : (
+          : props.variableTab === 'Parameters'
+            ? (
             <>
             <Box my={2}>
-              <Typography>Input variables can be used to define a single value across multiple sequences for DAC voltages or DDS frequencies. During sequence playback,
-                inputs are updated from the Argent server at the end of each cycle, allowing values to be changed while the sequence is running.
+              <Typography>Parameters can be used to define a single value across multiple sequences for DAC voltages or DDS frequencies. During sequence playback,
+                parameters are updated from the Argent server at the end of each cycle, allowing values to be changed while the sequence is running.
               </Typography>
             </Box>
             <Table>
@@ -182,7 +195,52 @@ function VariableTable (props) {
               </TableBody>
             </Table>
             </>
-            )
+              )
+            : (
+              <>
+              <Box my={2}>
+                <Typography>Parameters can be used to define a single value across multiple sequences for DAC voltages or DDS frequencies. During sequence playback,
+                  parameters are updated from the Argent server at the end of each cycle, allowing values to be changed while the sequence is running.
+                </Typography>
+              </Box>
+              <Table>
+                <colgroup>
+                  <col style={{ width: '90%' }}/>
+                  <col style={{ width: '10%' }}/>
+                </colgroup>
+                <TableHead>
+                  <TableRow>
+                    <TableCell> Name </TableCell>
+                    <TableCell> Value </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Object.entries(props.variables).sort().map(([key, value]) => (
+                    <TableRow key={key}>
+                      <TableCell>
+                        <TextField disabled value={key}/>
+                      </TableCell>
+                      <TableCell>
+                        <TextField value={value} onChange={(event) => props.updateVariable(key, event.target.value)} />
+                      </TableCell>
+                      <TableCell>
+                        <Button onClick={() => deleteVariable(key)}>
+                          <ClearIcon/>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell>
+                      <Button onClick={addVariable}>
+                        <AddIcon/>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              </>
+              )
         }
 
     </Box>
@@ -199,7 +257,10 @@ VariableTable.propTypes = {
   deleteOutput: PropTypes.func,
   updateOutput: PropTypes.func,
   variableTab: PropTypes.string,
-  changeVariableTab: PropTypes.func
+  changeVariableTab: PropTypes.func,
+  variables: PropTypes.object,
+  updateVariable: PropTypes.func,
+  deleteVariable: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -208,15 +269,19 @@ function mapDispatchToProps (dispatch, props) {
     updateOutput: (name, value) => dispatch({ type: 'variables/output/update', variables: Object.fromEntries([[name, value]]) }),
     deleteInput: (name) => dispatch({ type: 'variables/input/delete', name: name }),
     deleteOutput: (name) => dispatch({ type: 'variables/output/delete', name: name }),
-    changeVariableTab: (name) => dispatch({ type: 'ui/changeVariableTab', name: name })
+    changeVariableTab: (name) => dispatch({ type: 'ui/changeVariableTab', name: name }),
+    updateVariable: (name, value) => dispatch({ type: 'variables/variable/update', name: name, value: value }),
+    deleteVariable: (name) => dispatch({ type: 'variables/variable/delete', name: name })
   }
 }
+
 function mapStateToProps (state, props) {
   return {
     sequence: state.sequences[state.active_sequence],
     inputs: state.inputs,
     outputs: state.outputs,
-    variableTab: state.ui.variableTab
+    variableTab: state.ui.variableTab,
+    variables: state.variables
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(VariableTable)
