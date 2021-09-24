@@ -27,22 +27,18 @@ function LoadButton (props) {
   }
 
   return (
-    <>
-    <input
-      accept=".yml"
-      type="file"
-      style={{ display: 'none' }}
-      onChange={uploadState}
-      onClick={onInputClick}
-      id="button-file"
-      multiple
-    />
-    <label htmlFor="button-file">
-    <ListItem button>
+    <ListItem button component="label">
+      <input
+          accept=".yml"
+          type="file"
+          hidden
+          onChange={uploadState}
+          onClick={onInputClick}
+          multiple
+      />
         <FolderOpenIcon/>
     </ListItem>
-    </label>
-    </>
+
   )
 }
 

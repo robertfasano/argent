@@ -1,16 +1,13 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
-import Button from '@material-ui/core/Button'
 import ClearIcon from '@material-ui/icons/Clear'
 import FolderOpenIcon from '@material-ui/icons/FolderOpen'
-import { connect } from 'react-redux'
-
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemText from '@material-ui/core/ListItemText'
+import { connect } from 'react-redux'
 
 function ScriptSelector (props) {
   const scriptName = props.script || 'None'
@@ -22,7 +19,7 @@ function ScriptSelector (props) {
     fileReader.readAsText(file, 'UTF-8')
     const name = file.name
     fileReader.onload = e => {
-      props.dispatch({ type: 'sequence/script', name: name })
+      props.updateScript(name)
     }
   }
 
@@ -30,10 +27,6 @@ function ScriptSelector (props) {
     for (const file of e.target.files) {
       loadFile(file)
     }
-  }
-
-  function clearScript () {
-    props.dispatch({ type: 'sequence/script', name: null })
   }
 
   return (
@@ -45,30 +38,23 @@ function ScriptSelector (props) {
         <ListItem>
         <Typography><b>Analysis script:</b> {scriptName}</Typography>
         </ListItem>
-        <ListItem>
+        <ListItem button component="label">
             <input
                 accept=".py"
                 type="file"
-                style={{ display: 'none' }}
+                hidden
                 onChange={uploadState}
                 onClick={onInputClick}
-                id="script-upload"
-                multiple
             />
-            <label htmlFor="script-upload">
-                <ListItem button>
-                    <ListItemIcon>
-                        <FolderOpenIcon/>
-                    </ListItemIcon>
-                    <ListItemText>
-                        Upload script
-                    </ListItemText>
-                </ListItem>
-            </label>
-
+            <ListItemIcon>
+                <FolderOpenIcon/>
+            </ListItemIcon>
+            <ListItemText>
+                Upload script
+            </ListItemText>
         </ListItem>
 
-        <ListItem button onClick={clearScript}>
+        <ListItem button onClick={() => props.updateScript(null)}>
                     <ListItemIcon>
                         <ClearIcon/>
                     </ListItemIcon>
@@ -82,7 +68,15 @@ function ScriptSelector (props) {
 
 ScriptSelector.propTypes = {
   script: PropTypes.string,
-  dispatch: PropTypes.func
+  updateScript: PropTypes.func
+}
+
+function mapDispatchToProps (dispatch, props) {
+  return {
+    updateScript: (name) => {
+      dispatch({ type: 'sequence/script', name: name })
+    }
+  }
 }
 
 function mapStateToProps (state) {
@@ -90,4 +84,4 @@ function mapStateToProps (state) {
     script: state.sequences[state.active_sequence].script
   }
 }
-export default connect(mapStateToProps)(ScriptSelector)
+export default connect(mapStateToProps, mapDispatchToProps)(ScriptSelector)
