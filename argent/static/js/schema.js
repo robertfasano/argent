@@ -25,7 +25,7 @@ export function fill (sequence, channels) {
 
 export function defaultTimestep (channels) {
   const defaultTimestep = {
-    duration: '1 s',
+    duration: '1 ms',
     ttl: {},
     dac: {},
     dds: {},
