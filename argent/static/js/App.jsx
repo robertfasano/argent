@@ -3,7 +3,7 @@ import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import SequenceTable from './sequencing/SequenceTable.jsx'
-import VariableTable from './variables/VariableTable.jsx'
+import VariablesPanel from './variables/VariablesPanel.jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { connect } from 'react-redux'
 import SequenceSelector from './tabs/SequenceSelector.jsx'
@@ -60,10 +60,10 @@ function App (props) {
         <Grid container>
           <Grid item>
             <Box mx={2}>
-              <Paper elevation={6} style={{ width: '450px' }}>
-                <VariableTable/>
+              <Paper elevation={6} style={{ width: '400px' }}>
+                <VariablesPanel/>
               </Paper>
-              <Paper elevation={6} style={{ width: '450px' }}>
+              <Paper elevation={6} style={{ width: '400px' }}>
                 <PlaylistPanel/>
               </Paper>
             </Box>

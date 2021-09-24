@@ -354,11 +354,6 @@ export default function reducer (state = [], action) {
         draft.inputs[action.name] = action.value
       })
 
-    case 'variables/variable/update':
-      return produce(state, draft => {
-        draft.variables[action.name] = action.value
-      })
-
     case 'variables/input/delete':
       return produce(state, draft => {
         delete draft.inputs[action.name]
@@ -367,11 +362,6 @@ export default function reducer (state = [], action) {
     case 'variables/output/delete':
       return produce(state, draft => {
         delete draft.outputs[action.name]
-      })
-
-    case 'variables/variable/delete':
-      return produce(state, draft => {
-        delete draft.variables[action.name]
       })
 
     default : return state

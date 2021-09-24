@@ -23,7 +23,7 @@ function defaultStore (channels, sequences, version) {
   state.ui = {
     heartbeat: false,
     pid: { active: null, submitted: null },
-    variableTab: 'Parameters'
+    variableTab: 'Inputs'
   }
 
   state.version = version
