@@ -1,10 +1,7 @@
-*.pyc
-*saved.json
+__pycache__*
 *.ipynb_checkpoints
 *.ipynb
 *.egg*
-*generated/
 *.pytest*
 *.pyon
 node_modules*
-dist*
