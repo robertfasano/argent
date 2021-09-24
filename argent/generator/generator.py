@@ -142,6 +142,14 @@ def generate_run(playlist, config, inputs, outputs):
         else:
             code += f'\t\tfor i in range({stage["reps"]}):\n'
             code += '\t' + function_call
+
+        ## load imported analysis scripts
+        if stage['sequence']['script'] is not None:
+            filename = './repository/' + stage['sequence']['script']
+            with open(filename) as file:
+                code += textwrap.indent(file.read(), '\t\t') + '\n'
+
+        ## sync with server
         all_outputs = ['self.'+var for var in outputs]
         self_outputs = str(all_outputs).replace("'", "")
         self_inputs = str(['self.'+var for var in inputs]).replace("'", "")

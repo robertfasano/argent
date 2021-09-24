@@ -14,7 +14,7 @@ import DDSTable from './dds/DDSTable.jsx'
 import DDSFrequencyTable from './dds/DDSFrequencyTable.jsx'
 import ADCTable from './adc/ADCTable.jsx'
 import SequenceToolbar from './SequenceToolbar.jsx'
-
+import ScriptSelector from './ScriptSelector.jsx'
 
 function SequenceTable (props) {
   // Displays a grid of widgets allowing sequences to be defined.
@@ -43,6 +43,9 @@ function SequenceTable (props) {
       <Paper elevation={6} style={{ overflowX: 'auto' }}>
         <Box p={2}>
           <SequenceToolbar name={props.activeSequence}/>
+        </Box>
+        <Box px={2}>
+          <ScriptSelector/>
         </Box>
         <Box p={2} style={{ display: 'inline-block' }}>
           <Table>

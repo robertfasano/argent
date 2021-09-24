@@ -13,7 +13,7 @@ function defaultStore (channels, sequences, version) {
   const state = {}
   state.channels = channels
   state.sequences = sequences
-  state.sequences = { 'new sequence': { steps: defaultSequence(channels) } }
+  state.sequences = { 'new sequence': { steps: defaultSequence(channels), script: null } }
   state.active_sequence = 'new sequence'
   state.playlist = [{ name: 'new sequence', reps: 1 }]
   state.inputs = {}

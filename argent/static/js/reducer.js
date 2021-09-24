@@ -274,6 +274,12 @@ export default function reducer (state = [], action) {
         draft.active_sequence = action.name
       })
 
+    case 'sequence/script':
+      // Designate a file to run after each iteration of the experiment
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].script = action.name
+      })
+
     case 'timestep/delete':
       // Remove a timestep from a sequence at a given index.
       return produce(state, draft => {
