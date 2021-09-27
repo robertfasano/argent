@@ -1,9 +1,8 @@
 ''' Building blocks for code generation '''
 
 def Delay(step):
-    if 'var' in str(step['duration']):
-        var = step['duration'].split('var:')[1]
-        return f"delay(self.{var}*ms)\n"
+    if 'self.' in str(step['duration']):
+        return f"delay({step['duration']}*ms)\n"
     else:
         value, unit = step['duration'].split(' ')
     return f"delay({float(value)}*{unit})\n"
@@ -55,29 +54,24 @@ class Urukul:
 
         frequency = step['dds'][self.channel].get('frequency', {})
         if frequency != {}:
-            if frequency['mode'] == 'setpoint':
-                if 'var:' in frequency['setpoint']:
-                    var = "self." + frequency['setpoint'].split('var:')[1]
-                    commands.append(f'self.{self.channel}.set({var}*MHz)\n')
-                elif frequency['setpoint'] != '':
-                    commands.append(f'self.{self.channel}.set({frequency["setpoint"]}*MHz)\n')
+            if frequency['mode'] == 'setpoint' and frequency['setpoint'] != '':
+                commands.append(f'self.{self.channel}.set({frequency["setpoint"]}*MHz)\n')
+
             elif frequency['mode'] == 'ramp':
                 start = frequency['ramp']['start']
-                if 'var:' in start:
-                    start = 'self.' + start.split('var:')[1]
-                else:
+                if 'self.' not in start:
                     start = float(start)
                 commands.append(f'self.{self.channel}.set({start}*MHz)\n')
 
 
         attenuation = step['dds'][self.channel].get('attenuation', {})
         if attenuation != {}:
-            if attenuation['mode'] == 'setpoint':
-                if 'var:' in attenuation['setpoint']:
-                    var = "self." + attenuation['setpoint'].split('var:')[1]
-                    commands.append(f'self.{self.channel}.set_att({var})\n')
-                elif attenuation['setpoint'] != '':
-                    commands.append(f'self.{self.channel}.set_att({float(attenuation["setpoint"])})\n')
+            if attenuation['mode'] == 'setpoint' and attenuation['setpoint'] != '':
+                setpoint = attenuation['setpoint']
+                if 'self.' not in setpoint:
+                    setpoint = float(setpoint)
+                commands.append(f'self.{self.channel}.set_att({setpoint})\n')
+
 
         return commands
 
@@ -88,22 +82,18 @@ class Urukul:
         ramp = step['dds'][self.channel]['frequency']['ramp']
 
         start = ramp['start']
-        if 'var:' in start:
-            start = 'self.' + start.split('var:')[1]
-        else:
+        if 'self.' not in start:
             start = float(start)
-
+        
         stop = ramp['stop']
-        if 'var:' in stop:
-            stop = 'self.' + stop.split('var:')[1]
-        else:
-            stop = float(stop)   
-
+        if 'self.' not in stop:
+            stop = float(stop)
+ 
         steps = int(ramp['steps'])
 
         ramp_cmd = "\n## DDS ramp\n"
-        if 'var' in step['duration']:
-            duration = f'self.{step["duration"].split("var:")[1]}*ms'
+        if 'self.' in step['duration']:
+            duration = f'{step["duration"]}*ms'
         else:
             duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
         ramp_cmd += f"ramp_DDS(self.{self.channel}, {start}, {stop}, {steps}, {duration}, now)\n"
@@ -137,19 +127,16 @@ class Zotino:
         voltages = []
 
         for ch, state in step['dac'][self.board].items():
-            if state['mode'] == 'setpoint':
-                if 'var:' in state['setpoint']:
-                    var = state['setpoint'].split('var:')[1]
-                    voltages.append("self." + var)
-                    channels.append(int(ch.split(self.board)[1]))
-                elif state['setpoint'] != '':
-                    voltages.append(float(state['setpoint']))
-                    channels.append(int(ch.split(self.board)[1]))
+            if state['mode'] == 'setpoint' and state['setpoint'] != '':
+                setpoint = state['setpoint']
+                if 'self.' not in setpoint:
+                    setpoint = float(setpoint)
+                voltages.append(state['setpoint'])
+                channels.append(int(ch.split(self.board)[1]))
+
             elif state['mode'] == 'ramp':
                 start = state['ramp']['start']
-                if 'var:' in start:
-                    start = 'self.' + start.split('var:')[1]
-                else:
+                if 'self.' not in start:
                     start = float(start)
                 voltages.append(start)
                 channels.append(int(ch.split(self.board)[1]))
@@ -170,15 +157,11 @@ class Zotino:
             channels.append(int(ch.split(self.board)[1]))
 
             start = state['ramp']['start']
-            if 'var:' in start:
-                start = 'self.' + start.split('var:')[1]
-            else:
+            if 'self.' not in start:
                 start = float(start)
             stop = state['ramp']['stop']
-            if 'var:' in stop:
-                stop = 'self.' + stop.split('var:')[1]
-            else:
-                stop = float(stop)            
+            if 'self.' not in stop:
+                stop = float(stop)       
             steps = int(state['ramp']['steps'])
             starts.append(start)
             stops.append(stop)
@@ -186,8 +169,8 @@ class Zotino:
         if steps == 0:
             return ''
         ramp_cmd = "\n## DAC ramp\n"
-        if 'var' in step['duration']:
-            duration = f'self.{step["duration"].split("var:")[1]}*ms'
+        if 'self.' in step['duration']:
+            duration = f'{step["duration"]}*ms'
         else:
             duration = float(step['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
         ramp_cmd += f"ramp(self.{self.board}, {channels}, {starts}, {stops}, {steps}, {duration}, now)\n"

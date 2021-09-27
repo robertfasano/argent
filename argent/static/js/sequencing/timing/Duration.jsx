@@ -26,8 +26,8 @@ function Duration (props) {
   }
 
   let displayText = ''
-  if (props.duration.includes('var:')) {
-    displayText = props.inputs[props.duration.split('var:')[1]] + ' ms'
+  if (props.duration.includes('self.')) {
+    displayText = props.inputs[props.duration.split('self.')[1]] + ' ms'
   } else if (props.duration !== '') {
     displayText = props.duration
   }
@@ -80,7 +80,7 @@ function mapDispatchToProps (dispatch, props) {
   return {
     update: (type, value) => {
       let data = value
-      if (!value.includes('var')) {
+      if (!value.includes('self.')) {
         data = data + ' ms'
       }
       dispatch({ type, duration: data, timestep: props.timestep })

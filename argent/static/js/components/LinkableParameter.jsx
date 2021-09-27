@@ -13,15 +13,15 @@ import IconButton from '@material-ui/core/IconButton'
 import { connect } from 'react-redux'
 
 function LinkableParameter (props) {
-  const variableMode = props.value.includes('var:')
+  const variableMode = props.value.includes('self.')
 
   const setVariableMode = () => {
     const firstInput = Object.keys(props.inputs)[0]
-    props.onChange('var:' + firstInput)
+    props.onChange('self.' + firstInput)
   }
 
   const setConstantMode = () => {
-    const currentInputValue = props.inputs[props.value.split('var:')[1]]
+    const currentInputValue = props.inputs[props.value.split('self.')[1]]
     props.onChange(currentInputValue)
   }
   return (
@@ -34,8 +34,8 @@ function LinkableParameter (props) {
             <FormControl style={{ fullWidth: true, wrap: 'nowrap', margin: 0, display: 'flex' }}>
             <InputLabel shrink={true}> {props.label} </InputLabel>
             <Select label={props.label}
-                    value={props.value.split('var:')[1]}
-                    onChange = {(event) => props.onChange('var:' + event.target.value)}
+                    value={props.value.split('self.')[1]}
+                    onChange = {(event) => props.onChange('self.' + event.target.value)}
                     autoWidth={true}
                     >
               {Object.keys(props.inputs).map((key, index) => (

@@ -197,7 +197,7 @@ function arrayRotate (arr, reverse) {
 }
 
 function parseLinkedParameter (setpoint, inputs) {
-  if (setpoint.includes('var:')) return parseFloat(inputs[setpoint.split('var:')[1]])
+  if (setpoint.includes('self.')) return parseFloat(inputs[setpoint.split('self.')[1]])
   else return parseFloat(setpoint)
 }
 

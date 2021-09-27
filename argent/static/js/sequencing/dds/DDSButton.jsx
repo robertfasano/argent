@@ -31,8 +31,8 @@ function DDSButton (props) {
   }
 
   let displayText = ''
-  if (props.attenuation.setpoint.includes('var:')) {
-    displayText = props.inputs[props.attenuation.setpoint.split('var:')[1]] + ' dB'
+  if (props.attenuation.setpoint.includes('self.')) {
+    displayText = props.inputs[props.attenuation.setpoint.split('self.')[1]] + ' dB'
   } else if (props.attenuation.setpoint !== '') {
     displayText = props.attenuation.setpoint + ' dB'
   }
