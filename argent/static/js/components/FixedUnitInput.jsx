@@ -5,9 +5,16 @@ import TextField from '@material-ui/core/TextField'
 
 function FixedUnitInput (props) {
   // A text field displaying a fixed unit and label
+  function toDecimalString (num) {
+    if (!num.includes('.')) {
+      return num + '.0'
+    }
+    return num
+  }
 
   return (
-    <TextField onChange = {(event) => props.onChange(event)}
+    <TextField onChange = {(event) => props.onChange(event.target.value)}
+               onBlur = {() => props.onChange(toDecimalString(props.value))}
                value = {props.value}
                placeholder = {props.placeholder}
                size = "medium"

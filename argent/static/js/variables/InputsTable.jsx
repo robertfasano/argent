@@ -30,6 +30,14 @@ function InputsTable (props) {
   function sendInputs () {
     post('/inputs', props.inputs)
   }
+
+  function toDecimalString (num) {
+    if (!num.includes('.')) {
+      return num + '.0'
+    }
+    return num
+  }
+
   return (
         <>
         <Box my={2}>
@@ -52,10 +60,10 @@ function InputsTable (props) {
             {Object.entries(props.inputs).sort().map(([key, value]) => (
               <TableRow key={key}>
                 <TableCell>
-                  <TextField disabled value={key} onChange={(event) => props.updateInput(key, event.target.value)} />
+                  <TextField disabled value={key}/>
                 </TableCell>
                 <TableCell>
-                  <TextField value={value} onChange={(event) => props.updateInput(key, event.target.value)} />
+                  <TextField value={value} onChange={(event) => props.updateInput(key, event.target.value)} onBlur={() => props.updateInput(key, toDecimalString(value))} />
                 </TableCell>
                 <TableCell>
                   <Button onClick={() => deleteInput(key)}>

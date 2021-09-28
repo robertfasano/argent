@@ -24,6 +24,7 @@ function LinkableParameter (props) {
     const currentInputValue = props.inputs[props.value.split('self.')[1]]
     props.onChange(currentInputValue)
   }
+
   return (
     <Box mx={1}>
       {
@@ -59,7 +60,7 @@ function LinkableParameter (props) {
         <Grid container>
           <Grid item xs={10}>
             <FixedUnitInput value={props.value}
-                        onChange = {(event) => props.onChange(event.target.value)}
+                        onChange = {(value) => props.onChange(value)}
                         unit = {props.unit}
                         label={props.label}
                         style={{ width: '100%' }}
