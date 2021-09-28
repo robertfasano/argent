@@ -10,7 +10,7 @@ import Table from '@material-ui/core/Table'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
-import VariableUnitInput from '../../components/VariableUnitInput.jsx'
+import FixedUnitInput from '../../components/FixedUnitInput.jsx'
 import TextField from '@material-ui/core/TextField'
 import { connect } from 'react-redux'
 import Select from '@material-ui/core/Select'
@@ -67,11 +67,12 @@ function ADCButton (props) {
           <Box m={1}>
           <Grid container spacing={2}>
             <Grid item xs={3}>
-            <VariableUnitInput value={props.duration}
-                               onChange={props.setDuration}
-                               units = {['s', 'ms', 'us']}
-                               label = 'Duration'
-            />
+              <FixedUnitInput value={props.duration}
+                      onChange={props.setDuration}
+                      unit = 'ms'
+                      label = 'Duration'
+                      style={{ width: '100%' }}
+              />
             </Grid>
             <Grid item xs={3}>
             <TextField label='Samples'

@@ -11,7 +11,7 @@ export const DDS = {
   enable: false
 }
 
-export const ADC = { enable: false, variables: {}, delay: '0 s', samples: 1, duration: '1 s' }
+export const ADC = { enable: false, variables: {}, delay: 0, samples: 1, duration: 1 }
 
 export function fill (sequence, channels) {
   // Fills in any missing data by deep-merging against the default sequence
@@ -25,7 +25,7 @@ export function fill (sequence, channels) {
 
 export function defaultTimestep (channels) {
   const defaultTimestep = {
-    duration: '1 ms',
+    duration: '1',
     ttl: {},
     dac: {},
     dds: {},

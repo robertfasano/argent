@@ -248,8 +248,7 @@ def generate_loop(stage):
                 if int(state['samples']) == 1:
                     cmd = f'self.{board}.sample_mu(self.{stage["name"].replace(" ", "_")}_{i}[0])\n'
                 else:
-                    duration = float(state['duration'].split(' ')[0]) * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[state['duration'].split(' ')[1]]
-                    delay = duration / int(state['samples'])
+                    delay = float(state['duration']) / int(state['samples']) * 1e-3
                     array_name = stage["name"].replace(" ", "_") + f'_{i}'
                     cmd = f'sample(self.{board}, data=self.{array_name}, samples={state["samples"]}, wait={delay})\n'
                 adc_events.append(cmd)

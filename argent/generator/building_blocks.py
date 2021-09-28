@@ -1,11 +1,7 @@
 ''' Building blocks for code generation '''
 
 def Delay(step):
-    if 'self.' in str(step['duration']):
-        return f"delay({step['duration']}*ms)\n"
-    else:
-        value, unit = step['duration'].split(' ')
-    return f"delay({value}*{unit})\n"
+    return f"delay({step['duration']}*ms)\n"
 
 def Comment(step, i):
     name = step.get('name', f'Sequence timestep {i}')
@@ -77,10 +73,7 @@ class Urukul:
             return ''
         ramp = step['dds'][self.channel]['frequency']['ramp']
         ramp_cmd = "\n## DDS ramp\n"
-        if 'self.' in step['duration']:
-            duration = f'{step["duration"]}*ms'
-        else:
-            duration = step['duration'].split(' ')[0] * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
+        duration = f'{step["duration"]}*ms'
         ramp_cmd += f"ramp_DDS(self.{self.channel}, {ramp['start']}, {ramp['stop']}, {ramp['steps']}, {duration}, now)\n"
         ramp_cmd = ramp_cmd.replace("'", "") 
         return ramp_cmd
@@ -139,10 +132,7 @@ class Zotino:
         if steps == 0:
             return ''
         ramp_cmd = "\n## DAC ramp\n"
-        if 'self.' in step['duration']:
-            duration = f'{step["duration"]}*ms'
-        else:
-            duration = step['duration'].split(' ')[0] * {'s': 1, 'ms': 1e-3, 'us': 1e-6}[step['duration'].split(' ')[1]]
+        duration = f'{step["duration"]}*ms'
         ramp_cmd += f"ramp(self.{self.board}, {channels}, {starts}, {stops}, {steps}, {duration}, now)\n"
         ramp_cmd = ramp_cmd.replace("'", "")
         return ramp_cmd
