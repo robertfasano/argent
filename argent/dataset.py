@@ -50,8 +50,9 @@ class Dataset:
             pivot = pivot[stage]
         return pivot.dropna()
 
-    def plot(self, x, y, z, xlabel='', ylabel='', zlabel=''):
-        fig = plt.figure(figsize=(9, 6), dpi=200)
+    def plot(self, x, y, z, xlabel='', ylabel='', zlabel='', fig=None, legend=True):
+        if fig is None:
+            fig = plt.figure(figsize=(9, 6), dpi=400)
 
         if type(x) == str:
             if xlabel == '':
@@ -79,6 +80,7 @@ class Dataset:
             sterror = subdata.groupby(subdata.x).aggregate(lambda x: np.std(x, ddof=1)/np.sqrt(x.count()))
             plt.errorbar(mean.index, mean.y, sterror.y, capsize=4, linestyle='None', markersize=4, marker='o', label=f'{zlabel}={z0}')
             
-        plt.legend()
+        if legend:
+            plt.legend()
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
