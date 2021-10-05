@@ -72,7 +72,7 @@ class Urukul:
         if step['dds'][self.channel].get('frequency', {}).get('mode', {}) != 'ramp':
             return ''
         ramp = step['dds'][self.channel]['frequency']['ramp']
-        ramp_cmd = "\n## DDS ramp\n"
+        ramp_cmd = ''
         duration = f'{step["duration"]}*ms'
         ramp_cmd += f"ramp_DDS(self.{self.channel}, {ramp['start']}, {ramp['stop']}, {ramp['steps']}, {duration}, now)\n"
         ramp_cmd = ramp_cmd.replace("'", "") 
@@ -107,9 +107,11 @@ class Zotino:
         for ch, state in step['dac'][self.board].items():
             if state['mode'] == 'setpoint' and state['setpoint'] != '':
                 voltages.append(state['setpoint'])
+                channels.append(int(ch.split(self.board)[1]))
+
             elif state['mode'] == 'ramp':
                 voltages.append(state['ramp']['start'])
-            channels.append(int(ch.split(self.board)[1]))
+                channels.append(int(ch.split(self.board)[1]))
 
         if len(voltages) == 0:
             return None
@@ -131,7 +133,7 @@ class Zotino:
 
         if steps == 0:
             return ''
-        ramp_cmd = "\n## DAC ramp\n"
+        ramp_cmd = ''
         duration = f'{step["duration"]}*ms'
         ramp_cmd += f"ramp(self.{self.board}, {channels}, {starts}, {stops}, {steps}, {duration}, now)\n"
         ramp_cmd = ramp_cmd.replace("'", "")
