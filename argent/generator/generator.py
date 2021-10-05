@@ -199,7 +199,7 @@ def write_batch(events):
     indented = ''
     for i, event in enumerate(events):
         if not i % 1 and i != 0:
-            indented += 'delay(2*ns)\n'
+            indented += 'delay(20*ns)\n'
         indented += event
 
     return code + textwrap.indent(indented, '\t')
