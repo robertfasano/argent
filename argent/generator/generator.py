@@ -168,7 +168,7 @@ def generate_run(playlist, config, inputs, outputs):
             code += '\t\t' + f'self.{var} = __update__(self, "{var}")\n'
         code += '\t\t' + 'print("Finished with slack", (now_mu() - self.core.get_rtio_counter_mu())*1e-6, "ms")\n'
         code += '\t\t' + 'self.core.break_realtime()\n'
-        code += '\t\t' + 'delay(5*ms)\n'
+        code += '\t\t' + 'delay(10*ms)\n'
     code += '\t\t' + 'self.__cycle__ += 1\n'
     code += '\n'
 
@@ -244,13 +244,12 @@ def generate_loop(stage):
         sampler_state = step.get('adc', {})
         for board, state in sampler_state.items():
             if state['enable']:
-                # adc_events.append(Sampler(board).run(state))
                 if int(state['samples']) == 1:
                     cmd = f'self.{board}.sample_mu(self.{stage["name"].replace(" ", "_")}_{i}[0])\n'
                 else:
                     delay = float(state['duration']) / int(state['samples']) * 1e-3
                     array_name = stage["name"].replace(" ", "_") + f'_{i}'
-                    cmd = f'sample(self.{board}, data=self.{array_name}, samples={state["samples"]}, wait={delay})\n'
+                    cmd = '\t' + f'sample(self.{board}, data=self.{array_name}, samples={state["samples"]}, wait={delay})\n'
                 adc_events.append(cmd)
 
         for cmd in adc_events:
@@ -264,38 +263,31 @@ def generate_loop(stage):
                     operation = state['operation']
                     array_name = stage['name'].replace(' ', '_') + '_' + str(i)
                     if operation == 'min':
-                        code += f'self.{var} = array_min(self.{array_name}, {ch})\n'
+                        code += '\t' + f'self.{var} = array_min(self.{array_name}, {ch})\n'
                     elif operation == 'max':
-                        code += f'self.{var} = array_max(self.{array_name}, {ch})\n'
+                        code += '\t' + f'self.{var} = array_max(self.{array_name}, {ch})\n'
                     elif operation == 'mean':
-                        code += f'self.{var} = array_mean(self.{array_name}, {ch})\n'
+                        code += '\t' + f'self.{var} = array_mean(self.{array_name}, {ch})\n'
                     elif operation == 'first':
-                        code += f'self.{var} = array_first(self.{array_name}, {ch})\n'
+                        code += '\t' + f'self.{var} = array_first(self.{array_name}, {ch})\n'
                     elif operation == 'last':
-                        code += f'self.{var} = array_last(self.{array_name}, {ch})\n'
+                        code += '\t' + f'self.{var} = array_last(self.{array_name}, {ch})\n'
                     elif operation == 'peak-peak':
-                        code += f'self.{var} = array_peak_to_peak(self.{array_name}, {ch})\n'
+                        code += '\t' + f'self.{var} = array_peak_to_peak(self.{array_name}, {ch})\n'
                     elif operation == 'max-last':
-                        code += f'self.{var} = array_max_minus_last(self.{array_name}, {ch})\n'
-                # code += textwrap.indent(Sampler(board).record(sampler_state[board]['variables']), '\t')
+                        code += '\t' + f'self.{var} = array_max_minus_last(self.{array_name}, {ch})\n'
 
         ramps = ''
         ## write ramps, if applicable
         for board in step.get('dac', {}):
-            # if 'with sequential:' in code:
-            #     code += textwrap.indent(Zotino(board).ramp(step), '\t')
-            # else:
             ramps += Zotino(board).ramp(step)
 
         for channel in step.get('dds', {}):
-            # if 'with sequential:' in code:
-            #     code += textwrap.indent(Urukul(channel).ramp(step), '\t')
-            # else:
             ramps += Urukul(channel).ramp(step)
         if ramps != '':
-            code += 'with parallel:\n'
-            code += textwrap.indent('now = now_mu()\n', '\t')
-            code += textwrap.indent(ramps, '\t')
+            code += '\t' + 'with parallel:\n'
+            code += textwrap.indent('now = now_mu()\n', '\t\t')
+            code += textwrap.indent(ramps, '\t\t')
 
         timesteps.append(code+'\n')
 
