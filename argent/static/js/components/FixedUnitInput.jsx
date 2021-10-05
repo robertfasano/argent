@@ -6,6 +6,8 @@ import TextField from '@material-ui/core/TextField'
 function FixedUnitInput (props) {
   // A text field displaying a fixed unit and label
   function toDecimalString (num) {
+    num = String(num)
+    if (num == '') return num
     if (!num.includes('.')) {
       return num + '.0'
     }

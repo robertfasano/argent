@@ -13,7 +13,7 @@ import IconButton from '@material-ui/core/IconButton'
 import { connect } from 'react-redux'
 
 function LinkableParameter (props) {
-  const variableMode = props.value.includes('self.')
+  const variableMode = String(props.value).includes('self.')
 
   const setVariableMode = () => {
     const firstInput = Object.keys(props.inputs)[0]
