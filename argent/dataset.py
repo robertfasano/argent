@@ -36,6 +36,7 @@ class Dataset:
             self._data = self.client.data.loc[self.start_time:self.stop_time]
         else:
             self._data = self.client.data.loc[self.start_time::]
+        self._data = self._data.iloc[1:, :]             # discard first point
         return self._data.dropna(axis=1, how='all')
 
     def pivot(self, var, stage=None):
@@ -50,7 +51,7 @@ class Dataset:
             pivot = pivot[stage]
         return pivot.dropna()
 
-    def plot(self, x, y, z, xlabel='', ylabel='', zlabel='', fig=None, legend=True):
+    def plot(self, x, y, z, xlabel='', ylabel='', zlabel='', fig=None, legend=True, colors=None, style='errorbar'):
         if fig is None:
             fig = plt.figure(figsize=(9, 6), dpi=400)
 
@@ -73,13 +74,20 @@ class Dataset:
         concat = pd.concat([x, y, z], axis=1).dropna()
         concat.columns = ['x', 'y', 'z']
 
-        for z0 in z_vals:
+        for i, z0 in enumerate(z_vals):
             subdata = concat[concat.z == z0]
             mean = subdata.groupby(subdata.x).mean()
             std = subdata.groupby(subdata.x).std()
             sterror = subdata.groupby(subdata.x).aggregate(lambda x: np.std(x, ddof=1)/np.sqrt(x.count()))
-            plt.errorbar(mean.index, mean.y, sterror.y, capsize=4, linestyle='None', markersize=4, marker='o', label=f'{zlabel}={z0}')
-            
+
+            color = None
+            if colors is not None:
+                color = colors[i]
+            if style == 'errorbar':
+                plt.errorbar(mean.index, mean.y, sterror.y, capsize=4, linestyle='None', markersize=4, marker='o', label=f'{zlabel}={z0}', color=color)
+            elif style == 'line':
+                plt.plot(mean.index, mean.y, color=color, label=f'{zlabel}={z0}')
+
         if legend:
             plt.legend()
         plt.xlabel(xlabel)
