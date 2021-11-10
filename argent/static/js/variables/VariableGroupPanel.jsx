@@ -60,9 +60,13 @@ function VariableGroupPanel (props) {
           <Typography style={{ fontSize: 20, color: 'black' }}> <b>{props.group}</b> </Typography>
         </Grid>
         <Grid item xs={1}>
-          <IconButton onClick={deleteGroup} >
-            <ClearIcon/>
-          </IconButton>
+          {(props.group !== 'default')
+            ? (
+              <IconButton onClick={deleteGroup} >
+                <ClearIcon/>
+              </IconButton>
+              )
+            : null}
         </Grid>
       </Grid>
     {expanded
