@@ -20,6 +20,7 @@ import IconButton from '@material-ui/core/IconButton'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import ClearIcon from '@material-ui/icons/Clear'
+import DebouncedTextField from '../components/DebouncedTextField.jsx'
 
 function InputGroupPanel (props) {
   const expanded = props.expanded.includes(props.group)
@@ -33,13 +34,6 @@ function InputGroupPanel (props) {
 
   function sendInputs () {
     post('/inputs', props.inputs)
-  }
-
-  function toDecimalString (num) {
-    if (!num.includes('.')) {
-      return num + '.0'
-    }
-    return num
   }
 
   function deleteGroup () {
@@ -93,7 +87,7 @@ function InputGroupPanel (props) {
                     <TextField disabled value={key} onContextMenu={(event) => props.handleMenu(event, key)}/>
                     </TableCell>
                     <TableCell>
-                    <TextField value={value} onChange={(event) => props.updateInput(key, event.target.value)} onBlur={() => props.updateInput(key, toDecimalString(value))} />
+                    <DebouncedTextField value={value} onBlur={(value) => props.updateInput(key, value)}/>
                     </TableCell>
                 </TableRow>
             ))}
