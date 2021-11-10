@@ -41,6 +41,13 @@ function SequenceToolbar (props) {
     post('/generate', { playlist: props.sequence, pid: pid, inputs: props.inputs, outputs: props.outputs, variables: props.variables })
   }
 
+  const onDownload = () => {
+    const link = document.createElement('a')
+    link.download = `${props.name}.yml`
+    link.href = `data:text/json;charset=utf-8,${encodeURIComponent(text())}`
+    link.click()
+  }
+
   return (
     <List style={flexContainer}>
       <ListItem button onClick={() => submit(props.sequence)} style={listItem}>
@@ -72,9 +79,8 @@ function SequenceToolbar (props) {
       </ListItem>
 
       <ListItem button component="a"
-                  href={`data:text/json;charset=utf-8,${encodeURIComponent(text())}`}
-                  download={`${props.name}.yml`}
-                  style={listItem}
+                onClick={onDownload}
+                style={listItem}
       >
         <ListItemIcon>
           <SaveIcon/>
