@@ -86,13 +86,13 @@ function Timeline (props) {
     options: {
       tooltip: { enabled: false },
       credits: { enabled: false },
-      chart: { height: 50, margin: 0, width: points.length * 82, padding: 0 },
+      chart: { height: 50, margin: 0, width: null, padding: 0 },
       yAxis: {
         min: min - margin,
         max: max + margin,
         visible: false
       },
-      xAxis: { visible: false },
+      xAxis: { visible: false, min: 0, max: starts.length },
       title: { text: '' },
       series: [
         {
