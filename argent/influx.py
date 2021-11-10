@@ -1,4 +1,4 @@
-
+import datetime, pytz
 import influxdb_client
 from influxdb_client.client.write_api import SYNCHRONOUS
 from datetime import timedelta
@@ -11,8 +11,11 @@ class InfluxDBClient:
         self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
         self.timezone = config['timezone']
 
-    def write(self, df, bucket):
-        df.index += timedelta(hours=self.timezone)
+    def write(self, df, bucket):        
+        now = datetime.datetime.now(pytz.timezone(self.timezone))
+        tz_offset = now.utcoffset().total_seconds()/60/60
+        df.index -= timedelta(hours=tz_offset)
+
         self.write_api.write(bucket, 
                              record=df, 
                              data_frame_measurement_name='artiq', 
