@@ -1,110 +1,75 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import Box from '@material-ui/core/Box'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
-import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
+import OutputGroupPanel from './OutputGroupPanel.jsx'
+import OutputContextMenu from './OutputContextMenu.jsx'
 import Button from '@material-ui/core/Button'
-import AddIcon from '@material-ui/icons/Add'
-import ClearIcon from '@material-ui/icons/Clear'
+import CreateNewFolderIcon from '@material-ui/icons/CreateNewFolder'
 
 function OutputsTable (props) {
-  function addOutput () {
-    const name = prompt('New variable name:')
-    if (name !== null) {
-      props.updateOutput(name, '')
+  const [menu, setMenu] = React.useState({ anchor: null, name: null })
+  const [expanded, setExpanded] = React.useState(Object.keys(props.groups))
+
+  function toggleExpanded (name) {
+    if (expanded.includes(name)) {
+      setExpanded(expanded.filter(x => x !== name))
+    } else {
+      setExpanded([...expanded, name])
     }
   }
 
-  function checkOutput (name) {
-    // Return true if the variable is used in the sequence
-    for (const step of props.sequence.steps) {
-      for (const board of Object.keys(step.adc)) {
-        if (Object.values(step.adc[board].variables || {}).includes(name)) {
-          return true
-        }
-      }
-    }
-    return false
+  function handleMenu (event, name, group) {
+    event.preventDefault()
+    setMenu({ anchor: event.currentTarget, name: name })
   }
 
-  function deleteOutput (name) {
-    if (checkOutput(name)) {
-      alert('Cannot delete a variable which is used in the sequence!')
-      return
-    }
-    props.deleteOutput(name)
+  function closeMenu () {
+    setMenu({ anchor: null, index: null })
   }
 
   return (
         <>
-            <Box my={2}>
-              <Typography>Output variables are used to store values extracted from ADC measurements. During sequence playback, their values are broadcast to the Argent server at the end of each cycle.
-              </Typography>
-            </Box>
-            <Table>
-              <colgroup>
-                <col style={{ width: '90%' }}/>
-                <col style={{ width: '10%' }}/>
-              </colgroup>
-              <TableHead>
-                <TableRow>
-                  <TableCell> Name </TableCell>
-                  <TableCell> Value </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {Object.keys(props.outputs).sort(Intl.Collator().compare).map(key => (
-                  <TableRow key={key}>
-                    <TableCell>
-                      <TextField disabled value={key}/>
-                    </TableCell>
-                    <TableCell>
-                      <TextField disabled value={String(props.outputs[key]).substring(0, 5)}/>
-                    </TableCell>
-                    <TableCell>
-                      <Button onClick={() => deleteOutput(key)} >
-                        <ClearIcon/>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                <TableRow>
-                  <TableCell>
-                    <Button onClick={addOutput}>
-                      <AddIcon/>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-            </>
+        <OutputContextMenu state={menu} close={closeMenu} groups={Object.keys(props.groups)}/>
+        <Box my={2}>
+        <Typography>Output variables are used to store values extracted from ADC measurements. During sequence playback, their values are broadcast to the Argent server at the end of each cycle.
+        </Typography>
+        </Box>
+        <OutputGroupPanel key={'default'} group={'default'} items={props.groups.default} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>
+        {Object.entries(props.groups).sort().map(([key, value]) => (
+          (key !== 'default') ? (<OutputGroupPanel key={key} group={key} items={value} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>) : null
+
+        ))
+        }
+        <Button onClick={props.addGroup} style={{ textTransform: 'none', width: 150 }}>
+        <CreateNewFolderIcon/>
+        <Box px={2}>New group</Box>
+        </Button>
+
+        </>
   )
 }
 
 OutputsTable.propTypes = {
   sequence: PropTypes.object,
   outputs: PropTypes.object,
-  deleteOutput: PropTypes.func,
-  updateOutput: PropTypes.func
+  groups: PropTypes.object,
+  addGroup: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
   return {
-    updateOutput: (name, value) => dispatch({ type: 'variables/output/update', variables: Object.fromEntries([[name, value]]) }),
-    deleteOutput: (name) => dispatch({ type: 'variables/output/delete', name: name })
+    addGroup: (name) => dispatch({ type: 'variables/output/addGroup', name: prompt('Enter new group name:') })
   }
 }
 
 function mapStateToProps (state, props) {
+  const groups = state.sequences[state.active_sequence].ui.groups.output
   return {
     sequence: state.sequences[state.active_sequence],
-    outputs: state.outputs
+    outputs: state.outputs,
+    groups: groups
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(OutputsTable)
