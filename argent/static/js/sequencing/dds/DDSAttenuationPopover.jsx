@@ -91,7 +91,8 @@ function mapStateToProps (state, props) {
   return {
     enable: channel.enable,
     attenuation: channel.attenuation,
-    inputs: state.inputs
+    inputs: Object.assign({}, state.inputs, state.outputs)
+
   }
 }
 

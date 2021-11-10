@@ -92,7 +92,8 @@ function mapStateToProps (state, props) {
   return {
     enable: channel.enable,
     frequency: channel.frequency,
-    inputs: state.inputs
+    inputs: Object.assign({}, state.inputs, state.outputs)
+
   }
 }
 

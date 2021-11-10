@@ -95,7 +95,7 @@ function mapStateToProps (state, props) {
     mode: mode,
     setpoint: channel.setpoint,
     ramp: ramp,
-    inputs: state.inputs
+    inputs: Object.assign({}, state.inputs, state.outputs)
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(DACPopover)
