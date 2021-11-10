@@ -4,25 +4,25 @@ import Box from '@material-ui/core/Box'
 import { connect } from 'react-redux'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
-import OutputsTable from './OutputsTable.jsx'
-import InputsTable from './InputsTable.jsx'
+import ParameterTable from './ParameterTable.jsx'
+import VariableTable from './VariableTable.jsx'
 
 function VariablesPanel (props) {
   return (
     <>
       <Tabs value={props.variableTab} onChange={(event, newValue) => props.changeVariableTab(newValue)} variant="fullWidth">
-        <Tab key="Inputs" label="Inputs" value="Inputs" style={{ textTransform: 'none' }}/>
-        <Tab key="Outputs" label="Outputs" value="Outputs" style={{ textTransform: 'none' }}/>
+        <Tab key="Variables" label="Variables" value="Variables" style={{ textTransform: 'none' }}/>
+        <Tab key="Parameters" label="Parameters" value="Parameters" style={{ textTransform: 'none' }}/>
       </Tabs>
       <Box m={2}>
           {
-          props.variableTab === 'Outputs'
+          props.variableTab === 'Parameters'
             ? (
-              <OutputsTable/>
+              <ParameterTable/>
               )
-            : props.variableTab === 'Inputs'
+            : props.variableTab === 'Variables'
               ? (
-                <InputsTable/>
+                <VariableTable/>
                 )
               : null
           }

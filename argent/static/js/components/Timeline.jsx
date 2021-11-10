@@ -18,11 +18,11 @@ function Timeline (props) {
   // calculate start points of each step (which may be NaN for undefined steps)
   for (const data of props.data) {
     if (data.mode === 'setpoint') {
-      starts.push(parseLinkedParameter(data.setpoint, props.inputs))
-      stops.push(parseLinkedParameter(data.setpoint, props.inputs))
+      starts.push(parseLinkedParameter(data.setpoint, props.variables))
+      stops.push(parseLinkedParameter(data.setpoint, props.variables))
     } else if (data.mode === 'ramp') {
-      starts.push(parseLinkedParameter(data.ramp.start, props.inputs))
-      stops.push(parseLinkedParameter(data.ramp.stop, props.inputs))
+      starts.push(parseLinkedParameter(data.ramp.start, props.variables))
+      stops.push(parseLinkedParameter(data.ramp.stop, props.variables))
     }
   }
 
@@ -149,7 +149,7 @@ function Timeline (props) {
 
 Timeline.propTypes = {
   data: PropTypes.array,
-  inputs: PropTypes.object,
+  variables: PropTypes.object,
   unit: PropTypes.string,
   onClick: PropTypes.func
 }
@@ -196,8 +196,8 @@ function arrayRotate (arr, reverse) {
   return arr
 }
 
-function parseLinkedParameter (setpoint, inputs) {
-  if (setpoint.includes('self.')) return parseFloat(inputs[setpoint.split('self.')[1]])
+function parseLinkedParameter (setpoint, variables) {
+  if (setpoint.includes('self.')) return parseFloat(variables[setpoint.split('self.')[1]])
   else return parseFloat(setpoint)
 }
 
@@ -211,7 +211,7 @@ function slice (array, axis) {
 
 function mapStateToProps (state, props) {
   return {
-    inputs: state.inputs,
+    variables: state.variables,
     unit: props.unit || ''
   }
 }

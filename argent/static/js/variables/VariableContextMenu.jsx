@@ -5,14 +5,14 @@ import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import NestedMenuItem from 'material-ui-nested-menu-item'
 
-function InputContextMenu (props) {
+function VariableContextMenu (props) {
   return (
     <Menu
       anchorEl={props.state.anchor}
       open={props.open}
       onClose={props.close}
     >
-      <MenuItem onClick={() => props.deleteInput()}>
+      <MenuItem onClick={() => props.deleteVariable()}>
         Delete
       </MenuItem>
       <NestedMenuItem
@@ -31,11 +31,11 @@ function InputContextMenu (props) {
   )
 }
 
-InputContextMenu.propTypes = {
+VariableContextMenu.propTypes = {
   state: PropTypes.object,
   open: PropTypes.bool,
   close: PropTypes.func,
-  deleteInput: PropTypes.func,
+  deleteVariable: PropTypes.func,
   changeGroup: PropTypes.func,
   groups: PropTypes.array
 }
@@ -48,15 +48,15 @@ function mapStateToProps (state, props) {
 
 function mapDispatchToProps (dispatch, props) {
   return {
-    deleteInput: () => {
-      dispatch({ type: 'variables/input/delete', name: props.state.name })
+    deleteVariable: () => {
+      dispatch({ type: 'variables/delete', name: props.state.name })
       props.close()
     },
     changeGroup: (group) => {
-      dispatch({ type: 'variables/input/changeGroup', name: props.state.name, group: group })
+      dispatch({ type: 'variables/changeGroup', name: props.state.name, group: group })
       props.close()
     }
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(InputContextMenu)
+export default connect(mapStateToProps, mapDispatchToProps)(VariableContextMenu)

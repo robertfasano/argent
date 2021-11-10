@@ -14,8 +14,8 @@ import PlaylistPlayIcon from '@material-ui/icons/PlaylistPlay'
 function PlaylistPanel (props) {
   function submit (playlist) {
     const pid = uuidv4()
-    post('/inputs', props.inputs)
-    post('/submit', { playlist: playlist, pid: pid, inputs: props.inputs, outputs: props.outputs })
+    post('/variables', props.variables)
+    post('/submit', { playlist: playlist, pid: pid, variables: props.variables, parameters: props.parameters })
     props.setPID(pid)
   }
 
@@ -64,8 +64,8 @@ const preparePlaylist = memoizeArray(
 
 PlaylistPanel.propTypes = {
   playlist: PropTypes.array,
-  inputs: PropTypes.object,
-  outputs: PropTypes.object,
+  variables: PropTypes.object,
+  parameters: PropTypes.object,
   setPID: PropTypes.func
 }
 
@@ -79,8 +79,8 @@ function mapDispatchToProps (dispatch, props) {
 
 function mapStateToProps (state, props) {
   return {
-    inputs: state.inputs,
-    outputs: state.outputs,
+    variables: state.variables,
+    parameters: state.parameters,
     playlist: preparePlaylist(state)
   }
 }

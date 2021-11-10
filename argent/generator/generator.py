@@ -7,7 +7,7 @@ from .channel_parsing import *
 from .sequence_parsing import *
 
 ''' Code generation '''
-def generate_experiment(playlist, config, pid, inputs={}, outputs={}, variables={}):
+def generate_experiment(playlist, config, pid, variables={}, parameters={}):
     ''' The main entrypoint for the code generator. The overall process is:
         1. Remove redundant events from the sequence to minimize RTIO overhead.
         2. Generate the build stage of the experiment (defining hardware).
@@ -31,13 +31,13 @@ def generate_experiment(playlist, config, pid, inputs={}, outputs={}, variables=
     with open(os.path.join(path, 'generator/rtio_ops.py')) as file:
         code += file.read() + '\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
-    code += textwrap.indent(generate_build(playlist, pid, inputs, outputs, variables), '\t')
+    code += textwrap.indent(generate_build(playlist, pid, variables, parameters), '\t')
     code += textwrap.indent(generate_init(playlist), '\t')
-    code += textwrap.indent(generate_run(playlist, config, inputs, outputs), '\t')
+    code += textwrap.indent(generate_run(playlist, config, variables, parameters), '\t')
 
     return code
 
-def generate_build(playlist, pid, inputs, outputs, variables):
+def generate_build(playlist, pid, variables, parameters):
     ''' Generates the build() function, in which all hardware accessed by the
         sequence is defined.
     '''
@@ -68,18 +68,12 @@ def generate_build(playlist, pid, inputs, outputs, variables):
     for key, val in arrays.items():
         code += f'self.{key} = {val}\n'
 
-    ## build output variables
-    code += '\n## Outputs\n'
-    for var in outputs:
-        code += f'self.{var} = 0.0\n'
-
     ## build parameters
     code += '\n## Parameters\n'
-    code += f'self.inputs = {inputs}\n'
-    for name, value in inputs.items():
-        code += f'self.{name} = {float(value)}\n'
+    for var in parameters:
+        code += f'self.{var} = 0.0\n'
 
-    ## build variables 
+    ## build variables
     code += '\n## Variables\n'
     code += f'self.variables = {variables}\n'
     for name, value in variables.items():
@@ -125,7 +119,7 @@ def generate_init(playlist):
 
     return code + '\n'
 
-def generate_run(playlist, config, inputs, outputs):
+def generate_run(playlist, config, variables, parameters):
     ''' Generates the main loop of the experiment. Different stages of the overall
         playlist are written into individual kernel functions for readability,
         which are then executed repeatedly in a While block.
@@ -150,21 +144,21 @@ def generate_run(playlist, config, inputs, outputs):
                 code += textwrap.indent(file.read(), '\t\t') + '\n'
 
         ## sync with server
-        all_outputs = ['self.'+var for var in outputs]
-        self_outputs = str(all_outputs).replace("'", "")
-        self_inputs = str(['self.'+var for var in inputs]).replace("'", "")
-        code += '\t\t' + f'__push__(self, {i}, "{stage["name"]}", self.__cycle__, {list(outputs.keys())}, {self_outputs}, {list(inputs.keys())}, {self_inputs}, "{config["addr"]}")\n'
+        all_parameters = ['self.'+var for var in parameters]
+        self_parameters = str(all_parameters).replace("'", "")
+        self_variables = str(['self.'+var for var in variables]).replace("'", "")
+        code += '\t\t' + f'__push__(self, {i}, "{stage["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
 
         i += 1
 
-    ## broadcast output variables
-    code += '\n\t\t##Sync input variables with server\n'
+    ## broadcast parameters and variables
+    code += '\n\t\t##Sync variables with server\n'
     code += '\t\t' + f'__pull__(self, "{config["addr"]}")\n'
 
 
     ## update input variables
-    if len(inputs) > 0:
-        for var in inputs:
+    if len(variables) > 0:
+        for var in variables:
             code += '\t\t' + f'self.{var} = __update__(self, "{var}")\n'
         code += '\t\t' + 'print("Finished with slack", (now_mu() - self.core.get_rtio_counter_mu())*1e-6, "ms")\n'
         code += '\t\t' + 'self.core.break_realtime()\n'

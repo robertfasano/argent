@@ -13,17 +13,16 @@ function defaultStore (channels, sequences, version) {
   const state = {}
   state.channels = channels
   state.sequences = sequences
-  state.sequences = { 'new sequence': { steps: defaultSequence(channels), script: null, ui: { groups: { input: { default: [] }, output: { default: [] } } } } }
+  state.sequences = { 'new sequence': { steps: defaultSequence(channels), script: null, ui: { groups: { variables: { default: [] }, parameters: { default: [] } } } } }
   state.active_sequence = 'new sequence'
   state.playlist = [{ name: 'new sequence', reps: 1 }]
-  state.inputs = {}
-  state.outputs = {}
   state.variables = {}
+  state.parameters = {}
 
   state.ui = {
     heartbeat: false,
     pid: { active: null, submitted: null },
-    variableTab: 'Inputs'
+    variableTab: 'Variables'
   }
 
   state.version = version
@@ -34,7 +33,7 @@ export function createGUI (sequences, channels, version) {
   sequences = JSON.parse(sequences)
   const state = defaultStore(channels, sequences, version)
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
-  const enhancer = composeEnhancers(persistState(['sequences', 'active_sequence', 'playlist', 'ui', 'inputs', 'outputs']))
+  const enhancer = composeEnhancers(persistState(['sequences', 'active_sequence', 'playlist', 'ui', 'variables', 'parameters']))
   const store = createStore(reducer, state, enhancer)
 
   ReactDOM.render(<Provider store={store}>

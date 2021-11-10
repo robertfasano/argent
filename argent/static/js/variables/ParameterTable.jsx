@@ -3,12 +3,12 @@ import PropTypes from 'prop-types'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
-import OutputGroupPanel from './OutputGroupPanel.jsx'
-import OutputContextMenu from './OutputContextMenu.jsx'
+import ParameterGroupPanel from './ParameterGroupPanel.jsx'
+import ParameterContextMenu from './ParameterContextMenu.jsx'
 import Button from '@material-ui/core/Button'
 import CreateNewFolderIcon from '@material-ui/icons/CreateNewFolder'
 
-function OutputsTable (props) {
+function ParameterTable (props) {
   const [menu, setMenu] = React.useState({ anchor: null, name: null })
   const [expanded, setExpanded] = React.useState(Object.keys(props.groups))
 
@@ -31,14 +31,14 @@ function OutputsTable (props) {
 
   return (
         <>
-        <OutputContextMenu state={menu} close={closeMenu} groups={Object.keys(props.groups)}/>
+        <ParameterContextMenu state={menu} close={closeMenu} groups={Object.keys(props.groups)}/>
         <Box my={2}>
-        <Typography>Output variables are used to store values extracted from ADC measurements. During sequence playback, their values are broadcast to the Argent server at the end of each cycle.
+        <Typography>Parameters are constant unless modified within the sequence itself. During sequence playback, their values are broadcast to the Argent server at the end of each cycle.
         </Typography>
         </Box>
-        <OutputGroupPanel key={'default'} group={'default'} items={props.groups.default} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>
+        <ParameterGroupPanel key={'default'} group={'default'} items={props.groups.default} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>
         {Object.entries(props.groups).sort().map(([key, value]) => (
-          (key !== 'default') ? (<OutputGroupPanel key={key} group={key} items={value} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>) : null
+          (key !== 'default') ? (<ParameterGroupPanel key={key} group={key} items={value} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>) : null
 
         ))
         }
@@ -51,25 +51,25 @@ function OutputsTable (props) {
   )
 }
 
-OutputsTable.propTypes = {
+ParameterTable.propTypes = {
   sequence: PropTypes.object,
-  outputs: PropTypes.object,
+  parameters: PropTypes.object,
   groups: PropTypes.object,
   addGroup: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
   return {
-    addGroup: (name) => dispatch({ type: 'variables/output/addGroup', name: prompt('Enter new group name:') })
+    addGroup: (name) => dispatch({ type: 'parameters/addGroup', name: prompt('Enter new group name:') })
   }
 }
 
 function mapStateToProps (state, props) {
-  const groups = state.sequences[state.active_sequence].ui.groups.output
+  const groups = state.sequences[state.active_sequence].ui.groups.parameters
   return {
     sequence: state.sequences[state.active_sequence],
-    outputs: state.outputs,
+    parameters: state.parameters,
     groups: groups
   }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(OutputsTable)
+export default connect(mapStateToProps, mapDispatchToProps)(ParameterTable)

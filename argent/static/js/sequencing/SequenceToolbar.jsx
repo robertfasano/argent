@@ -31,14 +31,14 @@ function SequenceToolbar (props) {
 
   function submit (playlist) {
     const pid = uuidv4()
-    post('/inputs', props.inputs)
-    post('/submit', { playlist: playlist, pid: pid, inputs: props.inputs, outputs: props.outputs, variables: props.variables })
+    post('/variables', props.variables)
+    post('/submit', { playlist: playlist, pid: pid, variables: props.variables, parameters: props.parameters })
     props.setPID(pid)
   }
 
   function generate () {
     const pid = uuidv4()
-    post('/generate', { playlist: props.sequence, pid: pid, inputs: props.inputs, outputs: props.outputs, variables: props.variables })
+    post('/generate', { playlist: props.sequence, pid: pid, variables: props.variables, parameters: props.parameters })
   }
 
   const onDownload = () => {
@@ -107,8 +107,7 @@ SequenceToolbar.propTypes = {
   delete: PropTypes.func,
   addToPlaylist: PropTypes.func,
   version: PropTypes.string,
-  inputs: PropTypes.object,
-  outputs: PropTypes.object,
+  parameters: PropTypes.object,
   variables: PropTypes.object,
   setPID: PropTypes.func
 }
@@ -135,16 +134,14 @@ function mapStateToProps (state, props) {
   const steps = merge({}, state.sequences[state.active_sequence])
   const sequence = [{ name: state.active_sequence, reps: 1, sequence: steps }]
 
-  steps.inputs = state.inputs
-  steps.outputs = state.outputs
   steps.variables = state.variables
+  steps.parameters = state.parameters
   return {
     sequence: sequence,
     version: state.version,
-    inputs: state.inputs,
-    outputs: state.outputs,
-    steps: steps,
-    variables: state.variables
+    variables: state.variables,
+    parameters: state.parameters,
+    steps: steps
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(SequenceToolbar)

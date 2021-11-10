@@ -32,7 +32,7 @@ function DDSButton (props) {
 
   let displayText = ''
   if (props.attenuation.setpoint.includes('self.')) {
-    displayText = props.inputs[props.attenuation.setpoint.split('self.')[1]] + ' dB'
+    displayText = props.variables[props.attenuation.setpoint.split('self.')[1]] + ' dB'
   } else if (props.attenuation.setpoint !== '') {
     displayText = props.attenuation.setpoint + ' dB'
   }
@@ -59,7 +59,7 @@ DDSButton.propTypes = {
   frequency: PropTypes.object,
   attenuation: PropTypes.object,
   toggleSwitch: PropTypes.func,
-  inputs: PropTypes.object,
+  variables: PropTypes.object,
   update: PropTypes.func,
   ch: PropTypes.string,
   timestep: PropTypes.number
@@ -89,7 +89,7 @@ function mapStateToProps (state, props) {
     enable: channel.enable,
     attenuation: channel.attenuation,
     frequency: channel.frequency,
-    inputs: state.inputs
+    variables: state.variables
   }
 }
 

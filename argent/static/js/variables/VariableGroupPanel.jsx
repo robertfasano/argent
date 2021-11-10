@@ -22,22 +22,22 @@ import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import ClearIcon from '@material-ui/icons/Clear'
 import DebouncedTextField from '../components/DebouncedTextField.jsx'
 
-function InputGroupPanel (props) {
+function VariableGroupPanel (props) {
   const expanded = props.expanded.includes(props.group)
 
-  function addInput () {
+  function addVariable () {
     const name = prompt('New variable name:')
     if (name !== null) {
-      props.updateInput(name, '')
+      props.updateVariable(name, '')
     }
   }
 
-  function sendInputs () {
-    post('/inputs', props.inputs)
+  function sendVariables () {
+    post('/variables', props.variables)
   }
 
   function deleteGroup () {
-    if (Object.keys(props.inputs).length > 0) {
+    if (Object.keys(props.variables).length > 0) {
       alert('Cannot delete a non-empty group!')
     } else {
       props.deleteGroup()
@@ -81,25 +81,25 @@ function InputGroupPanel (props) {
             </TableRow>
             </TableHead>
             <TableBody>
-            {Object.entries(props.inputs).sort().map(([key, value]) => (
+            {Object.entries(props.variables).sort().map(([key, value]) => (
                 <TableRow key={key}>
                     <TableCell>
                     <TextField disabled value={key} onContextMenu={(event) => props.handleMenu(event, key)}/>
                     </TableCell>
                     <TableCell>
-                    <DebouncedTextField value={value} onBlur={(value) => props.updateInput(key, value)}/>
+                    <DebouncedTextField value={value} onBlur={(value) => props.updateVariable(key, value)}/>
                     </TableCell>
                 </TableRow>
             ))}
                 <TableRow>
                 <TableCell>
-                    <Button onClick={addInput} style={{ textTransform: 'none' }}>
+                    <Button onClick={addVariable} style={{ textTransform: 'none' }}>
                     <AddIcon/>
                     <Box px={2}>New</Box>
                     </Button>
                 </TableCell>
                 <TableCell>
-                    <Button onClick={sendInputs} style={{ textTransform: 'none' }}>
+                    <Button onClick={sendVariables} style={{ textTransform: 'none' }}>
                     <SendIcon/>
                     <Box px={2}>Send</Box>
                     </Button>
@@ -116,10 +116,10 @@ function InputGroupPanel (props) {
             </Box>
   )
 }
-InputGroupPanel.propTypes = {
+VariableGroupPanel.propTypes = {
   sequence: PropTypes.object,
-  inputs: PropTypes.object,
-  updateInput: PropTypes.func,
+  variables: PropTypes.object,
+  updateVariable: PropTypes.func,
   name: PropTypes.string,
   items: PropTypes.array,
   handleMenu: PropTypes.func,
@@ -131,22 +131,22 @@ InputGroupPanel.propTypes = {
 
 function mapDispatchToProps (dispatch, props) {
   return {
-    updateInput: (name, value) => dispatch({ type: 'variables/input/update', name: name, value: value, group: props.group }),
-    deleteGroup: () => dispatch({ type: 'variables/input/deleteGroup', group: props.group })
+    updateVariable: (name, value) => dispatch({ type: 'variables/update', name: name, value: value, group: props.group }),
+    deleteGroup: () => dispatch({ type: 'variables/deleteGroup', group: props.group })
 
   }
 }
 
 function mapStateToProps (state, props) {
-  const inputs = {}
+  const variables = {}
   for (const name of props.items) {
-    inputs[name] = state.inputs[name]
+    variables[name] = state.variables[name]
   }
 
   return {
     sequence: state.sequences[state.active_sequence],
-    inputs: inputs
+    variables: variables
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(InputGroupPanel)
+export default connect(mapStateToProps, mapDispatchToProps)(VariableGroupPanel)

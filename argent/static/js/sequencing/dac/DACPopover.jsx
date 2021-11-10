@@ -36,15 +36,15 @@ function DACPopover (props) {
         />
 
         {(props.mode === 'setpoint')
-          ? <LinkableParameter value={props.setpoint} inputs={props.inputs} onChange={(value) => props.update('dac/setpoint', value)} label='Setpoint' unit='V'/>
+          ? <LinkableParameter value={props.setpoint} variables={props.variables} onChange={(value) => props.update('dac/setpoint', value)} label='Setpoint' unit='V'/>
           : null
         }
 
         {props.mode === 'ramp'
           ? (
             <>
-              <LinkableParameter value={props.ramp.start} inputs={props.inputs} onChange={(value) => props.update('dac/ramp/start', value)} label='Start' unit='V'/>
-              <LinkableParameter value={props.ramp.stop} inputs={props.inputs} onChange={(value) => props.update('dac/ramp/stop', value)} label='Stop' unit='V'/>
+              <LinkableParameter value={props.ramp.start} variables={props.variables} onChange={(value) => props.update('dac/ramp/start', value)} label='Start' unit='V'/>
+              <LinkableParameter value={props.ramp.stop} variables={props.variables} onChange={(value) => props.update('dac/ramp/stop', value)} label='Stop' unit='V'/>
               <Box mx={1}>
                 <TextField label='Steps'
                           value={props.ramp.steps}
@@ -68,7 +68,7 @@ DACPopover.propTypes = {
   setpoint: PropTypes.string,
   ramp: PropTypes.object,
   mode: PropTypes.string,
-  inputs: PropTypes.object,
+  variables: PropTypes.object,
   update: PropTypes.func,
   anchorPosition: PropTypes.array,
   open: PropTypes.bool,
@@ -95,7 +95,7 @@ function mapStateToProps (state, props) {
     mode: mode,
     setpoint: channel.setpoint,
     ramp: ramp,
-    inputs: Object.assign({}, state.inputs, state.outputs)
+    variables: Object.assign({}, state.parameters, state.variables)
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(DACPopover)

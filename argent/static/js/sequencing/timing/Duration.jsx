@@ -27,7 +27,7 @@ function Duration (props) {
 
   let displayText = ''
   if (String(props.duration).includes('self.')) {
-    displayText = props.inputs[props.duration.split('self.')[1]] + ' ms'
+    displayText = props.variables[props.duration.split('self.')[1]] + ' ms'
   } else if (props.duration !== '') {
     displayText = props.duration + ' ms'
   }
@@ -59,7 +59,7 @@ function Duration (props) {
             Duration options
         </Typography>
         <LinkableParameter value={props.duration}
-                           inputs={props.inputs}
+                           variables={props.variables}
                            onChange={(value) => props.update('timestep/duration', value)}
                            label='Duration' unit='ms'
         />
@@ -72,7 +72,7 @@ function Duration (props) {
 Duration.propTypes = {
   timestep: PropTypes.number,
   duration: PropTypes.string,
-  inputs: PropTypes.object,
+  variables: PropTypes.object,
   update: PropTypes.func
 }
 
@@ -87,7 +87,7 @@ function mapDispatchToProps (dispatch, props) {
 function mapStateToProps (state, props) {
   return {
     duration: state.sequences[state.active_sequence].steps[props.timestep].duration,
-    inputs: state.inputs
+    variables: state.variables
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(Duration)

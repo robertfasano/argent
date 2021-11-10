@@ -27,9 +27,9 @@ class App:
         ## load InfluxDB client if specified
         self.influx = InfluxDBClient(self.config['influx'])
 
-        self.inputs = {}
-        self.outputs = {}
-        self.results = {'inputs': {}, 'outputs': {}}
+        self.variables = {}
+        self.parameters = {}
+        self.results = {'variables': {}, 'parameters': {}}
         self.__run__ = ''
 
         self.host()
@@ -66,12 +66,8 @@ class App:
             '''
             sequence = request.json['playlist']
             pid = request.json['pid']
-            inputs = request.json['inputs']
-            outputs = request.json['outputs']
             variables = request.json['variables']
-            code = generate_experiment(sequence, self.config, pid, inputs, outputs, variables)            
-            with open('generated_experiment.py', 'w') as file:
-                file.write(code)
+            parameters = request.json['parameters']
 
             return json.dumps(code)
 
@@ -87,9 +83,9 @@ class App:
             '''
             sequence = request.json['playlist']
             pid = request.json['pid']
-            inputs = request.json['inputs']
-            outputs = request.json['outputs']
-            code = generate_experiment(sequence, self.config, pid, inputs, outputs)
+            variables = request.json['variables']
+            parameters = request.json['parameters']
+            code = generate_experiment(sequence, self.config, pid, variables, parameters)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             env_name = self.config['environment_name']
@@ -124,28 +120,28 @@ class App:
                     channel_dict['cpld'].append(key)
             return channel_dict
 
-        @app.route("/inputs", methods=['GET', 'POST'])
-        def inputs():
+        @app.route("/variables", methods=['GET', 'POST'])
+        def variables():
             if request.method == 'POST':
                 for key, val in request.json.items():
-                    self.inputs[key] = val
+                    self.variables[key] = val
 
                 return ''
 
             elif request.method == 'GET':
-                return json.dumps(self.inputs)
+                return json.dumps(self.variables)
 
-        @app.route("/outputs", methods=['GET', 'POST'])
-        def outputs():
+        @app.route("/parameters", methods=['GET', 'POST'])
+        def parameters():
             if request.method == 'POST':
                 for key, val in request.json.items():
-                    self.outputs[key] = val
+                    self.parameters[key] = val
 
                 socketio.emit('heartbeat', {"pid": request.json['pid']})
                 return ''
 
             elif request.method == 'GET':
-                return json.dumps(self.outputs)
+                return json.dumps(self.parameters)
 
         @app.route("/results", methods=['GET', 'POST'])
         def results():
@@ -157,7 +153,7 @@ class App:
 
                 ## write data to Influx
                 results = request.json
-                data = {**results['inputs'], **results['outputs']}
+                data = {**results['variables'], **results['parameters']}
                 timestamp = datetime.datetime.fromisoformat(results['timestamp'])
                 data['__stage__'] = results['stage']
                 data['__cycle__'] = results['cycle']

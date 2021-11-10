@@ -34,15 +34,15 @@ function DDSFrequencyPopover (props) {
                         ramp={true}
           />
           {(props.frequency.mode === 'setpoint')
-            ? <LinkableParameter value={props.frequency.setpoint} inputs={props.inputs} onChange={(value) => props.update('dds/frequency/setpoint', value)} label='Frequency' unit='MHz'/>
+            ? <LinkableParameter value={props.frequency.setpoint} variables={props.variables} onChange={(value) => props.update('dds/frequency/setpoint', value)} label='Frequency' unit='MHz'/>
             : null
           }
 
           {props.frequency.mode === 'ramp'
             ? (
               <>
-                <LinkableParameter value={props.frequency.ramp.start} inputs={props.inputs} onChange={(value) => props.update('dds/frequency/ramp/start', value)} label='Start' unit='MHz'/>
-                <LinkableParameter value={props.frequency.ramp.stop} inputs={props.inputs} onChange={(value) => props.update('dds/frequency/ramp/stop', value)} label='Stop' unit='MHz'/>
+                <LinkableParameter value={props.frequency.ramp.start} variables={props.variables} onChange={(value) => props.update('dds/frequency/ramp/start', value)} label='Start' unit='MHz'/>
+                <LinkableParameter value={props.frequency.ramp.stop} variables={props.variables} onChange={(value) => props.update('dds/frequency/ramp/stop', value)} label='Stop' unit='MHz'/>
                 <Box mx={1}>
                   <TextField label='Steps'
                             value={props.frequency.ramp.steps}
@@ -62,7 +62,7 @@ DDSFrequencyPopover.propTypes = {
   enable: PropTypes.bool,
   frequency: PropTypes.object,
   toggleSwitch: PropTypes.func,
-  inputs: PropTypes.object,
+  variables: PropTypes.object,
   update: PropTypes.func,
   anchorPosition: PropTypes.array,
   open: PropTypes.bool,
@@ -92,7 +92,7 @@ function mapStateToProps (state, props) {
   return {
     enable: channel.enable,
     frequency: channel.frequency,
-    inputs: Object.assign({}, state.inputs, state.outputs)
+    variables: Object.assign({}, state.parameters, state.variables)
 
   }
 }

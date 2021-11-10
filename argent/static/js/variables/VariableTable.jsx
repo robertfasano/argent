@@ -3,12 +3,12 @@ import PropTypes from 'prop-types'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
-import InputGroupPanel from './InputGroupPanel.jsx'
-import InputContextMenu from './InputContextMenu.jsx'
+import VariableGroupPanel from './VariableGroupPanel.jsx'
+import VariableContextMenu from './VariableContextMenu.jsx'
 import Button from '@material-ui/core/Button'
 import CreateNewFolderIcon from '@material-ui/icons/CreateNewFolder'
 
-function InputsTable (props) {
+function VariableTable (props) {
   const [menu, setMenu] = React.useState({ anchor: null, name: null })
   const [expanded, setExpanded] = React.useState(Object.keys(props.groups))
 
@@ -31,15 +31,14 @@ function InputsTable (props) {
 
   return (
         <>
-        <InputContextMenu state={menu} close={closeMenu} groups={Object.keys(props.groups)}/>
+        <VariableContextMenu state={menu} close={closeMenu} groups={Object.keys(props.groups)}/>
         <Box my={2}>
-          <Typography>Input variables can be used to define a single value across multiple sequences for DAC voltages or DDS frequencies. During sequence playback,
-            inputs are updated from the Argent server at the end of each cycle, allowing values to be changed while the sequence is running.
+          <Typography>Variables are synchronized from the server to the experiment at the end of each experimental cycle.
           </Typography>
         </Box>
-        <InputGroupPanel key={'default'} group={'default'} items={props.groups.default} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>
+        <VariableGroupPanel key={'default'} group={'default'} items={props.groups.default} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>
         {Object.entries(props.groups).sort().map(([key, value]) => (
-          (key !== 'default') ? (<InputGroupPanel key={key} group={key} items={value} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>) : null
+          (key !== 'default') ? (<VariableGroupPanel key={key} group={key} items={value} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>) : null
 
         ))
         }
@@ -51,25 +50,26 @@ function InputsTable (props) {
   )
 }
 
-InputsTable.propTypes = {
+VariableTable.propTypes = {
   sequence: PropTypes.object,
-  inputs: PropTypes.object,
+  variables: PropTypes.object,
   groups: PropTypes.object,
   addGroup: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
   return {
-    addGroup: (name) => dispatch({ type: 'variables/input/addGroup', name: prompt('Enter new group name:') })
+    addGroup: (name) => dispatch({ type: 'variables/addGroup', name: prompt('Enter new group name:') })
   }
 }
 
 function mapStateToProps (state, props) {
-  const groups = state.sequences[state.active_sequence].ui.groups.input
+  const groups = state.sequences[state.active_sequence].ui.groups.variables
+
   return {
     sequence: state.sequences[state.active_sequence],
-    inputs: state.inputs,
+    variables: state.variables,
     groups: groups
   }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(InputsTable)
+export default connect(mapStateToProps, mapDispatchToProps)(VariableTable)

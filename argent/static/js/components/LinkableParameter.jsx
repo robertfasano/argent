@@ -16,12 +16,12 @@ function LinkableParameter (props) {
   const variableMode = String(props.value).includes('self.')
 
   const setVariableMode = () => {
-    const firstInput = Object.keys(props.inputs)[0]
+    const firstInput = Object.keys(props.variables)[0]
     props.onChange('self.' + firstInput)
   }
 
   const setConstantMode = () => {
-    const currentInputValue = props.inputs[props.value.split('self.')[1]]
+    const currentInputValue = props.variables[props.value.split('self.')[1]]
     props.onChange(currentInputValue)
   }
 
@@ -39,7 +39,7 @@ function LinkableParameter (props) {
                     onChange = {(event) => props.onChange('self.' + event.target.value)}
                     autoWidth={true}
                     >
-              {Object.keys(props.inputs).map((key, index) => (
+              {Object.keys(props.variables).map((key, index) => (
                 <MenuItem value={key} key={key}>
                   {key}
                 </MenuItem>
@@ -84,7 +84,7 @@ function LinkableParameter (props) {
 LinkableParameter.propTypes = {
   onChange: PropTypes.func,
   value: PropTypes.string,
-  inputs: PropTypes.object,
+  variables: PropTypes.object,
   unit: PropTypes.string,
   label: PropTypes.string
 }

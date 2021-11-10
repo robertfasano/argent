@@ -31,7 +31,7 @@ function ADCButton (props) {
     textTransform: 'none'
   }
 
-  const firstUnusedVariable = Object.keys(props.allOutputs).filter(name => !Object.keys(props.outputs).includes(name))[0]
+  const firstUnusedVariable = Object.keys(props.allParameters).filter(name => !Object.keys(props.parameters).includes(name))[0]
 
   const handleContextMenu = (event) => {
     event.preventDefault()
@@ -95,7 +95,7 @@ function ADCButton (props) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.keys(props.outputs).map((name) => (
+              {Object.keys(props.parameters).map((name) => (
                 <TableRow key={name}>
                   <TableCell>
                     <Select label="Variable"
@@ -106,7 +106,7 @@ function ADCButton (props) {
                       <MenuItem value={''} key={''}>
                         {''}
                       </MenuItem>
-                      {Object.keys(props.allOutputs).map((key, index) => (
+                      {Object.keys(props.allParameters).map((key, index) => (
                         <MenuItem value={key} key={key}>
                           {key}
                         </MenuItem>
@@ -115,7 +115,7 @@ function ADCButton (props) {
                   </TableCell>
                   <TableCell>
                     <Select label="Channel"
-                            value={props.outputs[name].ch}
+                            value={props.parameters[name].ch}
                             onChange = {(event) => props.changeChannel(event, name)}
                             style={{ width: '100%' }}
                             >
@@ -128,7 +128,7 @@ function ADCButton (props) {
                   </TableCell>
                   <TableCell>
                     <Select label="Operation"
-                            value={props.outputs[name].operation}
+                            value={props.parameters[name].operation}
                             onChange={(event) => props.updateOperation(event, name)}
                             style={{ width: '100%' }}
                             >
@@ -169,8 +169,8 @@ ADCButton.propTypes = {
   channel: PropTypes.object,
   changeChannel: PropTypes.func,
   newOutput: PropTypes.func,
-  outputs: PropTypes.object,
-  allOutputs: PropTypes.object,
+  parameters: PropTypes.object,
+  allParameters: PropTypes.object,
   removeOutput: PropTypes.func,
   updateOperation: PropTypes.func,
   replaceOutput: PropTypes.func,
@@ -251,8 +251,8 @@ function mapStateToProps (state, props) {
     enable: channel.enable,
     delay: channel.delay,
     channel: channel,
-    outputs: channel.variables,
-    allOutputs: state.outputs,
+    parameters: channel.variables,
+    allParameters: state.parameters,
     samples: channel.samples || 1,
     duration: channel.duration || state.sequences[state.active_sequence].steps[props.timestep].duration
   }

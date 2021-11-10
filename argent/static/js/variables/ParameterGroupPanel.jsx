@@ -19,18 +19,18 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import ClearIcon from '@material-ui/icons/Clear'
 
-function OutputGroupPanel (props) {
+function ParameterGroupPanel (props) {
   const expanded = props.expanded.includes(props.group)
 
-  function addOutput () {
+  function addParameter () {
     const name = prompt('New variable name:')
     if (name !== null) {
-      props.updateOutput(name, '')
+      props.updateParameter(name, '')
     }
   }
 
   function deleteGroup () {
-    if (Object.keys(props.outputs).length > 0) {
+    if (Object.keys(props.parameters).length > 0) {
       alert('Cannot delete a non-empty group!')
     } else {
       props.deleteGroup()
@@ -75,7 +75,7 @@ function OutputGroupPanel (props) {
             </TableRow>
             </TableHead>
             <TableBody>
-            {Object.entries(props.outputs).sort().map(([key, value]) => (
+            {Object.entries(props.parameters).sort().map(([key, value]) => (
                 <TableRow key={key}>
                     <TableCell>
                     <TextField disabled value={key} onContextMenu={(event) => props.handleMenu(event, key)}/>
@@ -87,7 +87,7 @@ function OutputGroupPanel (props) {
             ))}
                 <TableRow>
                 <TableCell>
-                    <Button onClick={addOutput} style={{ textTransform: 'none' }}>
+                    <Button onClick={addParameter} style={{ textTransform: 'none' }}>
                     <AddIcon/>
                     <Box px={2}>New</Box>
                     </Button>
@@ -105,10 +105,10 @@ function OutputGroupPanel (props) {
             </Box>
   )
 }
-OutputGroupPanel.propTypes = {
+ParameterGroupPanel.propTypes = {
   sequence: PropTypes.object,
-  outputs: PropTypes.object,
-  updateOutput: PropTypes.func,
+  parameters: PropTypes.object,
+  updateParameter: PropTypes.func,
   name: PropTypes.string,
   items: PropTypes.array,
   handleMenu: PropTypes.func,
@@ -120,21 +120,21 @@ OutputGroupPanel.propTypes = {
 
 function mapDispatchToProps (dispatch, props) {
   return {
-    updateOutput: (name, value) => dispatch({ type: 'variables/output/updateGroup', name: name, value: value, group: props.group }),
-    deleteGroup: () => dispatch({ type: 'variables/output/deleteGroup', group: props.group })
+    updateParameter: (name, value) => dispatch({ type: 'parameters/updateGroup', name: name, value: value, group: props.group }),
+    deleteGroup: () => dispatch({ type: 'parameters/deleteGroup', group: props.group })
   }
 }
 
 function mapStateToProps (state, props) {
-  const outputs = {}
+  const parameters = {}
   for (const name of props.items) {
-    outputs[name] = state.outputs[name]
+    parameters[name] = state.parameters[name]
   }
 
   return {
     sequence: state.sequences[state.active_sequence],
-    outputs: outputs
+    parameters: parameters
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(OutputGroupPanel)
+export default connect(mapStateToProps, mapDispatchToProps)(ParameterGroupPanel)

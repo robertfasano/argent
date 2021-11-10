@@ -33,15 +33,15 @@ function DDSAttenuationPopover (props) {
                       ramp={false}
         />
         {(props.attenuation.mode === 'setpoint')
-          ? <LinkableParameter value={props.attenuation.setpoint} inputs={props.inputs} onChange={(value) => props.update('dds/attenuation/setpoint', value)} label='Attenuation' unit='dB'/>
+          ? <LinkableParameter value={props.attenuation.setpoint} variables={props.variables} onChange={(value) => props.update('dds/attenuation/setpoint', value)} label='Attenuation' unit='dB'/>
           : null
         }
 
         {props.attenuation.mode === 'ramp'
           ? (
             <>
-              <LinkableParameter value={props.attenuation.ramp.start} inputs={props.inputs} onChange={(value) => props.update('dds/attenuation/ramp/start', value)} label='Start' unit='dB'/>
-              <LinkableParameter value={props.attenuation.ramp.stop} inputs={props.inputs} onChange={(value) => props.update('dds/attenuation/ramp/stop', value)} label='Stop' unit='dB'/>
+              <LinkableParameter value={props.attenuation.ramp.start} variables={props.variables} onChange={(value) => props.update('dds/attenuation/ramp/start', value)} label='Start' unit='dB'/>
+              <LinkableParameter value={props.attenuation.ramp.stop} variables={props.variables} onChange={(value) => props.update('dds/attenuation/ramp/stop', value)} label='Stop' unit='dB'/>
               <Box mx={1}>
                 <TextField label='Steps'
                           value={props.attenuation.ramp.steps}
@@ -62,7 +62,7 @@ DDSAttenuationPopover.propTypes = {
   enable: PropTypes.bool,
   attenuation: PropTypes.object,
   toggleSwitch: PropTypes.func,
-  inputs: PropTypes.object,
+  variables: PropTypes.object,
   update: PropTypes.func,
   anchorEl: PropTypes.object,
   setAnchorEl: PropTypes.func
@@ -91,7 +91,7 @@ function mapStateToProps (state, props) {
   return {
     enable: channel.enable,
     attenuation: channel.attenuation,
-    inputs: Object.assign({}, state.inputs, state.outputs)
+    variables: Object.assign({}, state.parameters, state.variables)
 
   }
 }

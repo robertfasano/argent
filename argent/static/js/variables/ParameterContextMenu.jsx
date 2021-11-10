@@ -5,14 +5,14 @@ import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import NestedMenuItem from 'material-ui-nested-menu-item'
 
-function OutputContextMenu (props) {
+function ParameterContextMenu (props) {
   return (
     <Menu
       anchorEl={props.state.anchor}
       open={props.open}
       onClose={props.close}
     >
-      <MenuItem onClick={() => props.deleteOutput()}>
+      <MenuItem onClick={() => props.deleteParameter()}>
         Delete
       </MenuItem>
       <NestedMenuItem
@@ -31,11 +31,11 @@ function OutputContextMenu (props) {
   )
 }
 
-OutputContextMenu.propTypes = {
+ParameterContextMenu.propTypes = {
   state: PropTypes.object,
   open: PropTypes.bool,
   close: PropTypes.func,
-  deleteOutput: PropTypes.func,
+  deleteParameter: PropTypes.func,
   changeGroup: PropTypes.func,
   groups: PropTypes.array
 }
@@ -48,15 +48,15 @@ function mapStateToProps (state, props) {
 
 function mapDispatchToProps (dispatch, props) {
   return {
-    deleteOutput: () => {
-      dispatch({ type: 'variables/output/delete', name: props.state.name })
+    deleteParameter: () => {
+      dispatch({ type: 'parameters/delete', name: props.state.name })
       props.close()
     },
     changeGroup: (group) => {
-      dispatch({ type: 'variables/output/changeGroup', name: props.state.name, group: group })
+      dispatch({ type: 'parameters/changeGroup', name: props.state.name, group: group })
       props.close()
     }
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(OutputContextMenu)
+export default connect(mapStateToProps, mapDispatchToProps)(ParameterContextMenu)

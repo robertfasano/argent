@@ -16,7 +16,7 @@ class Client:
 
         @self.client.on('heartbeat')
         def heartbeat(results):
-            data = {**results['inputs'], **results['outputs']}
+            data = {**results['variables'], **results['parameters']}
             timestamp = datetime.datetime.fromisoformat(results['timestamp'])
             data['__stage__'] = results['stage']
             data['__cycle__'] = results['cycle']
@@ -33,10 +33,10 @@ class Client:
 
     def get(self, name):
         results = requests.get(f"http://{self.address}/results").json()
-        if name in results['outputs']:
-            return results['outputs'][name]
-        if name in results['inputs']:
-            return results['inputs'][name]
+        if name in results['parameters']:
+            return results['parameters'][name]
+        if name in results['variables']:
+            return results['variables'][name]
         else:
             return None
 
@@ -44,7 +44,7 @@ class Client:
         requests.post(f"http://{self.address}/record", json={"__run__": name})
 
     def set(self, name, value):
-        requests.post(f"http://{self.address}/inputs", json={name: value})
+        requests.post(f"http://{self.address}/variables", json={name: value})
         
     def sweep(self, var, min, max, steps, points=1, sweeps=1):
         sweep_points = np.linspace(min, max, steps)
