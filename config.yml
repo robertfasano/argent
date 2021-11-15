@@ -2,15 +2,17 @@ device_db: ./device_db.py
 addr: 127.0.0.1:8052
 environment_name: artiq6
 channels:
-  TTL:
+  ttl:
     ttlB0: ttlB0
     ttlB1: ttlB1
-  DAC:
+  dac:
     zotinoA:
       zotinoA0: zotinoA0
       zotinoA1: zotinoA1
-  DDS:
+  dds:
     urukulA_ch0: urukulA_ch0
     urukulA_ch1: urukulA_ch1
-  ADC:
+  adc:
     samplerA: sampler
+  cam:
+    grabberA: grabber

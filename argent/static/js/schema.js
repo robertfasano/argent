@@ -13,6 +13,8 @@ export const DDS = {
 
 export const ADC = { enable: false, variables: {}, delay: 0, samples: 1, duration: 1 }
 
+export const CAM = { enable: false, variable: '', duration: 1 }
+
 export function fill (sequence, channels) {
   // Fills in any missing data by deep-merging against the default sequence
   const defaultSchema = defaultSequence(channels)[0]
@@ -29,25 +31,30 @@ export function defaultTimestep (channels) {
     ttl: {},
     dac: {},
     dds: {},
-    adc: {}
+    adc: {},
+    cam: {}
   }
-  for (const channel of Object.keys(channels.TTL)) {
+  for (const channel of Object.keys(channels.ttl)) {
     defaultTimestep.ttl[channel] = TTL
   }
 
-  for (const board of Object.keys(channels.DAC)) {
+  for (const board of Object.keys(channels.ttl)) {
     defaultTimestep.dac[board] = {}
-    for (const ch of Object.keys(channels.DAC[board])) {
+    for (const ch of Object.keys(channels.dac[board])) {
       defaultTimestep.dac[board][ch] = DAC
     }
   }
 
-  for (const ch of Object.keys(channels.DDS)) {
+  for (const ch of Object.keys(channels.dds)) {
     defaultTimestep.dds[ch] = DDS
   }
 
-  for (const board of Object.keys(channels.ADC)) {
+  for (const board of Object.keys(channels.adc)) {
     defaultTimestep.adc[board] = ADC
+  }
+
+  for (const board of Object.keys(channels.cam)) {
+    defaultTimestep.cam[board] = CAM
   }
 
   return defaultTimestep

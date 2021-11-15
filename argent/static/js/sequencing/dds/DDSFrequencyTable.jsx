@@ -54,7 +54,7 @@ DDSFrequencyTable.propTypes = {
 
 function mapStateToProps (state, ownProps) {
   return {
-    channels: state.channels.DDS
+    channels: state.channels.dds
   }
 }
 export default connect(mapStateToProps)(DDSFrequencyTable)

@@ -62,7 +62,7 @@ DDSTable.propTypes = {
 
 function mapStateToProps (state, ownProps) {
   return {
-    channels: state.channels.DDS,
+    channels: state.channels.dds,
     steps: state.sequences[state.active_sequence].steps
   }
 }
