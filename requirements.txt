@@ -1,11 +1,11 @@
 pyyaml >= 5.1.1
-click
+click >= 7.1.2
 requests
-pyzmq
-socketio
+pyzmq >= 20.0.0
+socketio >= 0.2.1
 pandas
 matplotlib
 tqdm
 flask
-flask_socketio
-influxdb_client
+flask_socketio >= 4.3.2
+influxdb_client >= 1.18.0
