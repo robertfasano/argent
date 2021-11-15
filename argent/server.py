@@ -23,7 +23,6 @@ class App:
         self.device_db = self.config['device_db']
         print('Using device_db at', os.path.abspath(self.device_db))
 
-
         ## load InfluxDB client if specified
         if 'influx' in self.config:
             self.influx = InfluxDBClient(self.config['influx'])
@@ -31,23 +30,17 @@ class App:
         self.variables = {}
         self.parameters = {}
         self.results = {'variables': {}, 'parameters': {}}
-        self.__run__ = ''
 
-        self.host()
+        self.app = Flask(__name__)
+        self.socketio = SocketIO(self.app)
 
-
-    def host(self):
-        ''' Run the Flask server on a given address and port '''
-        app = Flask(__name__)
-        socketio = SocketIO(app)
-
-        @app.route('/favicon.ico')
+        @self.app.route('/favicon.ico')
         def favicon():
             ''' Provides the ARTIQ tab icon '''
-            return send_from_directory(os.path.join(app.root_path, 'static'),
+            return send_from_directory(os.path.join(self.app.root_path, 'static'),
                                        'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-        @app.route("/")
+        @self.app.route("/")
         def hello():
             ''' The main entrypoint for the webapp '''
             return render_template('index.html',
@@ -56,11 +49,11 @@ class App:
                                    version=version()
                                   )
 
-        @app.route("/config")
+        @self.app.route("/config")
         def get_config():
             return json.dumps(self.config)
 
-        @app.route("/generate", methods=['POST'])
+        @self.app.route("/generate", methods=['POST'])
         def generate():
             ''' Posting a playlist to this endpoint will trigger code
                 generation. The experiment will not be sent to the hardware.
@@ -72,12 +65,7 @@ class App:
 
             return json.dumps(code)
 
-        @app.route("/record", methods=['POST'])
-        def record():
-            ''' POST to this endpoint to start saving data in a named run '''
-            self.__run__ = request.json['__run__']
-
-        @app.route("/submit", methods=['POST'])
+        @self.app.route("/submit", methods=['POST'])
         def submit():
             ''' Posting a playlist to this endpoint will generate an ARTIQ
                 experiment and execute it on the hardware using artiq_run.
@@ -94,7 +82,7 @@ class App:
 
             return json.dumps(code)
 
-        @app.route("/channels")
+        @self.app.route("/channels")
         def channels():
             ''' Reads the device_db.py file to determine which RTIO channels
                 are available.
@@ -121,7 +109,7 @@ class App:
                     channel_dict['cpld'].append(key)
             return channel_dict
 
-        @app.route("/variables", methods=['GET', 'POST'])
+        @self.app.route("/variables", methods=['GET', 'POST'])
         def variables():
             if request.method == 'POST':
                 for key, val in request.json.items():
@@ -132,25 +120,25 @@ class App:
             elif request.method == 'GET':
                 return json.dumps(self.variables)
 
-        @app.route("/parameters", methods=['GET', 'POST'])
+        @self.app.route("/parameters", methods=['GET', 'POST'])
         def parameters():
             if request.method == 'POST':
                 for key, val in request.json.items():
                     self.parameters[key] = val
 
-                socketio.emit('heartbeat', {"pid": request.json['pid']})
+                self.socketio.emit('heartbeat', {"pid": request.json['pid']})
                 return ''
 
             elif request.method == 'GET':
                 return json.dumps(self.parameters)
 
-        @app.route("/results", methods=['GET', 'POST'])
+        @self.app.route("/results", methods=['GET', 'POST'])
         def results():
             if request.method == 'POST':
                 for key, val in request.json.items():
                     self.results[key] = val
 
-                socketio.emit('heartbeat', request.json)
+                self.socketio.emit('heartbeat', request.json)
 
                 ## write data to Influx
                 results = request.json
@@ -168,19 +156,19 @@ class App:
             elif request.method == 'GET':
                 return json.dumps(self.results)
 
-        @app.route("/heartbeat", methods=['POST'])
+        @self.app.route("/heartbeat", methods=['POST'])
         def heartbeat():
-            socketio.emit('heartbeat', self.results)
+            self.socketio.emit('heartbeat', self.results)
             return ''
 
-        @app.route("/version")
+        @self.app.route("/version")
         def version():
             ''' Returns the current commit id '''
             return json.dumps(subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=path).strip().decode())
 
+    def host(self):
         addr, port = self.config['addr'].split(':')
-        # app.run(host=addr, port=port, debug=True)
-        socketio.run(app, host=addr, port=int(port), debug=False)
+        self.socketio.run(self.app, host=addr, port=int(port), debug=False)
 
 @click.command()
 @click.option('--config', default='./config.yml', help='config path')
@@ -189,6 +177,7 @@ def main(config):
         the address specified in the config file in a browser.
     '''
     app = App(config=config)
+    app.host()
 
 if __name__ == "__main__":
     main()
