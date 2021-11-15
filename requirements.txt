@@ -1,1 +1,11 @@
 pyyaml >= 5.1.1
+click
+requests
+pyzmq
+socketio
+pandas
+matplotlib
+tqdm
+flask
+flask_socketio
+influxdb_client
