@@ -25,7 +25,8 @@ class App:
 
 
         ## load InfluxDB client if specified
-        self.influx = InfluxDBClient(self.config['influx'])
+        if 'influx' in self.config:
+            self.influx = InfluxDBClient(self.config['influx'])
 
         self.variables = {}
         self.parameters = {}
@@ -158,12 +159,9 @@ class App:
                 data['__stage__'] = results['stage']
                 data['__cycle__'] = results['cycle']
 
-                
-                new_data = pd.DataFrame(data, index=[timestamp])
-                if self.__run__ != '':
-                    new_data['__run__'] = self.__run__
-                    self.influx.write(new_data, self.config['influx']['data_bucket'])
-                self.influx.write(new_data, self.config['influx']['master_bucket'])
+                if 'influx' in self.config:
+                    new_data = pd.DataFrame(data, index=[timestamp])
+                    self.influx.write(new_data, self.config['influx']['bucket'])
 
                 return ''
 
