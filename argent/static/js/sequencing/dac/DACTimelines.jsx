@@ -9,6 +9,7 @@ import { connect } from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import DACTimeline from './DACTimeline.jsx'
+import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
 
 function DACTimelines (props) {
   return (
@@ -34,6 +35,7 @@ function DACTimelines (props) {
         {props.expanded
           ? (
           <React.Fragment>
+          <TimestepLabelTable disabled={true}/>
           {Object.keys(props.channels).map(board => (
             <React.Fragment key={board}>
             {

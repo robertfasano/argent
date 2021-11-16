@@ -8,6 +8,7 @@ import Paper from '@material-ui/core/Paper'
 import { connect } from 'react-redux'
 import TimestepContextMenu from './timing/TimestepContextMenu.jsx'
 import TimestepTable from './timing/TimestepTable.jsx'
+import TimestepLabelTable from './timing/TimestepLabelTable.jsx'
 import TTLTable from './ttl/TTLTable.jsx'
 import DACTimelines from './dac/DACTimelines.jsx'
 import DDSTable from './dds/DDSTable.jsx'
@@ -56,6 +57,8 @@ function SequenceTable (props) {
           <Table>
             <TableHead>
               <TimestepTable onContextMenu={handleTimestepMenu}/>
+              <TimestepLabelTable/>
+
             </TableHead>
             <TableBody>
               {props.elements.ttl ? <TTLTable expanded={expanded.ttl} setExpanded={() => expand('ttl')}/> : null}

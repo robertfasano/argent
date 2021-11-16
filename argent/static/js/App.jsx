@@ -61,12 +61,12 @@ function App (props) {
         <Grid container>
           <Grid item>
             <Box mx={2}>
-              <Paper elevation={6} style={{ width: '400px' }}>
+              <Paper elevation={6} style={{ width: '375px' }}>
                 <ErrorBoundary>
                   <VariablesPanel/>
                 </ErrorBoundary>
               </Paper>
-              <Paper elevation={6} style={{ width: '400px' }}>
+              <Paper elevation={6} style={{ width: '375px' }}>
                 <ErrorBoundary>
                   <PlaylistPanel/>
                 </ErrorBoundary>

@@ -20,7 +20,7 @@ function PlaylistPanel (props) {
   }
 
   return (
-  <Box m={2} p={2}>
+  <Box p={2}>
       <Grid container>
         <Grid item xs={10}>
           <Typography style={{ fontSize: 24 }}> <b>Playlist</b> </Typography>
@@ -36,9 +36,7 @@ function PlaylistPanel (props) {
         </Typography>
       </Box>
       {props.playlist.map((stage, index) => (
-          <Grid item xs={12} key={index}>
-              <SequenceCard key={index} name={stage.name} index={index} length={props.playlist.length}/>
-          </Grid>
+        <SequenceCard key={index} name={stage.name} index={index} length={props.playlist.length}/>
       )
       )}
   </Box>

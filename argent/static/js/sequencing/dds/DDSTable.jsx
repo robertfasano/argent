@@ -8,6 +8,7 @@ import { connect } from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import DDSButton from './DDSButton.jsx'
+import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
 
 function DDSTable (props) {
   return (
@@ -26,6 +27,7 @@ function DDSTable (props) {
     {props.expanded
       ? (
       <React.Fragment>
+      <TimestepLabelTable disabled={true}/>
       {Object.keys(props.channels).map(ch => (
         <React.Fragment key={ch + '-fragment'}>
           <TableRow>

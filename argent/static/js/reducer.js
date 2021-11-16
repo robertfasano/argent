@@ -323,6 +323,12 @@ export default function reducer (state = [], action) {
         draft.sequences[state.active_sequence].steps[action.timestep].duration = action.duration
       })
 
+    case 'timestep/label':
+      // Modify a timestep label at a given index.
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.timestep].label = action.value
+      })
+
     case 'timestep/insert':
       // Insert a timestep at a given index. The new timestep inherits all boolean
       // states from the previous timestep. In other words, all TTL channels and

@@ -8,7 +8,7 @@ import { connect } from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import TTLButton from './TTLButton.jsx'
-
+import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
 function TTLTable (props) {
   return (
 
@@ -22,10 +22,12 @@ function TTLTable (props) {
         <Typography style={{ fontSize: 24, color: 'black' }}> <b>TTL</b> </Typography>
       </IconButton>
     </TableCell>
+
   </TableRow>
   {props.expanded
     ? (
     <React.Fragment>
+    <TimestepLabelTable disabled={true}/>
     {Object.keys(props.channels).map(i => (
       <TableRow key={i}>
         <TableCell style={{ width: '100px' }}>

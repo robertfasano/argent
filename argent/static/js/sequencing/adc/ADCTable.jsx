@@ -8,6 +8,7 @@ import { connect } from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import ADCButton from './ADCButton.jsx'
+import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
 
 function ADCTable (props) {
   return (
@@ -29,6 +30,7 @@ function ADCTable (props) {
     {props.expanded
       ? (
       <React.Fragment>
+      <TimestepLabelTable disabled={true}/>
       {Object.keys(props.channels).map(board => (
           <TableRow key={`${board}`}>
             <TableCell>
