@@ -62,7 +62,9 @@ class App:
             pid = request.json['pid']
             variables = request.json['variables']
             parameters = request.json['parameters']
-
+            code = generate_experiment(sequence, self.config, pid, variables, parameters)
+            with open('generated_experiment.py', 'w') as file:
+                file.write(code)
             return json.dumps(code)
 
         @self.app.route("/submit", methods=['POST'])
