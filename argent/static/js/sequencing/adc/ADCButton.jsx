@@ -164,7 +164,7 @@ function ADCButton (props) {
 
 ADCButton.propTypes = {
   enable: PropTypes.bool,
-  delay: PropTypes.string,
+  delay: PropTypes.number,
   toggle: PropTypes.func,
   channel: PropTypes.object,
   changeChannel: PropTypes.func,
@@ -174,7 +174,7 @@ ADCButton.propTypes = {
   removeOutput: PropTypes.func,
   updateOperation: PropTypes.func,
   replaceOutput: PropTypes.func,
-  duration: PropTypes.string,
+  duration: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   setDuration: PropTypes.func,
   samples: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   setSamples: PropTypes.func

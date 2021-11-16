@@ -13,7 +13,7 @@ export const DDS = {
 
 export const ADC = { enable: false, variables: {}, delay: 0, samples: 1, duration: 1 }
 
-export const CAM = { enable: false, variable: '', duration: 1 }
+export const CAM = { enable: false, parameter: '', duration: 1, ROI: [[0, 1], [0, 1]] }
 
 export function fill (sequence, channels) {
   // Fills in any missing data by deep-merging against the default sequence
@@ -34,27 +34,38 @@ export function defaultTimestep (channels) {
     adc: {},
     cam: {}
   }
-  for (const channel of Object.keys(channels.ttl)) {
-    defaultTimestep.ttl[channel] = TTL
-  }
 
-  for (const board of Object.keys(channels.ttl)) {
-    defaultTimestep.dac[board] = {}
-    for (const ch of Object.keys(channels.dac[board])) {
-      defaultTimestep.dac[board][ch] = DAC
+  if (Object.keys(channels).includes('ttl')) {
+    for (const channel of Object.keys(channels.ttl)) {
+      defaultTimestep.ttl[channel] = TTL
     }
   }
 
-  for (const ch of Object.keys(channels.dds)) {
-    defaultTimestep.dds[ch] = DDS
+  if (Object.keys(channels).includes('dac')) {
+    for (const board of Object.keys(channels.dac)) {
+      defaultTimestep.dac[board] = {}
+      for (const ch of Object.keys(channels.dac[board])) {
+        defaultTimestep.dac[board][ch] = DAC
+      }
+    }
   }
 
-  for (const board of Object.keys(channels.adc)) {
-    defaultTimestep.adc[board] = ADC
+  if (Object.keys(channels).includes('dds')) {
+    for (const ch of Object.keys(channels.dds)) {
+      defaultTimestep.dds[ch] = DDS
+    }
   }
 
-  for (const board of Object.keys(channels.cam)) {
-    defaultTimestep.cam[board] = CAM
+  if (Object.keys(channels).includes('adc')) {
+    for (const board of Object.keys(channels.adc)) {
+      defaultTimestep.adc[board] = ADC
+    }
+  }
+
+  if (Object.keys(channels).includes('cam')) {
+    for (const board of Object.keys(channels.cam)) {
+      defaultTimestep.cam[board] = CAM
+    }
   }
 
   return defaultTimestep

@@ -62,11 +62,15 @@ def generate_build(playlist, pid, variables, parameters):
     for board in adcs:
         code += Sampler(board).build()
 
+    grabbers = get_grabber_boards(playlist)
+    for board in grabbers:
+        code += f'self.setattr_device("{board}")\n'
+
     ## build data arrays for sampling
     code += '\n## Data arrays\n'
     arrays = get_data_arrays(playlist)
     for key, val in arrays.items():
-        code += f'self.{key} = {val}\n'
+        code += f'self.{key} = {val}\n'     
 
     ## build parameters
     code += '\n## Parameters\n'
@@ -114,6 +118,11 @@ def generate_init(playlist):
     adcs = get_adc_boards(playlist)
     for board in adcs:
         code += '\t' + Sampler(board).init()
+
+    ## initialize grabbers
+    grabbers = get_grabber_boards(playlist)
+    for board in grabbers:
+        code += '\t' + f'self.{board}.init()\n'
 
     code += '\t' + Core().break_realtime()
 
@@ -213,12 +222,13 @@ def generate_loop(stage):
         code = ''
         code += Delay(step)
 
-        ## write initial state
+        ## ttl
         ttl_events = []
         for ch in step.get('ttl', {}):
         # for ch in step['events'][0].get('ttl', {}):
             ttl_events.append(TTL(ch).run(step))
 
+        ## dac
         dac_events = []
         # for board in step['events'][0].get('dac', {}):
         for board in step.get('dac', {}):
@@ -226,6 +236,7 @@ def generate_loop(stage):
             if zotino_events is not None:
                 dac_events.append(zotino_events)
 
+        ## dds
         dds_events = []
         # for channel in step['events'][0].get('dds', {}):
         for channel in step.get('dds', {}):
@@ -233,6 +244,16 @@ def generate_loop(stage):
         code += write_batch([*ttl_events, *dac_events, *dds_events])
 
 
+        ## imaging
+        grabber_state = step.get('cam', {})
+        for board, state in grabber_state.items():
+            if state['enable']:
+                code += '\t' + f'self.{board}.setup_roi(1, {state["ROI"][0][0]}, {state["ROI"][1][0]}, {state["ROI"][0][1]}, {state["ROI"][1][1]})\n'
+                code += '\t' + f'self.{board}.gate_roi_pulse(1, {state["duration"]})\n'
+                if state['parameter'] != '':
+                    code += '\t' + f'self.{board}.input_mu({state["parameter"]})\n'
+
+        ## adc
         adc_events = []
         # sampler_state = step['events'][0].get('adc', {})
         sampler_state = step.get('adc', {})
@@ -248,7 +269,6 @@ def generate_loop(stage):
 
         for cmd in adc_events:
             code += cmd
-
 
         for board, state in sampler_state.items():
             if sampler_state[board]['enable']:

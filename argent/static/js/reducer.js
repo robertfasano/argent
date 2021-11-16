@@ -63,6 +63,42 @@ export default function reducer (state = [], action) {
         draft.sequences[state.active_sequence].steps[action.path.timestep].adc[action.path.board].variables[action.variable].operation = action.operation
       })
 
+    case 'camera/duration':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.path.timestep].cam[action.path.board].duration = action.value
+      })
+
+    case 'camera/parameter':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.path.timestep].cam[action.path.board].parameter = action.value
+      })
+
+    case 'camera/ROIx1':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.path.timestep].cam[action.path.board].ROI[0][0] = action.value
+      })
+
+    case 'camera/ROIx2':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.path.timestep].cam[action.path.board].ROI[0][1] = action.value
+      })
+
+    case 'camera/ROIy1':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.path.timestep].cam[action.path.board].ROI[1][0] = action.value
+      })
+
+    case 'camera/ROIy2':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.path.timestep].cam[action.path.board].ROI[1][1] = action.value
+      })
+
+    case 'camera/toggle':
+      return produce(state, draft => {
+        const enabled = state.sequences[state.active_sequence].steps[action.path.timestep].cam[action.path.board].enable
+        draft.sequences[state.active_sequence].steps[action.path.timestep].cam[action.path.board].enable = !enabled
+      })
+
     case 'dac/mode':
       return produce(state, draft => {
         draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][action.path.ch].mode = action.value

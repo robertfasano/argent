@@ -38,6 +38,21 @@ def get_adc_boards(playlist):
                     boards.append(board)
     return list(np.unique(boards))
 
+def get_grabber_boards(playlist):
+    ''' Crawls through the playlist to assemble a list of all grabber boards
+        which are enabled at some state. Returns a list of the format
+        ['grabberA'].
+    '''
+    boards = []
+    for stage in playlist:
+        sequence = stage['sequence']['steps']
+        for step in sequence:
+            if 'cam' in step:
+                for board in step['cam']:
+                    if step['cam'][board]['enable']:
+                        boards.append(board)
+    return list(np.unique(boards))
+
 def get_data_arrays(playlist):
     arrays = {}
     for stage in playlist:
