@@ -24,7 +24,7 @@ function DebouncedTextField (props) {
     if (isNumeric(String(newText))) {
       newText = toDecimalString(newText)
     }
-    // const newText = toDecimalString(value)
+
     props.onBlur(newText)
     setText(newText)
   }

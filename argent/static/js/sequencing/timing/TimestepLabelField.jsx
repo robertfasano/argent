@@ -2,14 +2,13 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import TextField from '@material-ui/core/TextField'
-import DebouncedTextField from '../../components/DebouncedTextField.jsx'
 
 function TimestepLabelField (props) {
   // A button which opens a popover allowing timestep durations to be defined or linked to variables
   const disabled = false || props.disabled
-  return (
-    <DebouncedTextField centered={true} disabled={disabled} value={props.label} onBlur={(value) => props.update('timestep/label', value)} InputProps={{ disableUnderline: true, style: { textAlign: 'center' } }}/>
 
+  return (
+    <TextField disabled={disabled} value={props.label} onChange={(event) => props.update('timestep/label', event.target.value)} inputProps={{ style: { textAlign: 'center' } }} InputProps={{ disableUnderline: true, style: { textAlign: 'center' } }}/>
   )
 }
 
