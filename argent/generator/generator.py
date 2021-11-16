@@ -139,6 +139,12 @@ def generate_run(playlist, config, variables, parameters):
 
     i = 0
     for stage in playlist:
+        ## load imported prep scripts
+        if stage['sequence']['script']['preparation'] is not None:
+            filename = './repository/' + stage['sequence']['script']['preparation']
+            with open(filename) as file:
+                code += textwrap.indent(file.read(), '\t\t') + '\n'
+
         function_call = f"\t\tself.{stage['name'].replace(' ', '_')}()\n"
         if int(stage['reps']) == 1:
             code += function_call
@@ -147,8 +153,8 @@ def generate_run(playlist, config, variables, parameters):
             code += '\t' + function_call
 
         ## load imported analysis scripts
-        if stage['sequence']['script'] is not None:
-            filename = './repository/' + stage['sequence']['script']
+        if stage['sequence']['script']['analysis'] is not None:
+            filename = './repository/' + stage['sequence']['script']['analysis']
             with open(filename) as file:
                 code += textwrap.indent(file.read(), '\t\t') + '\n'
 

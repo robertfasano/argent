@@ -164,7 +164,6 @@ function ADCButton (props) {
 
 ADCButton.propTypes = {
   enable: PropTypes.bool,
-  delay: PropTypes.number,
   toggle: PropTypes.func,
   channel: PropTypes.object,
   changeChannel: PropTypes.func,
@@ -249,7 +248,6 @@ function mapStateToProps (state, props) {
   const channel = state.sequences[state.active_sequence].steps[props.timestep].adc[props.board]
   return {
     enable: channel.enable,
-    delay: channel.delay,
     channel: channel,
     parameters: channel.variables,
     allParameters: state.parameters,

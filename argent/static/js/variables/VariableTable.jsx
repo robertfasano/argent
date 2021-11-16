@@ -42,10 +42,12 @@ function VariableTable (props) {
 
         ))
         }
+        <Box py={1}>
           <Button onClick={props.addGroup} style={{ textTransform: 'none', width: 150 }}>
-          <CreateNewFolderIcon/>
-          <Box px={2}>New group</Box>
+            <CreateNewFolderIcon/>
+            <Box px={2}>New group</Box>
           </Button>
+        </Box>
         </>
   )
 }

@@ -29,6 +29,7 @@ function ScriptSelector (props) {
     }
   }
 
+  const label = (props.variant === 'analysis') ? 'Analysis script' : 'Preparation script'
   return (
     <List style={{
       display: 'flex',
@@ -36,7 +37,7 @@ function ScriptSelector (props) {
       padding: 0
     }}>
         <ListItem>
-        <Typography><b>Analysis script:</b> {scriptName}</Typography>
+        <Typography><b>{label}</b> {scriptName}</Typography>
         </ListItem>
         <ListItem button component="label">
             <input
@@ -68,20 +69,21 @@ function ScriptSelector (props) {
 
 ScriptSelector.propTypes = {
   script: PropTypes.string,
-  updateScript: PropTypes.func
+  updateScript: PropTypes.func,
+  variant: PropTypes.string
 }
 
 function mapDispatchToProps (dispatch, props) {
   return {
     updateScript: (name) => {
-      dispatch({ type: 'sequence/script', name: name })
+      dispatch({ type: 'sequence/script', name: name, variant: props.variant })
     }
   }
 }
 
-function mapStateToProps (state) {
+function mapStateToProps (state, props) {
   return {
-    script: state.sequences[state.active_sequence].script
+    script: state.sequences[state.active_sequence].script[props.variant]
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(ScriptSelector)

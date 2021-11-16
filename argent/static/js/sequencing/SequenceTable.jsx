@@ -47,7 +47,10 @@ function SequenceTable (props) {
           <SequenceToolbar name={props.activeSequence}/>
         </Box>
         <Box px={2}>
-          <ScriptSelector/>
+          <ScriptSelector variant="preparation"/>
+        </Box>
+        <Box px={2}>
+          <ScriptSelector variant="analysis"/>
         </Box>
         <Box p={2} style={{ display: 'inline-block' }}>
           <Table>
@@ -114,7 +117,7 @@ function mapStateToProps (state, ownProps) {
   return {
     steps: state.sequences[state.active_sequence].steps,
     activeSequence: state.active_sequence,
-    elements: {'ttl': renderTTL, 'dac': renderDAC, 'dds': renderDDS, 'adc': renderADC, 'cam': renderCam}
+    elements: { ttl: renderTTL, dac: renderDAC, dds: renderDDS, adc: renderADC, cam: renderCam }
   }
 }
 export default connect(mapStateToProps)(SequenceTable)

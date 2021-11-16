@@ -11,7 +11,7 @@ export const DDS = {
   enable: false
 }
 
-export const ADC = { enable: false, variables: {}, delay: 0, samples: 1, duration: 1 }
+export const ADC = { enable: false, variables: {}, samples: 1, duration: 1 }
 
 export const CAM = { enable: false, parameter: '', duration: 1, ROI: [[0, 1], [0, 1]] }
 

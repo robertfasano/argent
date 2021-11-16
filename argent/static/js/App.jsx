@@ -4,6 +4,7 @@ import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import SequenceTable from './sequencing/SequenceTable.jsx'
 import VariablesPanel from './variables/VariablesPanel.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { connect } from 'react-redux'
 import SequenceSelector from './tabs/SequenceSelector.jsx'
@@ -61,10 +62,14 @@ function App (props) {
           <Grid item>
             <Box mx={2}>
               <Paper elevation={6} style={{ width: '400px' }}>
-                <VariablesPanel/>
+                <ErrorBoundary>
+                  <VariablesPanel/>
+                </ErrorBoundary>
               </Paper>
               <Paper elevation={6} style={{ width: '400px' }}>
-                <PlaylistPanel/>
+                <ErrorBoundary>
+                  <PlaylistPanel/>
+                </ErrorBoundary>
               </Paper>
             </Box>
           </Grid>
@@ -73,11 +78,15 @@ function App (props) {
               <Grid container direction='column'>
                 <Grid item>
                   <Box mb={2}>
-                    <SequenceSelector/>
+                    <ErrorBoundary>
+                      <SequenceSelector/>
+                    </ErrorBoundary>
                   </Box>
                 </Grid>
                 <Grid item>
-                  <SequenceTable />
+                  <ErrorBoundary>
+                    <SequenceTable />
+                  </ErrorBoundary>
                 </Grid>
               </Grid>
           </Grid>

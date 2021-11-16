@@ -86,7 +86,7 @@ function Timeline (props) {
     options: {
       tooltip: { enabled: false },
       credits: { enabled: false },
-      chart: { height: 50, margin: 0, width: null, padding: 0 },
+      chart: { height: 50, margin: 0, width: points.length * 88, padding: 0 },
       yAxis: {
         min: min - margin,
         max: max + margin,

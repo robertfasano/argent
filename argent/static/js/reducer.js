@@ -15,11 +15,6 @@ function deleteElement (array, element) {
 
 export default function reducer (state = [], action) {
   switch (action.type) {
-    case 'adc/delay':
-      return produce(state, draft => {
-        draft.sequences[state.active_sequence].steps[action.path.timestep].adc[action.path.board].delay = action.value
-      })
-
     case 'adc/duration':
       return produce(state, draft => {
         draft.sequences[state.active_sequence].steps[action.path.timestep].adc[action.path.board].duration = action.value
@@ -313,7 +308,7 @@ export default function reducer (state = [], action) {
     case 'sequence/script':
       // Designate a file to run after each iteration of the experiment
       return produce(state, draft => {
-        draft.sequences[state.active_sequence].script = action.name
+        draft.sequences[state.active_sequence].script[action.variant] = action.name
       })
 
     case 'timestep/delete':
