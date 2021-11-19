@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import Timeline from '../../components/Timeline.jsx'
 import DACPopover from './DACPopover.jsx'
 import { createSelector } from 'reselect'
+import _ from 'lodash'
 
 function DACTimeline (props) {
   const [anchorPosition, setAnchorPosition] = React.useState([0, 0])
@@ -29,19 +30,22 @@ DACTimeline.propTypes = {
   board: PropTypes.string
 }
 
+const isArrayEqual = function (x, y) {
+  return _(x).differenceWith(y, _.isEqual).isEmpty()
+}
+
 const makeSelector = () => createSelector(
-  [
-    (state) => state.sequences[state.active_sequence].steps,
-    (state, props) => props.board,
-    (state, props) => props.ch
-  ],
+  (state) => state.sequences[state.active_sequence].steps,
+  (state, props) => props.board,
+  (state, props) => props.ch,
   (steps, board, channel) => {
     const data = []
     for (const step of steps) {
       data.push(step.dac[board][channel])
     }
     return data
-  }
+  },
+  { memoizeOptions: { resultEqualityCheck: isArrayEqual } }
 )
 
 const makeMapStateToProps = () => {

@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import Timeline from '../../components/Timeline.jsx'
 import DDSFrequencyPopover from './DDSFrequencyPopover.jsx'
 import { createSelector } from 'reselect'
+import _ from 'lodash'
 
 function DDSFrequencyTimeline (props) {
   const [anchorPosition, setAnchorPosition] = React.useState([0, 0])
@@ -29,6 +30,10 @@ DDSFrequencyTimeline.propTypes = {
   ch: PropTypes.string
 }
 
+const isArrayEqual = function (x, y) {
+  return _(x).differenceWith(y, _.isEqual).isEmpty()
+}
+
 const makeSelector = () => createSelector(
   [
     (state) => state.sequences[state.active_sequence].steps,
@@ -40,7 +45,9 @@ const makeSelector = () => createSelector(
       data.push(step.dds[channel].frequency)
     }
     return data
-  }
+  },
+  { memoizeOptions: { resultEqualityCheck: isArrayEqual } }
+
 )
 
 const makeMapStateToProps = () => {
