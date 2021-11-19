@@ -17,11 +17,14 @@ class App:
         and the code generator/ARTIQ experiment submission. 
     '''
     def __init__(self, config='./config.yml'):
-        print('Running Argent webapp...')
         print('Using config file at', os.path.abspath(config))
         self.config = Configurator(config).load()
         self.device_db = self.config['device_db']
         print('Using device_db at', os.path.abspath(self.device_db))
+
+        self.addr, self.port = self.config['addr'].split(':')
+
+        print(f'Starting Argent server at {self.addr}:{self.port}.')
 
         ## load InfluxDB client if specified
         if 'influx' in self.config:
@@ -169,8 +172,7 @@ class App:
             return json.dumps(subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=path).strip().decode())
 
     def host(self):
-        addr, port = self.config['addr'].split(':')
-        self.socketio.run(self.app, host=addr, port=int(port), debug=False)
+        self.socketio.run(self.app, host=self.addr, port=int(self.port), debug=False)
 
 @click.command()
 @click.option('--config', default='./config.yml', help='config path')
