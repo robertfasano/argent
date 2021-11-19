@@ -10,7 +10,7 @@ import AddIcon from '@material-ui/icons/Add'
 function TimestepTable (props) {
   // A row of buttons representing the durations of all steps in the sequence
   function addTimestep () {
-    props.dispatch({ type: 'timestep/insert', timestep: props.steps.length - 1 })
+    props.dispatch({ type: 'timestep/insert', timestep: props.length - 1 })
   }
 
   return (
@@ -18,7 +18,7 @@ function TimestepTable (props) {
       <TableRow>
         <TableCell/>
         {
-            props.steps.map((step, index) => (
+            [...Array(props.length).keys()].map((step, index) => (
               <TableCell key={index} onContextMenu={(event) => props.onContextMenu(event, 'timestep' + index, index)}>
                 <Duration timestep={index}/>
               </TableCell>
@@ -37,12 +37,12 @@ function TimestepTable (props) {
 TimestepTable.propTypes = {
   dispatch: PropTypes.func,
   onContextMenu: PropTypes.func,
-  steps: PropTypes.array
+  length: PropTypes.number
 }
 
 function mapStateToProps (state, ownProps) {
   return {
-    steps: state.sequences[state.active_sequence].steps
+    length: state.sequences[state.active_sequence].steps.length
   }
 }
 export default connect(mapStateToProps)(TimestepTable)

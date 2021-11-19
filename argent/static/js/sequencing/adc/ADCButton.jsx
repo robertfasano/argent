@@ -12,19 +12,17 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import FixedUnitInput from '../../components/FixedUnitInput.jsx'
 import TextField from '@material-ui/core/TextField'
-import { connect } from 'react-redux'
+import { connect, shallowEqual } from 'react-redux'
 import { createSelector } from 'reselect'
 import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
 import ClearIcon from '@material-ui/icons/Clear'
 import AddIcon from '@material-ui/icons/Add'
-import { memoizeArray } from '../../utilities.js'
 
 function ADCButton (props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
   const open = Boolean(anchorEl)
   const color = props.enable ? '#67001a' : '#D3D3D3'
-
   const style = {
     background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
     color: 'white',
@@ -244,11 +242,9 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-const memoizedParameters = memoizeArray(
-  (memArray) => createSelector(state => state.parameters,
-    (parameters) => memArray(Object.keys(parameters))
-
-  )
+const selectParameters = createSelector(state => state.parameters,
+  parameters => Object.keys(parameters),
+  { memoizeOptions: { resultEqualityCheck: shallowEqual } }
 )
 
 function mapStateToProps (state, props) {
@@ -256,7 +252,7 @@ function mapStateToProps (state, props) {
   return {
     enable: channel.enable,
     parameters: channel.variables,
-    allParameters: memoizedParameters(state),
+    allParameters: selectParameters(state),
     samples: channel.samples || 1,
     duration: channel.duration || state.sequences[state.active_sequence].steps[props.timestep].duration
   }

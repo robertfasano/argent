@@ -110,7 +110,6 @@ function ParameterGroupPanel (props) {
   )
 }
 ParameterGroupPanel.propTypes = {
-  sequence: PropTypes.object,
   parameters: PropTypes.object,
   updateParameter: PropTypes.func,
   name: PropTypes.string,
@@ -136,7 +135,6 @@ function mapStateToProps (state, props) {
   }
 
   return {
-    sequence: state.sequences[state.active_sequence],
     parameters: parameters
   }
 }

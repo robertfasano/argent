@@ -4,7 +4,7 @@ import TableCell from '@material-ui/core/TableCell'
 import Paper from '@material-ui/core/Paper'
 import TableRow from '@material-ui/core/TableRow'
 import TextField from '@material-ui/core/TextField'
-import { connect } from 'react-redux'
+import { connect, shallowEqual } from 'react-redux'
 import { post } from '../utilities.js'
 import Button from '@material-ui/core/Button'
 import Box from '@material-ui/core/Box'
@@ -21,6 +21,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import ClearIcon from '@material-ui/icons/Clear'
 import DebouncedTextField from '../components/DebouncedTextField.jsx'
+import { createSelector } from 'reselect'
 
 function VariableGroupPanel (props) {
   const expanded = props.expanded.includes(props.group)
@@ -121,7 +122,6 @@ function VariableGroupPanel (props) {
   )
 }
 VariableGroupPanel.propTypes = {
-  sequence: PropTypes.object,
   variables: PropTypes.object,
   updateVariable: PropTypes.func,
   name: PropTypes.string,
@@ -141,16 +141,30 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-function mapStateToProps (state, props) {
-  const variables = {}
-  for (const name of props.items) {
-    variables[name] = state.variables[name]
-  }
+const equalityCheck = (x, y) => {
+  const equal = shallowEqual(x, y)
+  console.log(x, y, equal)
+  return equal
+}
+const makeSelector = () => createSelector(
+  state => state.variables,
+  (state, props) => props.items,
+  (variables, items) => {
+    const vars = {}
+    for (const name of items) {
+      vars[name] = variables[name]
+    }
+    return vars
+  },
+  { memoizeOptions: { resultEqualityCheck: equalityCheck } }
+)
 
-  return {
-    sequence: state.sequences[state.active_sequence],
-    variables: variables
+const makeMapStateToProps = () => {
+  const selectVariables = makeSelector()
+  const mapStateToProps = (state, props) => {
+    return { variables: selectVariables(state, props) }
   }
+  return mapStateToProps
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(VariableGroupPanel)
+export default connect(makeMapStateToProps, mapDispatchToProps)(VariableGroupPanel)

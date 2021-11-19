@@ -10,10 +10,9 @@ import Box from '@material-ui/core/Box'
 import Button from '@material-ui/core/Button'
 import AddIcon from '@material-ui/icons/Add'
 import LoadButton from './LoadButton.jsx'
-import { connect } from 'react-redux'
+import { connect, shallowEqual } from 'react-redux'
 import defaultSequence from '../schema.js'
 import { createSelector } from 'reselect'
-import { memoizeArray } from '../utilities.js'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -95,15 +94,14 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-const getSequenceNames = memoizeArray(
-  (memArray) => createSelector(state => state.sequences,
-    sequences => memArray(Object.keys(sequences))
-  )
+const selectSequenceNames = createSelector(state => state.sequences,
+  sequences => Object.keys(sequences),
+  { memoizeOptions: { resultEqualityCheck: shallowEqual } }
 )
 
 function mapStateToProps (state, ownProps) {
   return {
-    sequenceNames: getSequenceNames(state), // use selector to preserve array reference for identical arrays
+    sequenceNames: selectSequenceNames(state),
     activeSequence: state.active_sequence,
     channels: state.channels
   }

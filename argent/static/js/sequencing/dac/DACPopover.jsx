@@ -5,8 +5,9 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import TextField from '@material-ui/core/TextField'
 import ModeSelector from '../ModeSelector.jsx'
-import { connect } from 'react-redux'
+import { connect, shallowEqual } from 'react-redux'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
+import { createSelector } from 'reselect'
 
 function DACPopover (props) {
   return (
@@ -87,6 +88,13 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
+const selectVariables = createSelector(
+  state => state.variables,
+  state => state.parameters,
+  (variables, parameters) => Object.assign({}, variables, parameters),
+  { memoizeOptions: { resultEqualityCheck: shallowEqual } }
+)
+
 function mapStateToProps (state, props) {
   const channel = state.sequences[state.active_sequence].steps[props.timestep].dac[props.board][props.ch]
   const ramp = channel.ramp
@@ -95,7 +103,7 @@ function mapStateToProps (state, props) {
     mode: mode,
     setpoint: channel.setpoint,
     ramp: ramp,
-    variables: Object.assign({}, state.parameters, state.variables)
+    variables: selectVariables(state)
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(DACPopover)

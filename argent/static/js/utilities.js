@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { defaultMemoize } from 'reselect'
 
 export function get (url, callback) {
   const resp = axios.get(url)
@@ -17,13 +16,4 @@ export function post (url, payload = {}, callback = (response) => null) {
   if (typeof (callback) !== 'undefined') {
     resp.then((response) => callback(response.data))
   }
-}
-
-const createMemoizeArray = (array) => {
-  const memArray = defaultMemoize((...array) => array)
-  return (array) => memArray.apply(null, array)
-}
-
-export function memoizeArray (selectorCreator) {
-  return selectorCreator(createMemoizeArray())
 }

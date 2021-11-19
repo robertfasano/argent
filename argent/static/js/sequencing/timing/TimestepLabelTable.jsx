@@ -12,7 +12,7 @@ function TimestepLabelTable (props) {
       <TableRow>
         <TableCell/>
         {
-            props.steps.map((step, index) => (
+            [...Array(props.length).keys()].map((step, index) => (
               <TableCell key={index}>
                 <TimestepLabelField timestep={index} disabled={disabled}/>
               </TableCell>
@@ -26,13 +26,13 @@ function TimestepLabelTable (props) {
 TimestepLabelTable.propTypes = {
   dispatch: PropTypes.func,
   onContextMenu: PropTypes.func,
-  steps: PropTypes.array,
+  length: PropTypes.number,
   disabled: PropTypes.bool
 }
 
 function mapStateToProps (state, ownProps) {
   return {
-    steps: state.sequences[state.active_sequence].steps
+    length: state.sequences[state.active_sequence].steps.length
   }
 }
 export default connect(mapStateToProps)(TimestepLabelTable)

@@ -3,10 +3,11 @@ import PropTypes from 'prop-types'
 import Popover from '@material-ui/core/Popover'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import { connect } from 'react-redux'
+import { connect, shallowEqual } from 'react-redux'
 import ModeSelector from '../ModeSelector.jsx'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
 import TextField from '@material-ui/core/TextField'
+import { createSelector } from 'reselect'
 
 function DDSFrequencyPopover (props) {
   return (
@@ -86,13 +87,20 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
+const selectVariables = createSelector(
+  state => state.variables,
+  state => state.parameters,
+  (variables, parameters) => Object.assign({}, variables, parameters),
+  { memoizeOptions: { resultEqualityCheck: shallowEqual } }
+)
+
 function mapStateToProps (state, props) {
   const channel = state.sequences[state.active_sequence].steps[props.timestep].dds[props.ch]
 
   return {
     enable: channel.enable,
     frequency: channel.frequency,
-    variables: Object.assign({}, state.parameters, state.variables)
+    variables: selectVariables(state)
 
   }
 }

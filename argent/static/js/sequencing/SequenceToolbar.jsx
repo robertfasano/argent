@@ -14,7 +14,8 @@ import { connect } from 'react-redux'
 import { v4 as uuidv4 } from 'uuid'
 import { post } from '../utilities.js'
 import CodeIcon from '@material-ui/icons/Code'
-import { merge } from 'lodash'
+import _, { merge } from 'lodash'
+import { createSelector } from 'reselect'
 
 const flexContainer = {
   display: 'flex',
@@ -27,7 +28,6 @@ const listItem = { width: 200 }
 function SequenceToolbar (props) {
   // A context menu for the SequenceSelector allowing sequences to be renamed,
   // closed, or saved.
-  const text = () => '# Created with Argent commit ' + props.version + '\n' + yaml.dump(props.steps)
 
   function submit (playlist) {
     const pid = uuidv4()
@@ -38,19 +38,19 @@ function SequenceToolbar (props) {
 
   function generate () {
     const pid = uuidv4()
-    post('/generate', { playlist: props.sequence, pid: pid, variables: props.variables, parameters: props.parameters })
+    post('/generate', { playlist: props.playlist, pid: pid, variables: props.variables, parameters: props.parameters })
   }
 
   const onDownload = () => {
     const link = document.createElement('a')
     link.download = `${props.name}.yml`
-    link.href = `data:text/json;charset=utf-8,${encodeURIComponent(text())}`
+    link.href = `data:text/json;charset=utf-8,${encodeURIComponent(props.text)}`
     link.click()
   }
 
   return (
     <List style={flexContainer}>
-      <ListItem button onClick={() => submit(props.sequence)} style={listItem}>
+      <ListItem button onClick={() => submit(props.playlist)} style={listItem}>
         <ListItemIcon>
           <PlayArrowIcon/>
         </ListItemIcon>
@@ -101,12 +101,11 @@ function SequenceToolbar (props) {
 
 SequenceToolbar.propTypes = {
   name: PropTypes.string,
-  sequence: PropTypes.array,
-  steps: PropTypes.object,
+  text: PropTypes.string,
+  playlist: PropTypes.array,
   rename: PropTypes.func,
   delete: PropTypes.func,
   addToPlaylist: PropTypes.func,
-  version: PropTypes.string,
   parameters: PropTypes.object,
   variables: PropTypes.object,
   setPID: PropTypes.func
@@ -130,18 +129,36 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-function mapStateToProps (state, props) {
-  const steps = merge({}, state.sequences[state.active_sequence])
-  const sequence = [{ name: state.active_sequence, reps: 1, sequence: steps }]
+const generateYAML = createSelector(
+  state => state.sequences[state.active_sequence],
+  state => state.variables,
+  state => state.parameters,
+  state => state.version,
+  (sequence, variables, parameters, version) => {
+    const seq = merge({}, sequence)
+    seq.variables = variables
+    seq.parameters = parameters
+    return '# Created with Argent commit ' + version + '\n' + yaml.dump(seq)
+  }
+)
 
-  steps.variables = state.variables
-  steps.parameters = state.parameters
+const isArrayEqual = function (x, y) {
+  return _(x).differenceWith(y, _.isEqual).isEmpty()
+}
+
+const selectPlaylist = createSelector(
+  state => state.sequences,
+  state => state.active_sequence,
+  (sequences, name) => [{ name: name, reps: 1, sequence: sequences[name] }],
+  { memoizeOptions: { resultEqualityCheck: isArrayEqual } }
+)
+
+function mapStateToProps (state, props) {
   return {
-    sequence: sequence,
-    version: state.version,
+    playlist: selectPlaylist(state),
     variables: state.variables,
     parameters: state.parameters,
-    steps: steps
+    text: generateYAML(state)
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(SequenceToolbar)

@@ -22,7 +22,7 @@ function SequenceTable (props) {
   // Displays a grid of widgets allowing sequences to be defined.
   const [expanded, setExpanded] = React.useState({ ttl: true, dac: true, dds: true, dds_freq: true, dds_amp: true, adc: true, cam: true })
   const [timestepMenu, setTimestepMenu] = React.useState({ anchor: null, index: null })
-  console.log('sequence table')
+
   function handleTimestepMenu (event, name, index) {
     event.preventDefault()
     setTimestepMenu({ anchor: event.currentTarget, index: index })

@@ -37,7 +37,7 @@ function DDSTable (props) {
               </Typography>
             </TableCell>
             {
-              props.steps.map((step, index) => (
+              [...Array(props.length).keys()].map((step, index) => (
                 <DDSButton timestep={index} ch={ch} key={'dds-' + ch + index}/>
               )
               )
@@ -59,13 +59,13 @@ DDSTable.propTypes = {
   channels: PropTypes.object,
   expanded: PropTypes.bool,
   setExpanded: PropTypes.func,
-  steps: PropTypes.array
+  length: PropTypes.number
 }
 
 function mapStateToProps (state, ownProps) {
   return {
     channels: state.channels.dds,
-    steps: state.sequences[state.active_sequence].steps
+    length: state.sequences[state.active_sequence].steps.length
   }
 }
 export default connect(mapStateToProps)(DDSTable)

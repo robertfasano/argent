@@ -53,7 +53,6 @@ function VariableTable (props) {
 }
 
 VariableTable.propTypes = {
-  sequence: PropTypes.object,
   variables: PropTypes.object,
   groups: PropTypes.object,
   addGroup: PropTypes.func
@@ -69,7 +68,6 @@ function mapStateToProps (state, props) {
   const groups = state.sequences[state.active_sequence].ui.groups.variables
 
   return {
-    sequence: state.sequences[state.active_sequence],
     variables: state.variables,
     groups: groups
   }
