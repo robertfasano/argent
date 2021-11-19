@@ -433,7 +433,7 @@ export default function reducer (state = [], action) {
 
     case 'variables/update':
       return produce(state, draft => {
-        draft.variables[action.name] = action.value
+        draft.variables[action.name] = toDecimalString(action.value)
 
         for (const group of Object.keys(state.sequences[state.active_sequence].ui.groups.variables)) {
           draft.sequences[state.active_sequence].ui.groups.variables[group] = deleteElement(state.sequences[state.active_sequence].ui.groups.variables[group], action.name)
