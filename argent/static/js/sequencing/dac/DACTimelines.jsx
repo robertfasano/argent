@@ -66,7 +66,6 @@ function DACTimelines (props) {
 
 DACTimelines.propTypes = {
   dispatch: PropTypes.func,
-  steps: PropTypes.array,
   channels: PropTypes.object,
   expanded: PropTypes.bool,
   setExpanded: PropTypes.func
@@ -74,8 +73,7 @@ DACTimelines.propTypes = {
 
 function mapStateToProps (state, ownProps) {
   return {
-    channels: state.channels.dac,
-    steps: state.sequences[state.active_sequence].steps
+    channels: state.channels.dac
   }
 }
 export default connect(mapStateToProps)(DACTimelines)
