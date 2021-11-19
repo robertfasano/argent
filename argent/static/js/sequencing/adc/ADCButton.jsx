@@ -13,15 +13,16 @@ import Typography from '@material-ui/core/Typography'
 import FixedUnitInput from '../../components/FixedUnitInput.jsx'
 import TextField from '@material-ui/core/TextField'
 import { connect } from 'react-redux'
+import { createSelector } from 'reselect'
 import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
 import ClearIcon from '@material-ui/icons/Clear'
 import AddIcon from '@material-ui/icons/Add'
+import { memoizeArray } from '../../utilities.js'
 
 function ADCButton (props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
   const open = Boolean(anchorEl)
-
   const color = props.enable ? '#67001a' : '#D3D3D3'
 
   const style = {
@@ -31,7 +32,7 @@ function ADCButton (props) {
     textTransform: 'none'
   }
 
-  const firstUnusedVariable = Object.keys(props.allParameters).filter(name => !Object.keys(props.parameters).includes(name))[0]
+  const firstUnusedVariable = props.allParameters.filter(name => !Object.keys(props.parameters).includes(name))[0]
 
   const handleContextMenu = (event) => {
     event.preventDefault()
@@ -106,7 +107,7 @@ function ADCButton (props) {
                       <MenuItem value={''} key={''}>
                         {''}
                       </MenuItem>
-                      {Object.keys(props.allParameters).map((key, index) => (
+                      {props.allParameters.map((key, index) => (
                         <MenuItem value={key} key={key}>
                           {key}
                         </MenuItem>
@@ -165,11 +166,10 @@ function ADCButton (props) {
 ADCButton.propTypes = {
   enable: PropTypes.bool,
   toggle: PropTypes.func,
-  channel: PropTypes.object,
   changeChannel: PropTypes.func,
   newOutput: PropTypes.func,
   parameters: PropTypes.object,
-  allParameters: PropTypes.object,
+  allParameters: PropTypes.array,
   removeOutput: PropTypes.func,
   updateOperation: PropTypes.func,
   replaceOutput: PropTypes.func,
@@ -244,15 +244,22 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
+const memoizedParameters = memoizeArray(
+  (memArray) => createSelector(state => state.parameters,
+    (parameters) => memArray(Object.keys(parameters))
+
+  )
+)
+
 function mapStateToProps (state, props) {
   const channel = state.sequences[state.active_sequence].steps[props.timestep].adc[props.board]
   return {
     enable: channel.enable,
-    channel: channel,
     parameters: channel.variables,
-    allParameters: state.parameters,
+    allParameters: memoizedParameters(state),
     samples: channel.samples || 1,
     duration: channel.duration || state.sequences[state.active_sequence].steps[props.timestep].duration
   }
 }
+
 export default connect(mapStateToProps, mapDispatchToProps)(ADCButton)
