@@ -119,11 +119,6 @@ def generate_init(playlist):
     for board in adcs:
         code += '\t' + Sampler(board).init()
 
-    ## initialize grabbers
-    grabbers = get_grabber_boards(playlist)
-    for board in grabbers:
-        code += '\t' + f'self.{board}.init()\n'
-
     code += '\t' + Core().break_realtime()
 
     return code + '\n'
@@ -254,10 +249,12 @@ def generate_loop(stage):
         grabber_state = step.get('cam', {})
         for board, state in grabber_state.items():
             if state['enable']:
-                code += '\t' + f'self.{board}.setup_roi(1, {state["ROI"][0][0]}, {state["ROI"][1][0]}, {state["ROI"][0][1]}, {state["ROI"][1][1]})\n'
-                code += '\t' + f'self.{board}.gate_roi_pulse(1, {state["duration"]})\n'
+                code += '\t' + f'self.{board}.setup_roi(0, {state["ROI"][0][0]}, {state["ROI"][1][0]}, {state["ROI"][0][1]}, {state["ROI"][1][1]})\n'
+                code += '\t' + f'self.{board}.gate_roi_pulse(1, {state["duration"]}*ms)\n'
+                code += '\t' + 'n = [0]\n'
                 if state['parameter'] != '':
-                    code += '\t' + f'self.{board}.input_mu({state["parameter"]})\n'
+                    code += '\t' + f'self.{board}.input_mu(n)\n'
+                    code += '\t' + f'{state["parameter"]}=float(n[0])\n'
 
         ## adc
         adc_events = []
