@@ -13,6 +13,15 @@ function deleteElement (array, element) {
   return array.filter(x => x !== element)
 }
 
+function toDecimalString (num) {
+  num = String(num)
+  if (num === '') return num
+  if (!num.includes('.')) {
+    return num + '.0'
+  }
+  return num
+}
+
 export default function reducer (state = [], action) {
   switch (action.type) {
     case 'adc/duration':
@@ -382,7 +391,7 @@ export default function reducer (state = [], action) {
       return produce(state, draft => {
         // update master outputs table
         for (const [key, val] of Object.entries(action.parameters)) {
-          draft.parameters[key] = val
+          draft.parameters[key] = toDecimalString(val)
         }
       })
 
