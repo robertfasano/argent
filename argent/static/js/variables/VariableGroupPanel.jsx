@@ -141,11 +141,6 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-const equalityCheck = (x, y) => {
-  const equal = shallowEqual(x, y)
-  console.log(x, y, equal)
-  return equal
-}
 const makeSelector = () => createSelector(
   state => state.variables,
   (state, props) => props.items,
@@ -156,7 +151,7 @@ const makeSelector = () => createSelector(
     }
     return vars
   },
-  { memoizeOptions: { resultEqualityCheck: equalityCheck } }
+  { memoizeOptions: { resultEqualityCheck: shallowEqual } }
 )
 
 const makeMapStateToProps = () => {

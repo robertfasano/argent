@@ -346,7 +346,6 @@ export default function reducer (state = [], action) {
       return produce(state, draft => {
         const newTimestep = merge({}, defaultTimestep(state.channels))
         const previousTimestep = state.sequences[state.active_sequence].steps[action.timestep]
-        console.log(newTimestep, previousTimestep)
         for (const ch of Object.keys(previousTimestep.ttl)) {
           newTimestep.ttl[ch] = previousTimestep.ttl[ch]
         }
