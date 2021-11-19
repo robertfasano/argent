@@ -39,7 +39,7 @@ function ADCTable (props) {
               </Typography>
             </TableCell>
             {
-              props.steps.map((step, index) => (
+              [...Array(props.length).keys()].map((index) => (
                   <ADCButton timestep={index} key={'adc-' + board + index} board={board}/>
               )
               )
@@ -57,7 +57,7 @@ function ADCTable (props) {
 
 ADCTable.propTypes = {
   dispatch: PropTypes.func,
-  steps: PropTypes.array,
+  length: PropTypes.number,
   channels: PropTypes.object,
   expanded: PropTypes.bool,
   setExpanded: PropTypes.func
@@ -66,7 +66,7 @@ ADCTable.propTypes = {
 function mapStateToProps (state, ownProps) {
   return {
     channels: state.channels.adc,
-    steps: state.sequences[state.active_sequence].steps
+    length: state.sequences[state.active_sequence].steps.length
   }
 }
 export default connect(mapStateToProps)(ADCTable)

@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import TTLButton from './TTLButton.jsx'
 import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
+
 function TTLTable (props) {
   return (
 
@@ -36,8 +37,8 @@ function TTLTable (props) {
           </Typography>
         </TableCell>
         {
-            props.steps.map((step, index) => (
-              <TTLButton timestep={index} channel={i} key={'ttl-' + i + index} on={step.ttl[i]}/>
+            [...Array(props.length).keys()].map((index) => (
+              <TTLButton timestep={index} channel={i} key={'ttl-' + i + index}/>
             ))
         }
       </TableRow>
@@ -53,15 +54,15 @@ function TTLTable (props) {
 TTLTable.propTypes = {
   dispatch: PropTypes.func,
   channels: PropTypes.object,
-  steps: PropTypes.array,
+  length: PropTypes.number,
   expanded: PropTypes.bool,
   setExpanded: PropTypes.func
 }
 
-function mapStateToProps (state, ownProps) {
+function mapStateToProps (state) {
   return {
     channels: state.channels.ttl,
-    steps: state.sequences[state.active_sequence].steps
+    length: state.sequences[state.active_sequence].steps.length
   }
 }
 export default connect(mapStateToProps)(TTLTable)
