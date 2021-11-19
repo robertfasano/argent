@@ -15,7 +15,6 @@ import DDSTable from './dds/DDSTable.jsx'
 import DDSFrequencyTable from './dds/DDSFrequencyTable.jsx'
 import ADCTable from './adc/ADCTable.jsx'
 import CameraTable from './camera/CameraTable.jsx'
-
 import SequenceToolbar from './SequenceToolbar.jsx'
 import ScriptSelector from './ScriptSelector.jsx'
 
@@ -23,7 +22,7 @@ function SequenceTable (props) {
   // Displays a grid of widgets allowing sequences to be defined.
   const [expanded, setExpanded] = React.useState({ ttl: true, dac: true, dds: true, dds_freq: true, dds_amp: true, adc: true, cam: true })
   const [timestepMenu, setTimestepMenu] = React.useState({ anchor: null, index: null })
-
+  console.log('sequence table')
   function handleTimestepMenu (event, name, index) {
     event.preventDefault()
     setTimestepMenu({ anchor: event.currentTarget, index: index })
@@ -41,7 +40,7 @@ function SequenceTable (props) {
     <>
       <TimestepContextMenu state={timestepMenu}
                            close={closeTimestepMenu}
-                           length={props.steps.length}
+                           length={props.length}
             />
       <Paper elevation={6} style={{ overflowX: 'auto' }}>
         <Box p={2}>
@@ -61,12 +60,12 @@ function SequenceTable (props) {
 
             </TableHead>
             <TableBody>
-              {props.elements.ttl ? <TTLTable expanded={expanded.ttl} setExpanded={() => expand('ttl')}/> : null}
-              {props.elements.dac ? <DACTimelines expanded={expanded.dac} setExpanded={() => expand('dac')}/> : null}
-              {props.elements.dds ? <DDSTable expanded={expanded.dds} setExpanded={() => expand('dds')}/> : null}
-              {props.elements.dds ? <DDSFrequencyTable expanded={expanded.dds_freq} setExpanded={() => expand('dds_freq')}/> : null}
-              {props.elements.adc ? <ADCTable expanded={expanded.adc} setExpanded={() => expand('adc')}/> : null}
-              {props.elements.cam ? <CameraTable expanded={expanded.cam} setExpanded={() => expand('cam')}/> : null}
+              {props.renderTTL ? <TTLTable expanded={expanded.ttl} setExpanded={() => expand('ttl')}/> : null}
+              {props.renderDAC ? <DACTimelines expanded={expanded.dac} setExpanded={() => expand('dac')}/> : null}
+              {props.renderDDS ? <DDSTable expanded={expanded.dds} setExpanded={() => expand('dds')}/> : null}
+              {props.renderDDS ? <DDSFrequencyTable expanded={expanded.dds_freq} setExpanded={() => expand('dds_freq')}/> : null}
+              {props.renderADC ? <ADCTable expanded={expanded.adc} setExpanded={() => expand('adc')}/> : null}
+              {props.renderCam ? <CameraTable expanded={expanded.cam} setExpanded={() => expand('cam')}/> : null}
             </TableBody>
           </Table>
         </Box>
@@ -77,8 +76,13 @@ function SequenceTable (props) {
 
 SequenceTable.propTypes = {
   dispatch: PropTypes.func,
-  steps: PropTypes.array,
-  activeSequence: PropTypes.string
+  length: PropTypes.number,
+  activeSequence: PropTypes.string,
+  renderTTL: PropTypes.bool,
+  renderDAC: PropTypes.bool,
+  renderDDS: PropTypes.bool,
+  renderADC: PropTypes.bool,
+  renderCam: PropTypes.bool
 }
 
 function mapStateToProps (state, ownProps) {
@@ -118,9 +122,13 @@ function mapStateToProps (state, ownProps) {
   }
 
   return {
-    steps: state.sequences[state.active_sequence].steps,
+    length: state.sequences[state.active_sequence].steps.length,
     activeSequence: state.active_sequence,
-    elements: { ttl: renderTTL, dac: renderDAC, dds: renderDDS, adc: renderADC, cam: renderCam }
+    renderTTL,
+    renderDAC,
+    renderDDS,
+    renderADC,
+    renderCam
   }
 }
 export default connect(mapStateToProps)(SequenceTable)
