@@ -134,10 +134,12 @@ const generateYAML = createSelector(
   state => state.variables,
   state => state.parameters,
   state => state.version,
-  (sequence, variables, parameters, version) => {
+  state => state.ui.groups,
+  (sequence, variables, parameters, version, groups) => {
     const seq = merge({}, sequence)
     seq.variables = variables
     seq.parameters = parameters
+    seq.ui = { groups: groups }
     return '# Created with Argent commit ' + version + '\n' + yaml.dump(seq)
   }
 )

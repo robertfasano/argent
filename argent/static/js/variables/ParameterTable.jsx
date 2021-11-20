@@ -66,7 +66,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  const groups = state.sequences[state.active_sequence].ui.groups.parameters
+  const groups = state.ui.groups.parameters
   return {
     sequence: state.sequences[state.active_sequence],
     parameters: state.parameters,

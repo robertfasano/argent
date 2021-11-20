@@ -276,6 +276,13 @@ export default function reducer (state = [], action) {
         for (const [key, val] of Object.entries(sequence.parameters)) {
           draft.parameters[key] = val
         }
+        for (const group of Object.keys(sequence.ui.groups.variables)) {
+          draft.ui.groups.variables[group] = [...new Set([...state.ui.groups.variables[group] || [], ...sequence.ui.groups.variables[group]])]
+        }
+        for (const group of Object.keys(sequence.ui.groups.parameters)) {
+          draft.ui.groups.parameters[group] = [...new Set([...state.ui.groups.parameters[group] || [], ...sequence.ui.groups.parameters[group]])]
+        }
+        delete sequence.ui
         delete sequence.variables
         delete sequence.parameters
         draft.sequences[action.name] = sequence

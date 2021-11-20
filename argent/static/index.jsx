@@ -22,7 +22,8 @@ function defaultStore (channels, sequences, version) {
   state.ui = {
     heartbeat: false,
     pid: { active: null, submitted: null },
-    variableTab: 'Variables'
+    variableTab: 'Variables',
+    groups: { parameters: { default: [] }, variables: { default: [] } }
   }
 
   state.version = version
