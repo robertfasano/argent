@@ -15,6 +15,39 @@ def __push__(self, stage, stage_name, cycle, parameter_names, parameter_values, 
     except Exception as e:
         print(e)
 
+@rpc(flags={"async"})
+def __push_variables__(self, stage, stage_name, cycle, variable_names, variable_values, addr):
+    variables = dict(zip(variable_names, variable_values))
+    timestamp = datetime.datetime.now().isoformat()
+    print('\n' + timestamp + ' - Cycle {}, stage {}'.format(cycle, stage))
+    try:
+        results = {"parameters": {}, "variables": variables, "pid": self.__pid__, "stage": int(stage), 'cycle': int(cycle), 'timestamp': timestamp, 'sequence': stage_name}
+        requests.post("http://{}/results".format(addr), json=results)
+    except Exception as e:
+        print(e)
+
+@rpc(flags={"async"})
+def __push_parameters__(self, stage, stage_name, cycle, parameter_names, parameter_values, addr):
+    parameters = dict(zip(parameter_names, parameter_values))
+    timestamp = datetime.datetime.now().isoformat()
+    print('\n' + timestamp + ' - Cycle {}, stage {}'.format(cycle, stage))
+    for key, val in parameters.items():
+        print(key, ':', val)
+    try:
+        results = {"parameters": parameters, "variables": {}, "pid": self.__pid__, "stage": int(stage), 'cycle': int(cycle), 'timestamp': timestamp, 'sequence': stage_name}
+        requests.post("http://{}/results".format(addr), json=results)
+    except Exception as e:
+        print(e)
+
+@rpc(flags={"async"})
+def __heartbeat__(self, stage, stage_name, cycle, addr):
+    timestamp = datetime.datetime.now().isoformat()
+    print('\n' + timestamp + ' - Cycle {}, stage {}'.format(cycle, stage))
+    try:
+        results = {"parameters": {}, "variables": {}, "pid": self.__pid__, "stage": int(stage), 'cycle': int(cycle), 'timestamp': timestamp, 'sequence': stage_name}
+        requests.post("http://{}/results".format(addr), json=results)
+    except Exception as e:
+        print(e)
 
 @rpc(flags={"async"})
 def __pull__(self, addr):

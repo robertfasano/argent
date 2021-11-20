@@ -157,7 +157,14 @@ def generate_run(playlist, config, variables, parameters):
         all_parameters = ['self.'+var for var in parameters]
         self_parameters = str(all_parameters).replace("'", "")
         self_variables = str(['self.'+var for var in variables]).replace("'", "")
-        code += '\t\t' + f'__push__(self, {i}, "{stage["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
+        if parameters == {} and variables == {}:
+            code += '\t\t' + f'__heartbeat__(self, {i}, "{stage["name"]}", self.__cycle__, "{config["addr"]}")\n'
+        elif parameters == {}:
+            code += '\t\t' + f'__push_variables__(self, {i}, "{stage["name"]}", self.__cycle__, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
+        elif variables == {}:
+            code += '\t\t' + f'__push_parameters__(self, {i}, "{stage["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, "{config["addr"]}")\n'
+        else:
+            code += '\t\t' + f'__push__(self, {i}, "{stage["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
 
         i += 1
 
