@@ -267,7 +267,9 @@ def generate_loop(stage):
                 else:
                     delay = float(state['duration']) / int(state['samples']) * 1e-3
                     array_name = stage["name"].replace(" ", "_") + f'_{i}'
-                    cmd = '\t' + f'sample(self.{board}, data=self.{array_name}, samples={state["samples"]}, wait={delay})\n'
+                    cmd = f'sample(self.{board}, data=self.{array_name}, samples={state["samples"]}, wait={delay})\n'
+                    if len([*ttl_events, *dac_events, *dds_events]) > 0:
+                        cmd = '\t' + cmd
                 adc_events.append(cmd)
 
         for cmd in adc_events:
@@ -279,20 +281,24 @@ def generate_loop(stage):
                     ch = state['ch']
                     operation = state['operation']
                     array_name = stage['name'].replace(' ', '_') + '_' + str(i)
+                    op = ''
                     if operation == 'min':
-                        code += '\t' + f'self.{var} = array_min(self.{array_name}, {ch})\n'
+                        op += f'self.{var} = array_min(self.{array_name}, {ch})\n'
                     elif operation == 'max':
-                        code += '\t' + f'self.{var} = array_max(self.{array_name}, {ch})\n'
+                        op += f'self.{var} = array_max(self.{array_name}, {ch})\n'
                     elif operation == 'mean':
-                        code += '\t' + f'self.{var} = array_mean(self.{array_name}, {ch})\n'
+                        op += f'self.{var} = array_mean(self.{array_name}, {ch})\n'
                     elif operation == 'first':
-                        code += '\t' + f'self.{var} = array_first(self.{array_name}, {ch})\n'
+                        op += f'self.{var} = array_first(self.{array_name}, {ch})\n'
                     elif operation == 'last':
-                        code += '\t' + f'self.{var} = array_last(self.{array_name}, {ch})\n'
+                        op += f'self.{var} = array_last(self.{array_name}, {ch})\n'
                     elif operation == 'peak-peak':
-                        code += '\t' + f'self.{var} = array_peak_to_peak(self.{array_name}, {ch})\n'
+                        op += f'self.{var} = array_peak_to_peak(self.{array_name}, {ch})\n'
                     elif operation == 'max-last':
-                        code += '\t' + f'self.{var} = array_max_minus_last(self.{array_name}, {ch})\n'
+                        op += f'self.{var} = array_max_minus_last(self.{array_name}, {ch})\n'
+                    if len([*ttl_events, *dac_events, *dds_events]) > 0:
+                        op = '\t' + op
+                    code += op
 
         ramps = ''
         ## write ramps, if applicable
