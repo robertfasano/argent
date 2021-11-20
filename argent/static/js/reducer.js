@@ -405,36 +405,36 @@ export default function reducer (state = [], action) {
       return produce(state, draft => {
         draft.parameters[action.name] = action.value
 
-        for (const group of Object.keys(state.sequences[state.active_sequence].ui.groups.parameters)) {
-          draft.sequences[state.active_sequence].ui.groups.parameters[group] = deleteElement(state.sequences[state.active_sequence].ui.groups.parameters[group], action.name)
+        for (const group of Object.keys(state.ui.groups.parameters)) {
+          draft.ui.groups.parameters[group] = deleteElement(state.ui.groups.parameters[group], action.name)
         }
-        draft.sequences[state.active_sequence].ui.groups.parameters[action.group].push(action.name)
+        draft.ui.groups.parameters[action.group].push(action.name)
       })
 
     case 'parameters/addGroup':
       return produce(state, draft => {
-        const newGroup = state.sequences[state.active_sequence].ui.groups.parameters[action.name] || []
-        draft.sequences[state.active_sequence].ui.groups.parameters[action.name] = newGroup
+        const newGroup = state.ui.groups.parameters[action.name] || []
+        draft.ui.groups.parameters[action.name] = newGroup
       })
 
     case 'parameters/changeGroup':
       return produce(state, draft => {
-        for (const group of Object.keys(state.sequences[state.active_sequence].ui.groups.parameters)) {
-          draft.sequences[state.active_sequence].ui.groups.parameters[group] = deleteElement(state.sequences[state.active_sequence].ui.groups.parameters[group], action.name)
+        for (const group of Object.keys(state.ui.groups.parameters)) {
+          draft.ui.groups.parameters[group] = deleteElement(state.ui.groups.parameters[group], action.name)
         }
-        draft.sequences[state.active_sequence].ui.groups.parameters[action.group].push(action.name)
+        draft.ui.groups.parameters[action.group].push(action.name)
       })
 
     case 'parameters/deleteGroup':
       return produce(state, draft => {
-        delete draft.sequences[state.active_sequence].ui.groups.parameters[action.group]
+        delete draft.ui.groups.parameters[action.group]
       })
 
     case 'parameters/delete':
       return produce(state, draft => {
         delete draft.parameters[action.name]
-        for (const group of Object.keys(state.sequences[state.active_sequence].ui.groups.parameters)) {
-          draft.sequences[state.active_sequence].ui.groups.parameters[group] = deleteElement(state.sequences[state.active_sequence].ui.groups.parameters[group], action.name)
+        for (const group of Object.keys(state.ui.groups.parameters)) {
+          draft.ui.groups.parameters[group] = deleteElement(state.ui.groups.parameters[group], action.name)
         }
       })
 
@@ -442,36 +442,36 @@ export default function reducer (state = [], action) {
       return produce(state, draft => {
         draft.variables[action.name] = toDecimalString(action.value)
 
-        for (const group of Object.keys(state.sequences[state.active_sequence].ui.groups.variables)) {
-          draft.sequences[state.active_sequence].ui.groups.variables[group] = deleteElement(state.sequences[state.active_sequence].ui.groups.variables[group], action.name)
+        for (const group of Object.keys(state.ui.groups.variables)) {
+          draft.ui.groups.variables[group] = deleteElement(state.ui.groups.variables[group], action.name)
         }
-        draft.sequences[state.active_sequence].ui.groups.variables[action.group].push(action.name)
+        draft.ui.groups.variables[action.group].push(action.name)
       })
 
     case 'variables/addGroup':
       return produce(state, draft => {
-        const newGroup = state.sequences[state.active_sequence].ui.groups.variables[action.name] || []
-        draft.sequences[state.active_sequence].ui.groups.variables[action.name] = newGroup
+        const newGroup = state.ui.groups.variables[action.name] || []
+        draft.ui.groups.variables[action.name] = newGroup
       })
 
     case 'variables/changeGroup':
       return produce(state, draft => {
-        for (const group of Object.keys(state.sequences[state.active_sequence].ui.groups.variables)) {
-          draft.sequences[state.active_sequence].ui.groups.variables[group] = deleteElement(state.sequences[state.active_sequence].ui.groups.variables[group], action.name)
+        for (const group of Object.keys(state.ui.groups.variables)) {
+          draft.ui.groups.variables[group] = deleteElement(state.ui.groups.variables[group], action.name)
         }
-        draft.sequences[state.active_sequence].ui.groups.variables[action.group].push(action.name)
+        draft.ui.groups.variables[action.group].push(action.name)
       })
 
     case 'variables/deleteGroup':
       return produce(state, draft => {
-        delete draft.sequences[state.active_sequence].ui.groups.variables[action.group]
+        delete draft.ui.groups.variables[action.group]
       })
 
     case 'variables/delete':
       return produce(state, draft => {
         delete draft.variables[action.name]
-        for (const group of Object.keys(state.sequences[state.active_sequence].ui.groups.variables)) {
-          draft.sequences[state.active_sequence].ui.groups.variables[group] = deleteElement(state.sequences[state.active_sequence].ui.groups.variables[group], action.name)
+        for (const group of Object.keys(state.ui.groups.variables)) {
+          draft.ui.groups.variables[group] = deleteElement(state.ui.groups.variables[group], action.name)
         }
       })
 
