@@ -6,11 +6,10 @@ import IconButton from '@material-ui/core/IconButton'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
 import SequenceCard from './SequenceCard.jsx'
-import { post } from '../utilities.js'
+import { post, isArrayEqual } from '../utilities.js'
 import { v4 as uuidv4 } from 'uuid'
 import { createSelector } from 'reselect'
 import PlaylistPlayIcon from '@material-ui/icons/PlaylistPlay'
-import _ from 'lodash'
 
 function PlaylistPanel (props) {
   function submit (playlist) {
@@ -50,10 +49,6 @@ const getPlaylist = (playlist, sequences, state) => {
     ms.push({ ...playlist[index], sequence: sequences[playlist[index].name] })
   }
   return ms
-}
-
-const isArrayEqual = function (x, y) {
-  return _(x).differenceWith(y, _.isEqual).isEmpty()
 }
 
 const selectPlaylist = createSelector(state => state.playlist,

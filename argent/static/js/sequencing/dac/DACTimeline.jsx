@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import Timeline from '../../components/Timeline.jsx'
 import DACPopover from './DACPopover.jsx'
 import { createSelector } from 'reselect'
-import _ from 'lodash'
+import { isArrayEqual } from '../../utilities.js'
 
 function DACTimeline (props) {
   const [anchorPosition, setAnchorPosition] = React.useState([0, 0])
@@ -28,10 +28,6 @@ DACTimeline.propTypes = {
   data: PropTypes.array,
   ch: PropTypes.string,
   board: PropTypes.string
-}
-
-const isArrayEqual = function (x, y) {
-  return _(x).differenceWith(y, _.isEqual).isEmpty()
 }
 
 const makeSelector = () => createSelector(

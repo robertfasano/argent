@@ -12,9 +12,9 @@ import PlayArrowIcon from '@material-ui/icons/PlayArrow'
 import yaml from 'js-yaml'
 import { connect } from 'react-redux'
 import { v4 as uuidv4 } from 'uuid'
-import { post } from '../utilities.js'
+import { post, isArrayEqual } from '../utilities.js'
 import CodeIcon from '@material-ui/icons/Code'
-import _, { merge } from 'lodash'
+import { merge } from 'lodash'
 import { createSelector } from 'reselect'
 
 const flexContainer = {
@@ -143,10 +143,6 @@ const generateYAML = createSelector(
     return '# Created with Argent commit ' + version + '\n' + yaml.dump(seq)
   }
 )
-
-const isArrayEqual = function (x, y) {
-  return _(x).differenceWith(y, _.isEqual).isEmpty()
-}
 
 const selectPlaylist = createSelector(
   state => state.sequences,

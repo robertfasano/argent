@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import Timeline from '../../components/Timeline.jsx'
 import DDSFrequencyPopover from './DDSFrequencyPopover.jsx'
 import { createSelector } from 'reselect'
-import _ from 'lodash'
+import { isArrayEqual } from '../../utilities.js'
 
 function DDSFrequencyTimeline (props) {
   const [anchorPosition, setAnchorPosition] = React.useState([0, 0])
@@ -28,10 +28,6 @@ function DDSFrequencyTimeline (props) {
 DDSFrequencyTimeline.propTypes = {
   data: PropTypes.array,
   ch: PropTypes.string
-}
-
-const isArrayEqual = function (x, y) {
-  return _(x).differenceWith(y, _.isEqual).isEmpty()
 }
 
 const makeSelector = () => createSelector(
