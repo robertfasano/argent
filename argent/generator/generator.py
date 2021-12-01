@@ -113,7 +113,7 @@ def generate_init(playlist):
     elif len(channels) == 1:
         channel_str = 'self.'+channels[0].replace("'", "")
         code += f'\t{channel_str}.init()\n'
-
+    code += '\t' + 'delay(10*ms)\n'
     ## initialize ADC channels
     adcs = get_adc_boards(playlist)
     for board in adcs:
