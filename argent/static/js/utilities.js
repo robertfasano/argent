@@ -1,5 +1,4 @@
 import axios from 'axios'
-import _ from 'lodash'
 
 export function get (url, callback) {
   const resp = axios.get(url)
@@ -21,5 +20,10 @@ export function post (url, payload = {}, callback = (response) => null) {
 
 export const isArrayEqual = function (x, y) {
   if (x.length !== y.length) return false
-  return _(x).differenceWith(y, _.isEqual).isEmpty()
+
+  let isEqual = true
+  for (const i in x) {
+    if (x[i].setpoint !== y[i].setpoint) isEqual = false
+  }
+  return isEqual
 }
