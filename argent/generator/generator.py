@@ -204,8 +204,6 @@ def write_batch(events):
     '''
     if len(events) == 0:
         return ''
-    if len(events) == 1:
-        return events[0]
     code = 'with sequential:\n'
     indented = ''
     for i, event in enumerate(events):
