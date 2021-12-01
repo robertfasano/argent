@@ -6,7 +6,7 @@ import IconButton from '@material-ui/core/IconButton'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
 import SequenceCard from './SequenceCard.jsx'
-import { post, isArrayEqual } from '../utilities.js'
+import { post } from '../utilities.js'
 import { v4 as uuidv4 } from 'uuid'
 import { createSelector } from 'reselect'
 import PlaylistPlayIcon from '@material-ui/icons/PlaylistPlay'
@@ -55,7 +55,7 @@ const selectPlaylist = createSelector(state => state.playlist,
   state => state.sequences,
   state => state,
   (playlist, sequences, state) => getPlaylist(playlist, sequences, state),
-  { memoizeOptions: { resultEqualityCheck: isArrayEqual } }
+  { memoizeOptions: { resultEqualityCheck: (a, b) => a == b } }
 )
 
 PlaylistPanel.propTypes = {

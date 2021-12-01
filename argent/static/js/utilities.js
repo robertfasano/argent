@@ -24,6 +24,9 @@ export const isArrayEqual = function (x, y) {
   let isEqual = true
   for (const i in x) {
     if (x[i].setpoint !== y[i].setpoint) isEqual = false
+    if (x[i].ramp.start !== y[i].ramp.start) isEqual = false
+    if (x[i].ramp.stop !== y[i].ramp.stop) isEqual = false
+    if (x[i].mode !== y[i].mode) isEqual = false
   }
   return isEqual
 }

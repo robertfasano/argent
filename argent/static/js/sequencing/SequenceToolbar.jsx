@@ -12,7 +12,7 @@ import PlayArrowIcon from '@material-ui/icons/PlayArrow'
 import yaml from 'js-yaml'
 import { connect } from 'react-redux'
 import { v4 as uuidv4 } from 'uuid'
-import { post, isArrayEqual } from '../utilities.js'
+import { post } from '../utilities.js'
 import CodeIcon from '@material-ui/icons/Code'
 import { merge } from 'lodash'
 import { createSelector } from 'reselect'
@@ -148,7 +148,7 @@ const selectPlaylist = createSelector(
   state => state.sequences,
   state => state.active_sequence,
   (sequences, name) => [{ name: name, reps: 1, sequence: sequences[name] }],
-  { memoizeOptions: { resultEqualityCheck: isArrayEqual } }
+  { memoizeOptions: { resultEqualityCheck: (a, b) => a == b } }
 )
 
 function mapStateToProps (state, props) {
