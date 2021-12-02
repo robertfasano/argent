@@ -6,6 +6,14 @@ from .building_blocks import *
 from .channel_parsing import *
 from .sequence_parsing import *
 
+from jinja2 import Environment, PackageLoader, select_autoescape
+
+env = Environment(
+    loader=PackageLoader("argent"),
+    autoescape=select_autoescape(),
+    trim_blocks=False
+)
+
 ''' Code generation '''
 def generate_experiment(playlist, config, pid, variables={}, parameters={}):
     ''' The main entrypoint for the code generator. The overall process is:
@@ -31,97 +39,28 @@ def generate_experiment(playlist, config, pid, variables={}, parameters={}):
     with open(os.path.join(path, 'generator/rtio_ops.py')) as file:
         code += file.read() + '\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
-    code += textwrap.indent(generate_build(playlist, pid, variables, parameters), '\t')
-    code += textwrap.indent(generate_init(playlist), '\t')
+    # code += textwrap.indent(generate_build(playlist, pid, variables, parameters), '\t')
+    # code += textwrap.indent(generate_init(playlist), '\t')
+
+    channels = {'ttl': get_ttl_channels(playlist),
+            'dac': get_dac_channels(playlist),
+            'cpld': [x+'_cpld' for x in get_dds_boards(playlist)],
+            'dds': get_dds_channels(playlist),
+            'adc': get_adc_boards(playlist),
+            'cam': get_grabber_boards(playlist)}
+
+    code += textwrap.indent(env.get_template("build.py").render(pid=pid, 
+                                                                variables=variables, 
+                                                                parameters=parameters, 
+                                                                arrays=get_data_arrays(playlist),
+                                                                channels=channels
+                                                                ), 
+                            '\t')
+    code += textwrap.indent(env.get_template("init.py").render(channels=channels), '\t') + '\n'
     code += textwrap.indent(generate_run(playlist, config, variables, parameters), '\t')
 
     return code
 
-def generate_build(playlist, pid, variables, parameters):
-    ''' Generates the build() function, in which all hardware accessed by the
-        sequence is defined.
-    '''
-    code = ''
-    code += f'self.__pid__ = "{pid}"\n'
-    code += Core().build()
-
-    ttls = get_ttl_channels(playlist)
-    code += f"for ttl in {ttls}:\n\tself.setattr_device(ttl)\n"
-
-    dacs = get_dac_channels(playlist)
-    for board in dacs:
-        code += Zotino(board).build()
-
-    dds = get_dds_boards(playlist)
-    for board in dds:
-        code += f'self.setattr_device("{board}_cpld")\n'
-    channels = get_dds_channels(playlist)
-    code += f'for dds in {channels}:\n\tself.setattr_device(dds)\n'
-
-    adcs = get_adc_boards(playlist)
-    for board in adcs:
-        code += Sampler(board).build()
-
-    grabbers = get_grabber_boards(playlist)
-    for board in grabbers:
-        code += f'self.setattr_device("{board}")\n'
-
-    ## build data arrays for sampling
-    code += '\n## Data arrays\n'
-    arrays = get_data_arrays(playlist)
-    for key, val in arrays.items():
-        code += f'self.{key} = {val}\n'     
-
-    ## build parameters
-    code += '\n## Parameters\n'
-    for var in parameters:
-        code += f'self.{var} = 0.0\n'
-
-    ## build variables
-    code += '\n## Variables\n'
-    code += f'self.variables = {variables}\n'
-    for name, value in variables.items():
-        code += f'self.{name} = {float(value)}\n'
-
-    ## build metadata variables
-    code += '\n\nself.__cycle__ = 0\n'
-    code = 'def build(self):\n' + textwrap.indent(code, '\t') + '\n'
-
-    return code
-
-def generate_init(playlist):
-    ''' Generates the init() function, in which hardware defined in the build()
-        function is initialized.
-    '''
-    code = '@kernel\ndef init(self):\n'
-    code += '\t' + Core().init()
-    code += '\t' + Core().break_realtime()
-
-    ## initialize DAC boards
-    dacs = get_dac_channels(playlist)
-    for board in dacs:
-        code += '\t' + Zotino(board).init()
-
-    ## initialize DDS channels
-    dds = get_dds_boards(playlist)
-    for board in dds:
-        code += f'\tself.{board}_cpld.init()\n'
-    channels = get_dds_channels(playlist)
-    if len(channels) > 1:
-        channels_str = str(['self.' + ch for ch in channels]).replace("'", "")
-        code += f'\tfor dds in {channels_str}:\n\t\tdds.init()\n'
-    elif len(channels) == 1:
-        channel_str = 'self.'+channels[0].replace("'", "")
-        code += f'\t{channel_str}.init()\n'
-    code += '\t' + 'delay(10*ms)\n'
-    ## initialize ADC channels
-    adcs = get_adc_boards(playlist)
-    for board in adcs:
-        code += '\t' + Sampler(board).init()
-
-    code += '\t' + Core().break_realtime()
-
-    return code + '\n'
 
 def generate_run(playlist, config, variables, parameters):
     ''' Generates the main loop of the experiment. Different stages of the overall
