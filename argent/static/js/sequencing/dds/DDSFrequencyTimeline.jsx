@@ -38,7 +38,11 @@ const makeSelector = () => createSelector(
   (steps, channel) => {
     const data = []
     for (const step of steps) {
-      data.push(step.dds[channel].frequency)
+      if (step.skip) {
+        data.push({ mode: 'setpoint', setpoint: '', ramp: { start: '', stop: '', steps: 10 } })
+      } else {
+        data.push(step.dds[channel].frequency)
+      }
     }
     return data
   },

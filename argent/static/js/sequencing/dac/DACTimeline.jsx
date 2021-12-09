@@ -37,7 +37,11 @@ const makeSelector = () => createSelector(
   (steps, board, channel) => {
     const data = []
     for (const step of steps) {
-      data.push(step.dac[board][channel])
+      if (step.skip) {
+        data.push({ mode: 'setpoint', setpoint: '', ramp: { start: '', stop: '', steps: 10 } })
+      } else {
+        data.push(step.dac[board][channel])
+      }
     }
     return data
   },
