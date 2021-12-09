@@ -27,7 +27,8 @@ function ADCButton (props) {
     background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
     color: 'white',
     fontSize: 10,
-    textTransform: 'none'
+    textTransform: 'none',
+    opacity: props.skip ? 0.25 : 1
   }
 
   const firstUnusedVariable = props.allParameters.filter(name => !Object.keys(props.parameters).includes(name))[0]
@@ -174,7 +175,8 @@ ADCButton.propTypes = {
   duration: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   setDuration: PropTypes.func,
   samples: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  setSamples: PropTypes.func
+  setSamples: PropTypes.func,
+  skip: PropTypes.bool
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -254,7 +256,8 @@ function mapStateToProps (state, props) {
     parameters: channel.variables,
     allParameters: selectParameters(state),
     samples: channel.samples || 1,
-    duration: channel.duration || state.sequences[state.active_sequence].steps[props.timestep].duration
+    duration: channel.duration || state.sequences[state.active_sequence].steps[props.timestep].duration,
+    skip: state.sequences[state.active_sequence].steps[props.timestep].skip || false
   }
 }
 

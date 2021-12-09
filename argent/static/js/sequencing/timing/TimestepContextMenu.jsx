@@ -33,6 +33,12 @@ function TimestepContextMenu (props) {
           Delete
         </MenuItem>
         : null}
+      <MenuItem onClick={() => props.disableTimestep(props.timestep)}>
+        Disable
+      </MenuItem>
+      <MenuItem onClick={() => props.enableTimestep(props.timestep)}>
+        Enable
+      </MenuItem>
     </Menu>
   )
 }
@@ -47,7 +53,9 @@ TimestepContextMenu.propTypes = {
   moveRight: PropTypes.func,
   insertLeft: PropTypes.func,
   insertRight: PropTypes.func,
-  deleteTimestep: PropTypes.func
+  deleteTimestep: PropTypes.func,
+  disableTimestep: PropTypes.func,
+  enableTimestep: PropTypes.func
 }
 
 function mapStateToProps (state, props) {
@@ -77,6 +85,14 @@ function mapDispatchToProps (dispatch, props) {
     },
     deleteTimestep: (timestep) => {
       dispatch({ type: 'timestep/delete', timestep: timestep })
+      props.close()
+    },
+    disableTimestep: (timestep) => {
+      dispatch({ type: 'timestep/skip', timestep: timestep, skip: true })
+      props.close()
+    },
+    enableTimestep: (timestep) => {
+      dispatch({ type: 'timestep/skip', timestep: timestep, skip: false })
       props.close()
     }
   }

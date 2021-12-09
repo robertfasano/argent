@@ -10,7 +10,7 @@ function TTLButton (props) {
     <TableCell component="th" scope="row">
       <Button variant="contained"
               disableRipple={true}
-              style={{ backgroundColor: props.on ? '#67001a' : '#D3D3D3', opacity: 1 }}
+              style={{ backgroundColor: props.on ? '#67001a' : '#D3D3D3', opacity: props.skip ? 0.25 : 1 }}
               onClick={props.toggle}
               >
       <React.Fragment/>
@@ -21,7 +21,8 @@ function TTLButton (props) {
 
 TTLButton.propTypes = {
   on: PropTypes.bool,
-  toggle: PropTypes.func
+  toggle: PropTypes.func,
+  skip: PropTypes.bool
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -40,7 +41,8 @@ function mapDispatchToProps (dispatch, props) {
 
 function mapStateToProps (state, props) {
   return {
-    on: state.sequences[state.active_sequence].steps[props.timestep].ttl[props.channel]
+    on: state.sequences[state.active_sequence].steps[props.timestep].ttl[props.channel],
+    skip: state.sequences[state.active_sequence].steps[props.timestep].skip || false
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(TTLButton)

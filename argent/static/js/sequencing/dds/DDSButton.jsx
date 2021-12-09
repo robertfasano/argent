@@ -23,11 +23,11 @@ function DDSButton (props) {
 
   const style = {
     background: `linear-gradient(90deg, ${color} 0%, ${color} 100%)`,
-    opacity: 1,
     color: props.enable ? 'white' : 'black',
     fontSize: 10,
     textTransform: 'none',
-    whiteSpace: 'pre-line'
+    whiteSpace: 'pre-line',
+    opacity: props.skip ? 0.25 : 1
   }
 
   let displayText = ''
@@ -62,7 +62,8 @@ DDSButton.propTypes = {
   variables: PropTypes.object,
   update: PropTypes.func,
   ch: PropTypes.string,
-  timestep: PropTypes.number
+  timestep: PropTypes.number,
+  skip: PropTypes.bool
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -89,7 +90,8 @@ function mapStateToProps (state, props) {
     enable: channel.enable,
     attenuation: channel.attenuation,
     frequency: channel.frequency,
-    variables: state.variables
+    variables: state.variables,
+    skip: state.sequences[state.active_sequence].steps[props.timestep].skip || false
   }
 }
 

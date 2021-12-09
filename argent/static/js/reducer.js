@@ -333,6 +333,12 @@ export default function reducer (state = [], action) {
         draft.sequences[state.active_sequence].steps.splice(action.timestep, 1)
       })
 
+    case 'timestep/skip':
+      // Disables or enables a timestep, allowing it to be skipped in the sequence.
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.timestep].skip = action.skip
+      })
+
     case 'timestep/duration':
       // Modify a timestep duration at a given index.
       return produce(state, draft => {

@@ -260,9 +260,13 @@ def generate_loop(stage):
 
     all_code = ''
     for i, code in enumerate(timesteps):
+        if sequence['steps'][i].get('skip', False):
+            all_code += "'''" + '\n'
         all_code += Comment(sequence['steps'][i], i)
         all_code += 'with parallel:\n'
         all_code += textwrap.indent(code, '\t')
+        if sequence['steps'][i].get('skip', False):
+            all_code += "'''" + '\n'
 
     code = f'@kernel\ndef {name}(self):\n'
     code += textwrap.indent(all_code, '\t')

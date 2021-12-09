@@ -4,7 +4,9 @@ def Delay(step):
     return f"delay({step['duration']}*ms)\n"
 
 def Comment(step, i):
-    name = step.get('name', f'Sequence timestep {i}')
+    name = step.get('label', '')
+    if name == '':
+        name = f'Sequence timestep {i}'
     return f'## {name}\n'
 
 class Sampler:

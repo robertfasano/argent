@@ -24,7 +24,6 @@ function Duration (props) {
     event.preventDefault()
     setAnchorEl(event.currentTarget)
   }
-
   let displayText = ''
   if (String(props.duration).includes('self.')) {
     displayText = props.variables[props.duration.split('self.')[1]] + ' ms'
@@ -39,7 +38,7 @@ function Duration (props) {
       style={style}
       onClick={handleClick}
       >
-        <Typography> {displayText} </Typography>
+        {props.skip ? <Typography><del>{displayText}</del></Typography> : <Typography> {displayText} </Typography> }
       </Button>
       <Popover
         open={Boolean(anchorEl)}
@@ -73,7 +72,8 @@ Duration.propTypes = {
   timestep: PropTypes.number,
   duration: PropTypes.string,
   variables: PropTypes.object,
-  update: PropTypes.func
+  update: PropTypes.func,
+  skip: PropTypes.bool
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -87,7 +87,8 @@ function mapDispatchToProps (dispatch, props) {
 function mapStateToProps (state, props) {
   return {
     duration: state.sequences[state.active_sequence].steps[props.timestep].duration,
-    variables: state.variables
+    variables: state.variables,
+    skip: state.sequences[state.active_sequence].steps[props.timestep].skip || false
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(Duration)
