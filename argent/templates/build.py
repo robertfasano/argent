@@ -23,7 +23,7 @@ def build(self):
 
     ## variables
     {% for key, value in variables.items() -%}
-    self.{{key}} = 0.0
+    self.{{key}} = {{value}}
     {% endfor %}
 
     ## data arrays
