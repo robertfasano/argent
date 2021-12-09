@@ -13,24 +13,18 @@ def remove_redundant_events(sequence):
         if i == 0:
             continue
         last_step = sequence[i-1]
+        if last_step.get('skip', False):
+            continue
         ## TTL events
         channels = list(step['ttl'].keys())
         for ch in channels:
             if last_step['ttl'][ch] == step['ttl'][ch]:
                 del step['ttl'][ch]
 
-        ## DAC events
-        # boards = list(step['dac'].keys())
-        # for board in boards:
-        #     channels = list(step['dac'][board].keys())
-        #     for ch in channels:
-        #         if last_step['dac'][board].get(ch, None) == step['dac'][board][ch]:
-        #             del step['dac'][board][ch]
-
         ## DDS events
         channels = list(step['dds'].keys())
         for ch in channels:
-            for key in ['enable', 'frequency']:
+            for key in ['enable']:
                 if key in step['dds'][ch]:
                     if last_step['dds'][ch].get(key, None) == step['dds'][ch][key]:
                         del step['dds'][ch][key]
