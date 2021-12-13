@@ -44,6 +44,8 @@ class Client:
         requests.post(f"http://{self.address}/record", json={"__run__": name})
 
     def set(self, name, value):
+        if self.get(name) is None:
+            raise Exception(f'Variable {name} does not exist!')
         requests.post(f"http://{self.address}/variables", json={name: value})
         
     def sweep(self, var, min, max, steps, points=1, sweeps=1):
