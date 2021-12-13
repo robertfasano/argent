@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from .live_plot import LivePlot
 
 class Dataset:
     def __init__(self, client, name=''):
@@ -92,3 +93,7 @@ class Dataset:
             plt.legend()
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
+
+    def live_plot(self, x, y, xlim=None):
+        self.plot = LivePlot(self, x, y, xlim=xlim)
+        return self.plot

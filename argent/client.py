@@ -1,10 +1,9 @@
 import socketio
 import pandas as pd
-import numpy as np
 import requests
 import datetime 
 from .dataset import Dataset
-from tqdm.auto import tqdm
+from .sweep import Sweep
 
 class Client:
     ''' A client for a Flask-SocketIO server '''
@@ -28,6 +27,15 @@ class Client:
 
         self.client.connect(f'http://{self.address}')
 
+    def collect(self, points):
+        ''' Block until a certain number of points have been collected '''
+        cycle = self.data['__cycle__'].iloc[-1]
+
+        while self.data['__cycle__'].iloc[-1] - cycle < points:
+            continue
+
+        return self.data.iloc[-points::]
+
     def dataset(self, name=''):
         return Dataset(self, name=name)
 
@@ -47,19 +55,6 @@ class Client:
         if self.get(name) is None:
             raise Exception(f'Variable {name} does not exist!')
         requests.post(f"http://{self.address}/variables", json={name: value})
-        
-    def sweep(self, var, min, max, steps, points=1, sweeps=1):
-        sweep_points = np.linspace(min, max, steps)
-        for sweep in range(sweeps):
-            for point in tqdm(sweep_points):
-                self.set(var, point)
-                self.collect(points)
 
-    def collect(self, points):
-        ''' Block until a certain number of points have been collected '''
-        cycle = self.data['__cycle__'].iloc[-1]
-
-        while self.data['__cycle__'].iloc[-1] - cycle < points:
-            continue
-
-        return self.data.iloc[-points::]
+    def sweep(self, x, start, stop, steps, averages=1, sweeps=1, plot=None):
+        return Sweep(self, x, start, stop, steps, averages=averages, sweeps=sweeps, plot=plot)
