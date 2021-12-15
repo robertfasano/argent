@@ -8,3 +8,6 @@ tqdm >= 4.62.3
 flask >= 2.0.2
 flask_socketio >= 5.1.1
 influxdb_client >= 1.23.0
+gevent-websocket >= 0.10.1
+ipython >= 7.22.0
+websocket-client >= 1.2.3

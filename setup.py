@@ -20,7 +20,7 @@ setup(
     license='MIT',
     long_description=open('README.md').read(),
     package_data={'': extra_files},
-    install_requires=['pyyaml', 'click', 'requests', 'pyzmq', 'pandas', 'matplotlib', 'tqdm', 'flask', 'flask_socketio', 'influxdb_client'],
+    install_requires=['pyyaml', 'click', 'requests', 'pyzmq', 'pandas', 'matplotlib', 'tqdm', 'flask', 'flask_socketio', 'influxdb_client', 'gevent-websocket', 'ipython', 'websocket-client'],
     entry_points='''
         [console_scripts]
         argent_run=argent.server:main
