@@ -33,12 +33,18 @@ function TimestepContextMenu (props) {
           Delete
         </MenuItem>
         : null}
-      <MenuItem onClick={() => props.disableTimestep(props.timestep)}>
-        Disable
-      </MenuItem>
-      <MenuItem onClick={() => props.enableTimestep(props.timestep)}>
+      {props.skip
+        ? (
+        <MenuItem onClick={() => props.enableTimestep(props.timestep)}>
         Enable
       </MenuItem>
+          )
+        : (
+        <MenuItem onClick={() => props.disableTimestep(props.timestep)}>
+        Disable
+      </MenuItem>
+          )}
+
     </Menu>
   )
 }
@@ -46,6 +52,7 @@ function TimestepContextMenu (props) {
 TimestepContextMenu.propTypes = {
   state: PropTypes.object,
   open: PropTypes.bool,
+  skip: PropTypes.bool,
   timestep: PropTypes.number,
   length: PropTypes.number,
   close: PropTypes.func,
@@ -59,9 +66,14 @@ TimestepContextMenu.propTypes = {
 }
 
 function mapStateToProps (state, props) {
+  let skip = false
+  if (props.state.index !== null) {
+    skip = state.sequences[state.active_sequence].steps[props.state.index].skip || false
+  }
   return {
     open: Boolean(props.state.anchor),
-    timestep: props.state.index
+    timestep: props.state.index,
+    skip: skip
   }
 }
 
