@@ -48,6 +48,31 @@ class Client:
         else:
             return None
 
+    def mock(self, config='./config.yml'):
+        ''' Simulate a live experiment for testing. '''
+        from threading import Thread
+        import time
+        import numpy as np
+        requests.post(f'http://{self.address}/variables', json={'x': 1, 'A': 1})
+        
+        self.mock_active = True
+
+        def mock_results(self):
+            i = 0
+            while self.mock_active:
+                x = requests.get(f"http://{self.address}/variables").json()['x']
+                A = requests.get(f"http://{self.address}/variables").json()['A']
+
+                payload ={'stage': 0, 'cycle': i, 'timestamp': datetime.datetime.now().isoformat(),
+                        'variables': {'x': x, 'A': A},
+                        'parameters': {'y': A*np.exp(-x) + np.random.normal(0, 0.01)}}
+                requests.post(f'http://{self.address}/results', json=payload)
+                i += 1
+                time.sleep(0.25)
+
+        Thread(target=mock_results, args=(self,)).start()
+        
+
     def record(self, name):
         requests.post(f"http://{self.address}/record", json={"__run__": name})
 
