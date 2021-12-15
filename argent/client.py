@@ -56,5 +56,5 @@ class Client:
             raise Exception(f'Variable {name} does not exist!')
         requests.post(f"http://{self.address}/variables", json={name: value})
 
-    def sweep(self, x, start, stop, steps, averages=1, sweeps=1, plot=None):
-        return Sweep(self, x, start, stop, steps, averages=averages, sweeps=sweeps, plot=plot)
+    def sweep(self, x, start, stop, steps, averages=1, sweeps=1, plot=None, legend=None):
+        return Sweep(self, x, start, stop, steps, averages=averages, sweeps=sweeps, plot=plot, legend=legend)
