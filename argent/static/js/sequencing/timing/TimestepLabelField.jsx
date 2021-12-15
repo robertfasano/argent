@@ -6,15 +6,9 @@ import TextField from '@material-ui/core/TextField'
 function TimestepLabelField (props) {
   // A button which opens a popover allowing timestep durations to be defined or linked to variables
   const disabled = false || props.disabled
-  if (props.skip) {
-    return (
-    <del>
-    <TextField disabled={disabled} value={props.label} onChange={(event) => props.update('timestep/label', event.target.value)} inputProps={{ style: { textAlign: 'center' } }} InputProps={{ disableUnderline: true, style: { textAlign: 'center' } }}/>
-  </del>
-    )
-  }
+  const opacity = props.skip ? 0.25 : 1
   return (
-    <TextField disabled={disabled} value={props.label} onChange={(event) => props.update('timestep/label', event.target.value)} inputProps={{ style: { textAlign: 'center' } }} InputProps={{ disableUnderline: true, style: { textAlign: 'center' } }}/>
+    <TextField disabled={disabled} value={props.label} onChange={(event) => props.update('timestep/label', event.target.value)} inputProps={{ style: { textAlign: 'center' } }} InputProps={{ disableUnderline: true, style: { textAlign: 'center', opacity: opacity } }}/>
   )
 }
 

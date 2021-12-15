@@ -10,7 +10,7 @@ import Button from '@material-ui/core/Button'
 function Duration (props) {
   // A button which opens a popover allowing timestep durations to be defined or linked to variables
   const [anchorEl, setAnchorEl] = React.useState(null)
-
+  const opacity = props.skip ? 0.25 : 1
   const style = {
     background: 'white',
     opacity: 1,
@@ -38,7 +38,7 @@ function Duration (props) {
       style={style}
       onClick={handleClick}
       >
-        {props.skip ? <Typography><del>{displayText}</del></Typography> : <Typography> {displayText} </Typography> }
+      <Typography style={{ opacity: opacity }}>{displayText}</Typography>
       </Button>
       <Popover
         open={Boolean(anchorEl)}
