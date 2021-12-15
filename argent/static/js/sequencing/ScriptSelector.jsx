@@ -39,7 +39,7 @@ function ScriptSelector (props) {
         <ListItem>
         <Typography><b>{label}</b> {scriptName}</Typography>
         </ListItem>
-        <ListItem button component="label">
+        <ListItem button component="label" style={{ width: 60 }}>
             <input
                 accept=".py"
                 type="file"
@@ -50,18 +50,12 @@ function ScriptSelector (props) {
             <ListItemIcon>
                 <FolderOpenIcon/>
             </ListItemIcon>
-            <ListItemText>
-                Upload script
-            </ListItemText>
         </ListItem>
 
-        <ListItem button onClick={() => props.updateScript(null)}>
+        <ListItem button onClick={() => props.updateScript(null)} style={{ width: 60 }}>
                     <ListItemIcon>
                         <ClearIcon/>
                     </ListItemIcon>
-                    <ListItemText>
-                        Clear script
-                    </ListItemText>
                 </ListItem>
     </List>
   )
