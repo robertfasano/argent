@@ -57,3 +57,5 @@ class Sweep:
                         self.progress_plot.update()
         self.dataset.stop()
 
+    def save(self, filename):
+        self.dataset.data.to_csv(filename)
