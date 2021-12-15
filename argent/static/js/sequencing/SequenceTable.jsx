@@ -16,7 +16,7 @@ import DDSFrequencyTable from './dds/DDSFrequencyTable.jsx'
 import ADCTable from './adc/ADCTable.jsx'
 import CameraTable from './camera/CameraTable.jsx'
 import SequenceToolbar from './SequenceToolbar.jsx'
-import ScriptSelector from './ScriptSelector.jsx'
+import ScriptPopover from './ScriptPopover.jsx'
 
 function SequenceTable (props) {
   // Displays a grid of widgets allowing sequences to be defined.
@@ -36,21 +36,18 @@ function SequenceTable (props) {
     setExpanded({ ...expanded, [name]: !expanded[name] })
   }
 
+  const [scriptAnchor, setScriptAnchor] = React.useState(false)
+
   return (
     <>
+      <ScriptPopover anchor={scriptAnchor} setAnchor={setScriptAnchor}/>
       <TimestepContextMenu state={timestepMenu}
                            close={closeTimestepMenu}
                            length={props.length}
             />
       <Paper elevation={6} style={{ overflowX: 'auto' }}>
         <Box p={2}>
-          <SequenceToolbar name={props.activeSequence}/>
-        </Box>
-        <Box px={2}>
-          <ScriptSelector variant="preparation"/>
-        </Box>
-        <Box px={2}>
-          <ScriptSelector variant="analysis"/>
+          <SequenceToolbar name={props.activeSequence} scriptAnchor={scriptAnchor} setScriptAnchor={setScriptAnchor}/>
         </Box>
         <Box p={2} style={{ display: 'inline-block' }}>
           <Table>

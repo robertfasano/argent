@@ -8,6 +8,7 @@ import CreateIcon from '@material-ui/icons/Create'
 import PlaylistPlayIcon from '@material-ui/icons/PlaylistPlay'
 import DeleteIcon from '@material-ui/icons/Delete'
 import SaveIcon from '@material-ui/icons/Save'
+import NotesIcon from '@material-ui/icons/Notes'
 import PlayArrowIcon from '@material-ui/icons/PlayArrow'
 import yaml from 'js-yaml'
 import { connect } from 'react-redux'
@@ -95,6 +96,13 @@ function SequenceToolbar (props) {
         <ListItemText>Close</ListItemText>
       </ListItem>
 
+      <ListItem button onClick={(event) => props.setScriptAnchor(event.currentTarget)} style={listItem}>
+        <ListItemIcon>
+          <NotesIcon fontSize="small"/>
+        </ListItemIcon>
+        <ListItemText>Scripts</ListItemText>
+      </ListItem>
+
     </List>
   )
 }
@@ -108,7 +116,8 @@ SequenceToolbar.propTypes = {
   addToPlaylist: PropTypes.func,
   parameters: PropTypes.object,
   variables: PropTypes.object,
-  setPID: PropTypes.func
+  setPID: PropTypes.func,
+  setScriptAnchor: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
