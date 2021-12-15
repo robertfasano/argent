@@ -10,6 +10,7 @@ import DeleteIcon from '@material-ui/icons/Delete'
 import SaveIcon from '@material-ui/icons/Save'
 import NotesIcon from '@material-ui/icons/Notes'
 import PlayArrowIcon from '@material-ui/icons/PlayArrow'
+import FileCopyIcon from '@material-ui/icons/FileCopy'
 import yaml from 'js-yaml'
 import { connect } from 'react-redux'
 import { v4 as uuidv4 } from 'uuid'
@@ -79,6 +80,13 @@ function SequenceToolbar (props) {
         <ListItemText>Rename</ListItemText>
       </ListItem>
 
+      <ListItem button onClick={props.duplicate} style={listItem}>
+        <ListItemIcon>
+          <FileCopyIcon/>
+        </ListItemIcon>
+        <ListItemText>Duplicate</ListItemText>
+      </ListItem>
+
       <ListItem button component="a"
                 onClick={onDownload}
                 style={listItem}
@@ -112,6 +120,7 @@ SequenceToolbar.propTypes = {
   text: PropTypes.string,
   playlist: PropTypes.array,
   rename: PropTypes.func,
+  duplicate: PropTypes.func,
   delete: PropTypes.func,
   addToPlaylist: PropTypes.func,
   parameters: PropTypes.object,
@@ -125,6 +134,10 @@ function mapDispatchToProps (dispatch, props) {
     rename: () => {
       const newName = prompt('Enter new sequence name:')
       dispatch({ type: 'sequence/rename', name: props.name, newName: newName })
+    },
+    duplicate: () => {
+      const newName = prompt('Enter new sequence name:')
+      dispatch({ type: 'sequence/duplicate', newName: newName })
     },
     delete: () => {
       dispatch({ type: 'sequence/close', name: props.name })

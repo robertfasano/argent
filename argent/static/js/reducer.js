@@ -265,6 +265,13 @@ export default function reducer (state = [], action) {
         }
       })
 
+    case 'sequence/duplicate':
+      // Copy the active sequence into a new one
+      return produce(state, draft => {
+        draft.active_sequence = action.newName
+        draft.sequences[action.newName] = state.sequences[state.active_sequence]
+      })
+
     case 'sequence/load':
       // Store a passed sequence object in state.sequences.
       return produce(state, draft => {
