@@ -1,10 +1,11 @@
 import React from 'react'
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
-import { connect } from 'react-redux'
+import { connect, shallowEqual } from 'react-redux'
 import TableCell from '@material-ui/core/TableCell'
 import PropTypes from 'prop-types'
 import { countBy } from 'lodash'
+import { createSelector } from 'reselect'
 
 function Timeline (props) {
   // through props, receives an array of RTIO states for all timesteps
@@ -209,9 +210,16 @@ function slice (array, axis) {
   return slice
 }
 
+const selectVariables = createSelector(
+  state => state.variables,
+  state => state.parameters,
+  (variables, parameters) => Object.assign({}, variables, parameters),
+  { memoizeOptions: { resultEqualityCheck: shallowEqual } }
+)
+
 function mapStateToProps (state, props) {
   return {
-    variables: state.variables,
+    variables: selectVariables(state),
     unit: props.unit || ''
   }
 }
