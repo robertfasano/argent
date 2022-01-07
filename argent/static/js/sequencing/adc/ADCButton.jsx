@@ -132,7 +132,7 @@ function ADCButton (props) {
                             onChange={(event) => props.updateOperation(event, name)}
                             style={{ width: '100%' }}
                             >
-                      {['mean', 'min', 'max', 'first', 'last', 'peak-peak', 'max-last'].map((key, index) => (
+                      {['mean', 'min', 'max', 'first', 'last', 'peak-peak'].map((key, index) => (
                         <MenuItem value={key} key={key}>
                           {key}
                         </MenuItem>
