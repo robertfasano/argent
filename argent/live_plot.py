@@ -36,7 +36,7 @@ class LivePlot:
                 label = f'Stage {z0}'
             else:
                 label = f'{self.legend[0]}={z0}'
-            self.ax.errorbar(mean.index, mean.y, sterror.y, capsize=4, linestyle='None', markersize=4, marker='o', label=label)   #color='#004e67'
+            self.ax.errorbar(mean.index, mean.y, sterror.y, capsize=4, linestyle='None', markersize=4, marker='o', label=label)
 
                 
         plt.ylabel(self.y)
