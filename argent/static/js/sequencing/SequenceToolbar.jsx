@@ -133,11 +133,11 @@ function mapDispatchToProps (dispatch, props) {
   return {
     rename: () => {
       const newName = prompt('Enter new sequence name:')
-      dispatch({ type: 'sequence/rename', name: props.name, newName: newName })
+      if (newName !== null) dispatch({ type: 'sequence/rename', name: props.name, newName: newName })
     },
     duplicate: () => {
       const newName = prompt('Enter new sequence name:')
-      dispatch({ type: 'sequence/duplicate', newName: newName })
+      if (newName !== null) dispatch({ type: 'sequence/duplicate', newName: newName })
     },
     delete: () => {
       dispatch({ type: 'sequence/close', name: props.name })
