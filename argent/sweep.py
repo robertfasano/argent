@@ -1,7 +1,5 @@
 import numpy as np
 from tqdm.auto import tqdm
-import matplotlib.pyplot as plt
-import pandas as pd
 from argent.live_plot import LivePlot
 
 class Sweep:
@@ -33,7 +31,7 @@ class Sweep:
         self.legend = legend
 
         if plot is not None:
-            self.progress_plot = LivePlot(client, x, plot, xlim=[start, stop], legend=legend)
+            self.progress_plot = LivePlot(self.dataset, x, plot, xlim=[start, stop], legend=legend)
         self.run()
 
     def run(self):
@@ -54,7 +52,8 @@ class Sweep:
                     for point in sweep_points:
                         self.client.set(self.x, point)
                         self.client.collect(self.averages)
-                        self.progress_plot.update()
+                        if self.progress_plot is not None:
+                            self.progress_plot.update()
         self.dataset.stop()
 
     def save(self, filename):
