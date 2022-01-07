@@ -154,7 +154,7 @@ class App:
 
                 if 'influx' in self.config:
                     new_data = pd.DataFrame(data, index=[timestamp])
-                    self.influx.write(new_data, self.config['influx']['bucket'])
+                    self.influx.write(new_data)
 
                 return ''
 
