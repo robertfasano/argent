@@ -46,14 +46,14 @@ def generate_experiment(playlist, config, pid, variables={}, parameters={}):
             'adc': get_adc_boards(playlist),
             'cam': get_grabber_boards(playlist)}
 
-    code += textwrap.indent(env.get_template("build.py").render(pid=pid, 
+    code += textwrap.indent(env.get_template("build.j2").render(pid=pid, 
                                                                 variables=variables, 
                                                                 parameters=parameters, 
                                                                 arrays=get_data_arrays(playlist),
                                                                 channels=channels
                                                                 ), 
                             '\t')
-    code += textwrap.indent(env.get_template("init.py").render(channels=channels), '\t') + '\n'
+    code += textwrap.indent(env.get_template("init.j2").render(channels=channels), '\t') + '\n'
     code += textwrap.indent(generate_run(playlist, config, variables, parameters), '\t')
 
     return code
@@ -148,7 +148,7 @@ def generate_stage(stage):
         ## ttl
         on = str(['self.'+ch for ch, state in step.get('ttl', {}).items() if state == True]).replace("'", "")
         off = str(['self.'+ch for ch, state in step.get('ttl', {}).items() if state == False]).replace("'", "")
-        step_code += textwrap.indent(env.get_template("ttl.py").render(on=on, off=off), '\t') 
+        step_code += textwrap.indent(env.get_template("ttl.j2").render(on=on, off=off), '\t') 
 
         ## dac
         for board in step.get('dac', {}):
@@ -168,7 +168,7 @@ def generate_stage(stage):
                 off.append(ch)
         on = str(['self.'+ch for ch in on]).replace("'", "")
         off = str(['self.'+ch for ch in off]).replace("'", "")
-        step_code += textwrap.indent(env.get_template("rf_switch.py").render(on=on, off=off), '\t') 
+        step_code += textwrap.indent(env.get_template("rf_switch.j2").render(on=on, off=off), '\t') 
 
         ## dds frequency and attenuation
         for channel in step.get('dds', {}):

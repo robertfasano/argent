@@ -1,0 +1,187 @@
+import requests
+import datetime
+import numpy as np
+from artiq.experiment import *
+from artiq.coredevice.sampler import adc_mu_to_volt
+
+''' Main experiment code '''
+def GeneratedSequence(EnvExperiment):
+    def build(self):
+        self.__pid__ = '{{pid}}'
+        self.__cycle__ = 0
+        self.setattr_device('core')
+
+        for ttl in {{channels['ttl']}}:
+            self.setattr_device(ttl)
+        for dac in {{channels['dac']}}:
+            self.setattr_device(dac)
+        for cpld in {{channels['cpld']}}:
+            self.setattr_device(cpld)
+        for dds in {{channels['dds']}}:
+            self.setattr_device(dds)
+        for adc in {{channels['adc']}}:
+            self.setattr_device(adc)
+
+        ## input variables
+        {% for key, value in inputs.items() -%}
+        self.{{key}} = {{value}}
+        {% endfor %}
+
+        ## output variables
+        {% for key, value in outputs.items() -%}
+        self.{{key}} = 0.0
+        {% endfor %}
+
+        ## data arrays
+        {% for key, value in arrays.items() -%}
+        self.{{key}} = {{value}}
+        {% endfor %}
+
+    @kernel
+    def init(self):
+        self.core.reset()
+        self.core.break_realtime()
+        for dac in {{channels['dac']}}:
+            self.getattr_device(dac).init()
+            delay(10*ms)
+        for cpld in {{channels['cpld']}}:
+            self.getattr_device(cpld).init()
+        for dds in {{channels['dds']}}:
+            self.getattr_device(dds).init()
+        for adc in {{channels['adc']}}:
+            self.getattr_device(adc).init()
+        self.core.break_realtime()
+
+    @kernel
+    def run(self):
+        self.init()
+        while True:
+            {% for stage in stages -%}
+            self.{{stage}}()
+            __push__(self, {{loop.index}}, {{stage}}, self.__cycle__, {{outputs.keys()|list}}, [], {{inputs.keys()|list}}, [])
+            {% endfor %}
+            ## sync variables with server
+            __pull__(self, "{{addr}}")
+            self.__sync__()
+            print("Finished with slack", (now_mu() - self.core.get_rtio_counter_mu())*1e-6, "ms")
+            self.core.break_realtime()
+            delay(5*ms)
+            self.__cycle__ += 1
+
+    {% for stage in playlist -%}
+    @kernel
+    def {{stage.name}}(self):
+        {{loops[stage.name]|indent(8)}}
+    {% endfor %}  
+
+    @kernel
+    def __sync__(self):
+        {% for input in inputs -%}
+        self.{{input}} = __update__(self, "{{input}}")
+        {% endfor %}  
+
+''' Array operations '''
+@kernel
+def convert(val, calibration=1.024):
+    return calibration*adc_mu_to_volt(val)
+
+@kernel
+def array_sum(array, ch):
+    ''' Compute the sum along one channel '''
+    slice = [arr[ch] for arr in array]
+    result = 0
+    for val in slice:
+        result += val
+    return result
+
+@kernel
+def array_mean(array, ch):
+    ''' Compute the mean along one channel '''
+    return convert(array_sum(array, ch)) / len(array)
+
+@kernel
+def array_max(array, ch):
+    ''' Compute the max along one channel '''
+    slice = [arr[ch] for arr in array]
+    result = 0
+    for val in slice:
+        if val > result:
+            result = val
+    return convert(result)
+
+@kernel
+def array_min(array, ch):
+    ''' Compute the min along one channel '''
+    slice = [arr[ch] for arr in array]
+    result = 2**16+1
+    for val in slice:
+        if val < result:
+            result = val
+    return convert(result)
+
+@kernel
+def array_peak_to_peak(array, ch):
+    ''' Returns the last element from one channel '''
+    return array_max(array, ch) - array_min(array, ch)
+
+''' RTIO operations '''
+@kernel
+def sample(device, data, samples, wait):
+    for i in range(samples):
+        try:
+            device.sample_mu(data[i])
+            delay(wait)
+        except RTIOUnderflow:
+            continue
+
+@kernel(flags={"fast-math"})
+def ramp(board, channels, starts, stops, steps, duration, now):
+    at_mu(now)
+    dt = duration / steps
+    dV = [(stops[i]-starts[i])/steps for i in range(len(channels))]
+
+    V = starts
+    for _ in range(steps):
+        delay(dt)
+        for i in range(len(channels)):
+            V[i] += dV[i]
+        board.set_dac(V, channels)
+
+@kernel(flags={"fast-math"})
+def ramp_DDS(dds, start, stop, steps, duration, now):
+    at_mu(now)
+    dt = duration / steps
+    df = (stop - start) / steps
+
+    f = start
+    for _ in range(steps):
+        delay(dt)
+        f += df
+        dds.set(f*MHz)
+
+''' Convenience functions handling communications between the ARTIQ kernel and the Argent server '''
+@rpc(flags={"async"})
+def __push__(self, stage, stage_name, cycle, output_names, output_values, input_names, input_values, addr):
+    inputs = dict(zip(input_names, input_values))
+    outputs = dict(zip(output_names, output_values))
+    timestamp = datetime.datetime.now().isoformat()
+    print('\n' + timestamp + ' - Cycle {}, stage {}'.format(cycle, stage))
+    for key, val in outputs.items():
+        print(key, ':', val)
+    try:
+        results = {"outputs": outputs, "inputs": inputs, "pid": self.__pid__, "stage": int(stage), 'cycle': int(cycle), 'timestamp': timestamp, 'sequence': stage_name}
+        requests.post("http://{}/results".format(addr), json=results)
+    except Exception as e:
+        print(e)
+
+@rpc(flags={"async"})
+def __pull__(self, addr):
+    try:
+        self.inputs = requests.get("http://{}/variables".format(addr)).json()
+    except Exception as e:
+        print(e)
+
+def __update__(self, name) -> TFloat:
+    return float(self.inputs[name])
+
+
