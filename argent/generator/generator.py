@@ -1,6 +1,5 @@
 import textwrap
 import os
-import numpy as np
 from argent import Configurator, path
 from .building_blocks import *
 from .channel_parsing import *
@@ -25,7 +24,7 @@ def generate_experiment(playlist, config, pid, variables={}, parameters={}):
     '''
     print('Generating playlist')
     print(playlist)
-    for i, stage in enumerate(playlist):
+    for i in range(len(playlist)):
         playlist[i]['sequence']['steps'] = remove_redundant_events(playlist[i]['sequence']['steps'])
 
     code = 'import requests\n'
@@ -39,8 +38,6 @@ def generate_experiment(playlist, config, pid, variables={}, parameters={}):
     with open(os.path.join(path, 'generator/rtio_ops.py')) as file:
         code += file.read() + '\n'
     code += 'class GeneratedSequence(EnvExperiment):\n'
-    # code += textwrap.indent(generate_build(playlist, pid, variables, parameters), '\t')
-    # code += textwrap.indent(generate_init(playlist), '\t')
 
     channels = {'ttl': get_ttl_channels(playlist),
             'dac': get_dac_channels(playlist),
@@ -123,36 +120,16 @@ def generate_run(playlist, config, variables, parameters):
     code += '\n'
 
     ## write individual stage functions
-    loops = []
+    stages = []
     for stage in playlist:
-        if stage['name'] in loops:
+        if stage['name'] in stages:
             continue
-        code += generate_loop(stage)
-        loops.append(stage['name'])
+        code += generate_stage(stage)
+        stages.append(stage['name'])
 
     return code
 
-def write_batch(events):
-    ''' Adds a batch of events into the generated code. The events argument
-        should be a list of generated events, e.g.
-            ['ttlA0.on()\n', 'ttlA1.off()\n']
-        This function concatenates these events into a larger sequence with
-        some special logic:
-        * If there is more than one event, events are written in a sequential block
-        * A small delay is inserted every 8 events to avoid sequence collisions
-    '''
-    if len(events) == 0:
-        return ''
-    code = 'with sequential:\n'
-    indented = ''
-    for i, event in enumerate(events):
-        if not i % 1 and i != 0:
-            indented += 'delay(20*ns)\n'
-        indented += event
-
-    return code + textwrap.indent(indented, '\t')
-
-def generate_loop(stage):
+def generate_stage(stage):
     ''' Generates a kernel function for a single stage of a playlist. For
         each timestep in the stage, events for different RTIO types are written
         in parallel with an overall delay defined by the step duration. Ramps
@@ -165,44 +142,52 @@ def generate_loop(stage):
 
     for i, step in enumerate(sequence['steps']):
         code = ''
-        code += Delay(step)
+        code += f"delay({step['duration']}*ms)\n"
+        step_code = ''
 
         ## ttl
-        ttl_events = []
-        for ch in step.get('ttl', {}):
-        # for ch in step['events'][0].get('ttl', {}):
-            ttl_events.append(TTL(ch).run(step))
+        on = str(['self.'+ch for ch, state in step.get('ttl', {}).items() if state == True]).replace("'", "")
+        off = str(['self.'+ch for ch, state in step.get('ttl', {}).items() if state == False]).replace("'", "")
+        step_code += textwrap.indent(env.get_template("ttl.py").render(on=on, off=off), '\t') 
 
         ## dac
-        dac_events = []
-        # for board in step['events'][0].get('dac', {}):
         for board in step.get('dac', {}):
-            zotino_events = Zotino(board).initial(step)
-            if zotino_events is not None:
-                dac_events.append(zotino_events)
+            event = Zotino(board).initial(step)
+            if event is not None:
+                step_code += '\t' + 'delay(20*ns)' + '\n'
+                step_code += '\t' + event
 
-        ## dds
-        dds_events = []
-        # for channel in step['events'][0].get('dds', {}):
+        ## dds rf switch
+        on = []
+        off = []
+        for ch in step['dds']:
+            enabled = step['dds'][ch].get('enable', None)
+            if enabled:
+                on.append(ch)
+            elif enabled == False:
+                off.append(ch)
+        on = str(['self.'+ch for ch in on]).replace("'", "")
+        off = str(['self.'+ch for ch in off]).replace("'", "")
+        step_code += textwrap.indent(env.get_template("rf_switch.py").render(on=on, off=off), '\t') 
+
+        ## dds frequency and attenuation
         for channel in step.get('dds', {}):
-            dds_events.extend(Urukul(channel).run(step))
-        code += write_batch([*ttl_events, *dac_events, *dds_events])
-
+            events = Urukul(channel).run(step)
+            for event in events:
+                step_code += '\t' + event
 
         ## imaging
         grabber_state = step.get('cam', {})
         for board, state in grabber_state.items():
             if state['enable']:
-                code += '\t' + f'self.{board}.setup_roi(0, {state["ROI"][0][0]}, {state["ROI"][1][0]}, {state["ROI"][0][1]}, {state["ROI"][1][1]})\n'
-                code += '\t' + f'self.{board}.gate_roi_pulse(1, {state["duration"]}*ms)\n'
-                code += '\t' + 'n = [0]\n'
+                step_code += '\t' + f'self.{board}.setup_roi(0, {state["ROI"][0][0]}, {state["ROI"][1][0]}, {state["ROI"][0][1]}, {state["ROI"][1][1]})\n'
+                step_code += '\t' + f'self.{board}.gate_roi_pulse(1, {state["duration"]}*ms)\n'
+                step_code += '\t' + 'n = [0]\n'
                 if state['parameter'] != '':
-                    code += '\t' + f'self.{board}.input_mu(n)\n'
-                    code += '\t' + f'{state["parameter"]}=float(n[0])\n'
+                    step_code += '\t' + f'self.{board}.input_mu(n)\n'
+                    step_code += '\t' + f'{state["parameter"]}=float(n[0])\n'
 
         ## adc
-        adc_events = []
-        # sampler_state = step['events'][0].get('adc', {})
         sampler_state = step.get('adc', {})
         for board, state in sampler_state.items():
             if state['enable']:
@@ -212,37 +197,15 @@ def generate_loop(stage):
                     delay = float(state['duration']) / int(state['samples']) * 1e-3
                     array_name = stage["name"].replace(" ", "_") + f'_{i}'
                     cmd = f'sample(self.{board}, data=self.{array_name}, samples={state["samples"]}, wait={delay})\n'
-                    if len([*ttl_events, *dac_events, *dds_events]) > 0:
-                        cmd = '\t' + cmd
-                adc_events.append(cmd)
+                step_code += '\t' + cmd
 
-        for cmd in adc_events:
-            code += cmd
-
-        for board, state in sampler_state.items():
-            if sampler_state[board]['enable']:
+                op_map = {'min': 'array_min', 'max': 'array_max', 'mean': 'array_mean', 'first': 'array_first', 'last': 'array_last', 'peak-peak': 'array_peak_to_peak'}
                 for var, state in sampler_state[board]['variables'].items():
                     ch = state['ch']
-                    operation = state['operation']
                     array_name = stage['name'].replace(' ', '_') + '_' + str(i)
-                    op = ''
-                    if operation == 'min':
-                        op += f'self.{var} = array_min(self.{array_name}, {ch})\n'
-                    elif operation == 'max':
-                        op += f'self.{var} = array_max(self.{array_name}, {ch})\n'
-                    elif operation == 'mean':
-                        op += f'self.{var} = array_mean(self.{array_name}, {ch})\n'
-                    elif operation == 'first':
-                        op += f'self.{var} = array_first(self.{array_name}, {ch})\n'
-                    elif operation == 'last':
-                        op += f'self.{var} = array_last(self.{array_name}, {ch})\n'
-                    elif operation == 'peak-peak':
-                        op += f'self.{var} = array_peak_to_peak(self.{array_name}, {ch})\n'
-                    elif operation == 'max-last':
-                        op += f'self.{var} = array_max_minus_last(self.{array_name}, {ch})\n'
-                    if len([*ttl_events, *dac_events, *dds_events]) > 0:
-                        op = '\t' + op
-                    code += op
+                    func = op_map[state['operation']]
+                    if state['operation'] in op_map.keys():
+                        step_code += '\t' + f'self.{var} = {func}(self.{array_name}, {ch})\n'
 
         ramps = ''
         ## write ramps, if applicable
@@ -252,9 +215,13 @@ def generate_loop(stage):
         for channel in step.get('dds', {}):
             ramps += Urukul(channel).ramp(step)
         if ramps != '':
-            code += '\t' + 'with parallel:\n'
-            code += textwrap.indent('now = now_mu()\n', '\t\t')
-            code += textwrap.indent(ramps, '\t\t')
+            step_code += '\t' + 'with parallel:\n'
+            step_code += textwrap.indent('now = now_mu()\n', '\t\t')
+            step_code += textwrap.indent(ramps, '\t\t')
+
+        if step_code != '':
+            code += 'with sequential:\n'
+            code += step_code
 
         timesteps.append(code+'\n')
 
