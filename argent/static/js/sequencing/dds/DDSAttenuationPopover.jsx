@@ -34,15 +34,15 @@ function DDSAttenuationPopover (props) {
                       ramp={false}
         />
         {(props.attenuation.mode === 'setpoint')
-          ? <LinkableParameter value={props.attenuation.setpoint} variables={props.variables} onChange={(value) => props.update('dds/attenuation/setpoint', value)} label='Attenuation' unit='dB'/>
+          ? <LinkableParameter value={props.attenuation.setpoint} onChange={(value) => props.update('dds/attenuation/setpoint', value)} label='Attenuation' unit='dB'/>
           : null
         }
 
         {props.attenuation.mode === 'ramp'
           ? (
             <>
-              <LinkableParameter value={props.attenuation.ramp.start} variables={props.variables} onChange={(value) => props.update('dds/attenuation/ramp/start', value)} label='Start' unit='dB'/>
-              <LinkableParameter value={props.attenuation.ramp.stop} variables={props.variables} onChange={(value) => props.update('dds/attenuation/ramp/stop', value)} label='Stop' unit='dB'/>
+              <LinkableParameter value={props.attenuation.ramp.start} onChange={(value) => props.update('dds/attenuation/ramp/start', value)} label='Start' unit='dB'/>
+              <LinkableParameter value={props.attenuation.ramp.stop} onChange={(value) => props.update('dds/attenuation/ramp/stop', value)} label='Stop' unit='dB'/>
               <Box mx={1}>
                 <TextField label='Steps'
                           value={props.attenuation.ramp.steps}

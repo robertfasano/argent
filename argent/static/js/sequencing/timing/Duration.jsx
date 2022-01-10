@@ -58,7 +58,6 @@ function Duration (props) {
             Duration options
         </Typography>
         <LinkableParameter value={props.duration}
-                           variables={props.variables}
                            onChange={(value) => props.update('timestep/duration', value)}
                            label='Duration' unit='ms'
         />

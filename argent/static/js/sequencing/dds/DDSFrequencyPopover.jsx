@@ -35,15 +35,15 @@ function DDSFrequencyPopover (props) {
                         ramp={true}
           />
           {(props.frequency.mode === 'setpoint')
-            ? <LinkableParameter value={props.frequency.setpoint} variables={props.variables} onChange={(value) => props.update('dds/frequency/setpoint', value)} label='Frequency' unit='MHz'/>
+            ? <LinkableParameter value={props.frequency.setpoint} onChange={(value) => props.update('dds/frequency/setpoint', value)} label='Frequency' unit='MHz'/>
             : null
           }
 
           {props.frequency.mode === 'ramp'
             ? (
               <>
-                <LinkableParameter value={props.frequency.ramp.start} variables={props.variables} onChange={(value) => props.update('dds/frequency/ramp/start', value)} label='Start' unit='MHz'/>
-                <LinkableParameter value={props.frequency.ramp.stop} variables={props.variables} onChange={(value) => props.update('dds/frequency/ramp/stop', value)} label='Stop' unit='MHz'/>
+                <LinkableParameter value={props.frequency.ramp.start} onChange={(value) => props.update('dds/frequency/ramp/start', value)} label='Start' unit='MHz'/>
+                <LinkableParameter value={props.frequency.ramp.stop} onChange={(value) => props.update('dds/frequency/ramp/stop', value)} label='Stop' unit='MHz'/>
                 <Box mx={1}>
                   <TextField label='Steps'
                             value={props.frequency.ramp.steps}

@@ -37,15 +37,15 @@ function DACPopover (props) {
         />
 
         {(props.mode === 'setpoint')
-          ? <LinkableParameter value={props.setpoint} variables={props.variables} onChange={(value) => props.update('dac/setpoint', value)} label='Setpoint' unit='V'/>
+          ? <LinkableParameter value={props.setpoint} onChange={(value) => props.update('dac/setpoint', value)} label='Setpoint' unit='V'/>
           : null
         }
 
         {props.mode === 'ramp'
           ? (
             <>
-              <LinkableParameter value={props.ramp.start} variables={props.variables} onChange={(value) => props.update('dac/ramp/start', value)} label='Start' unit='V'/>
-              <LinkableParameter value={props.ramp.stop} variables={props.variables} onChange={(value) => props.update('dac/ramp/stop', value)} label='Stop' unit='V'/>
+              <LinkableParameter value={props.ramp.start} onChange={(value) => props.update('dac/ramp/start', value)} label='Start' unit='V'/>
+              <LinkableParameter value={props.ramp.stop} onChange={(value) => props.update('dac/ramp/stop', value)} label='Stop' unit='V'/>
               <Box mx={1}>
                 <TextField label='Steps'
                           value={props.ramp.steps}
