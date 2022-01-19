@@ -6,6 +6,7 @@ import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
 import Button from '@material-ui/core/Button'
+import { selectTimestep } from '../../selectors.js'
 
 function Duration (props) {
   // A button which opens a popover allowing timestep durations to be defined or linked to variables
@@ -85,10 +86,11 @@ function mapDispatchToProps (dispatch, props) {
 
 function mapStateToProps (state, props) {
   state = state.present
+  const timestep = selectTimestep(state, props.timestep)
   return {
-    duration: state.sequences[state.active_sequence].steps[props.timestep].duration,
+    duration: timestep.duration,
     variables: state.variables,
-    skip: state.sequences[state.active_sequence].steps[props.timestep].skip || false
+    skip: timestep.skip || false
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(Duration)

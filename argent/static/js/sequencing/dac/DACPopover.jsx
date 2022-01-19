@@ -8,6 +8,7 @@ import ModeSelector from '../ModeSelector.jsx'
 import { connect, shallowEqual } from 'react-redux'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
 import { createSelector } from 'reselect'
+import { selectTimestep } from '../../selectors.js'
 
 function DACPopover (props) {
   return (
@@ -97,7 +98,7 @@ const selectVariables = createSelector(
 
 function mapStateToProps (state, props) {
   state = state.present
-  const channel = state.sequences[state.active_sequence].steps[props.timestep].dac[props.board][props.ch]
+  const channel = selectTimestep(state, props.timestep).dac[props.board][props.ch]
   const ramp = channel.ramp
   const mode = channel.mode
   return {

@@ -3,23 +3,17 @@ import PropTypes from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Popover from '@material-ui/core/Popover'
 import TableCell from '@material-ui/core/TableCell'
-import TableHead from '@material-ui/core/TableHead'
-import TableBody from '@material-ui/core/TableBody'
-import TableRow from '@material-ui/core/TableRow'
-import Table from '@material-ui/core/Table'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import FixedUnitInput from '../../components/FixedUnitInput.jsx'
 import IntegerUnitInput from '../../components/IntegerUnitInput.jsx'
-import TextField from '@material-ui/core/TextField'
 import { connect } from 'react-redux'
 import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
-import ClearIcon from '@material-ui/icons/Clear'
-import AddIcon from '@material-ui/icons/Add'
 import FormControl from '@material-ui/core/FormControl'
 import InputLabel from '@material-ui/core/InputLabel'
+import { selectTimestep } from '../../selectors.js'
 
 function CameraButton (props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
@@ -204,14 +198,14 @@ function mapDispatchToProps (dispatch, props) {
 
 function mapStateToProps (state, props) {
   state = state.present
-  const channel = state.sequences[state.active_sequence].steps[props.timestep].cam[props.board]
+  const channel = selectTimestep(state, props.timestep).cam[props.board]
   return {
     enable: channel.enable,
     channel: channel,
     ROI: channel.ROI,
     parameter: channel.parameter,
     allParameters: state.parameters,
-    duration: channel.duration || state.sequences[state.active_sequence].steps[props.timestep].duration
+    duration: channel.duration || selectTimestep(state, props.timestep).duration
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(CameraButton)

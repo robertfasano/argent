@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import Button from '@material-ui/core/Button'
 import TableCell from '@material-ui/core/TableCell'
 import { connect } from 'react-redux'
+import { selectTimestep } from '../../selectors.js'
 
 function TTLButton (props) {
   // A simple boolean Button allowing the TTL state at a timestep to be toggled.
@@ -41,9 +42,10 @@ function mapDispatchToProps (dispatch, props) {
 
 function mapStateToProps (state, props) {
   state = state.present
+  const timestep = selectTimestep(state, props.timestep)
   return {
-    on: state.sequences[state.active_sequence].steps[props.timestep].ttl[props.channel],
-    skip: state.sequences[state.active_sequence].steps[props.timestep].skip || false
+    on: timestep.ttl[props.channel],
+    skip: timestep.skip || false
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(TTLButton)

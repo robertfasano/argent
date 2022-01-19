@@ -7,6 +7,7 @@ import ParameterGroupPanel from './ParameterGroupPanel.jsx'
 import ParameterContextMenu from './ParameterContextMenu.jsx'
 import Button from '@material-ui/core/Button'
 import CreateNewFolderIcon from '@material-ui/icons/CreateNewFolder'
+import { selectActiveSequence } from '../selectors'
 
 function ParameterTable (props) {
   const [menu, setMenu] = React.useState({ anchor: null, name: null })
@@ -69,7 +70,7 @@ function mapStateToProps (state, props) {
   state = state.present
   const groups = state.ui.groups.parameters
   return {
-    sequence: state.sequences[state.active_sequence],
+    sequence: selectActiveSequence(state),
     parameters: state.parameters,
     groups: groups
   }

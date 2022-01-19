@@ -5,6 +5,7 @@ import Timeline from '../../components/Timeline.jsx'
 import DACPopover from './DACPopover.jsx'
 import { createSelector } from 'reselect'
 import { isArrayEqual } from '../../utilities.js'
+import { selectActiveSequence } from '../../selectors'
 
 function DACTimeline (props) {
   const [anchorPosition, setAnchorPosition] = React.useState([0, 0])
@@ -31,7 +32,7 @@ DACTimeline.propTypes = {
 }
 
 const makeSelector = () => createSelector(
-  (state) => state.sequences[state.active_sequence].steps,
+  (state) => selectActiveSequence(state).steps,
   (state, props) => props.board,
   (state, props) => props.ch,
   (steps, board, channel) => {

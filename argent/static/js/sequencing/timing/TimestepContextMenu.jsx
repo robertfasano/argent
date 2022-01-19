@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
+import { selectTimestep } from '../../selectors'
 
 function TimestepContextMenu (props) {
   // A context menu allowing timesteps to be inserted, reordered, or deleted.
@@ -69,7 +70,7 @@ function mapStateToProps (state, props) {
   state = state.present
   let skip = false
   if (props.state.index !== null) {
-    skip = state.sequences[state.active_sequence].steps[props.state.index].skip || false
+    skip = selectTimestep(state, props.state.index).skip || false
   }
   return {
     open: Boolean(props.state.anchor),

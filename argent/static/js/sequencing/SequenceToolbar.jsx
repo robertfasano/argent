@@ -18,6 +18,7 @@ import { post } from '../utilities.js'
 import CodeIcon from '@material-ui/icons/Code'
 import { merge } from 'lodash'
 import { createSelector } from 'reselect'
+import { selectActiveSequence } from '../selectors.js'
 
 const flexContainer = {
   display: 'flex',
@@ -152,7 +153,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 const generateYAML = createSelector(
-  state => state.sequences[state.active_sequence],
+  state => selectActiveSequence(state),
   state => state.variables,
   state => state.parameters,
   state => state.version,

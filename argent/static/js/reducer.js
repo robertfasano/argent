@@ -1,6 +1,7 @@
 import produce from 'immer'
 import { defaultTimestep, fill } from './schema.js'
 import { merge } from 'lodash'
+import { selectTimestep } from './selectors.js'
 
 function swap (array, a, b) {
   // Swaps elements with indices a and b of a passed array in place
@@ -36,7 +37,7 @@ export default function reducer (state = [], action) {
 
     case 'adc/toggle':
       return produce(state, draft => {
-        const enabled = state.sequences[state.active_sequence].steps[action.path.timestep].adc[action.path.board].enable
+        const enabled = selectTimestep(state, action.path.timestep).adc[action.path.board].enable
         draft.sequences[state.active_sequence].steps[action.path.timestep].adc[action.path.board].enable = !enabled
       })
 
@@ -99,7 +100,7 @@ export default function reducer (state = [], action) {
 
     case 'camera/toggle':
       return produce(state, draft => {
-        const enabled = state.sequences[state.active_sequence].steps[action.path.timestep].cam[action.path.board].enable
+        const enabled = selectTimestep(state, action.path.timestep).cam[action.path.board].enable
         draft.sequences[state.active_sequence].steps[action.path.timestep].cam[action.path.board].enable = !enabled
       })
 
@@ -125,7 +126,7 @@ export default function reducer (state = [], action) {
 
     case 'dac/ramp/steps':
       return produce(state, draft => {
-        const channels = Object.keys(state.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board])
+        const channels = Object.keys(selectTimestep(state, action.path.timestep).dac[action.path.board])
         for (const ch of channels) {
           draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][ch].ramp.steps = action.value
         }
@@ -153,44 +154,44 @@ export default function reducer (state = [], action) {
 
     case 'dds/frequency/ramp/start':
       return produce(state, draft => {
-        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, start: action.value }
       })
 
     case 'dds/frequency/ramp/stop':
       return produce(state, draft => {
-        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, stop: action.value }
       })
 
     case 'dds/frequency/ramp/steps':
       return produce(state, draft => {
-        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, steps: action.value }
       })
 
     case 'dds/attenuation/ramp/start':
       return produce(state, draft => {
-        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, start: action.value }
       })
 
     case 'dds/attenuation/ramp/stop':
       return produce(state, draft => {
-        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, stop: action.value }
       })
 
     case 'dds/attenuation/ramp/steps':
       return produce(state, draft => {
-        const ramp = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, steps: action.value }
       })
 
     case 'dds/toggle':
       // Toggle a DDS rf switch on or off.
       return produce(state, draft => {
-        const ddsEnabled = state.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].enable
+        const ddsEnabled = selectTimestep(state, action.path.timestep).dds[action.path.ch].enable
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].enable = !ddsEnabled
       })
 
@@ -370,7 +371,7 @@ export default function reducer (state = [], action) {
       // will be updated by default.
       return produce(state, draft => {
         const newTimestep = merge({}, defaultTimestep(state.channels))
-        const previousTimestep = state.sequences[state.active_sequence].steps[action.timestep]
+        const previousTimestep = selectTimestep(state, action.timestep)
         for (const ch of Object.keys(previousTimestep.ttl)) {
           newTimestep.ttl[ch] = previousTimestep.ttl[ch]
         }
@@ -389,7 +390,7 @@ export default function reducer (state = [], action) {
     case 'ttl/toggle':
       // Toggle a TTL event on/off.
       return produce(state, draft => {
-        const ttlChecked = state.sequences[state.active_sequence].steps[action.path.timestep].ttl[action.path.channel]
+        const ttlChecked = selectTimestep(state, action.path.timestep).ttl[action.path.channel]
         draft.sequences[state.active_sequence].steps[action.path.timestep].ttl[action.path.channel] = !ttlChecked
       })
 

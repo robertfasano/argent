@@ -5,6 +5,7 @@ import Timeline from '../../components/Timeline.jsx'
 import DDSFrequencyPopover from './DDSFrequencyPopover.jsx'
 import { createSelector } from 'reselect'
 import { isArrayEqual } from '../../utilities.js'
+import { selectActiveSequence } from '../../selectors'
 
 function DDSFrequencyTimeline (props) {
   const [anchorPosition, setAnchorPosition] = React.useState([0, 0])
@@ -32,7 +33,7 @@ DDSFrequencyTimeline.propTypes = {
 
 const makeSelector = () => createSelector(
   [
-    (state) => state.sequences[state.active_sequence].steps,
+    (state) => selectActiveSequence(state).steps,
     (state, props) => props.ch
   ],
   (steps, channel) => {

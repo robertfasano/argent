@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import TTLButton from './TTLButton.jsx'
 import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
+import { selectSequenceLength } from '../../selectors'
 
 function TTLTable (props) {
   return (
@@ -63,7 +64,7 @@ function mapStateToProps (state) {
   state = state.present
   return {
     channels: state.channels.ttl,
-    length: state.sequences[state.active_sequence].steps.length
+    length: selectSequenceLength(state)
   }
 }
 export default connect(mapStateToProps)(TTLTable)

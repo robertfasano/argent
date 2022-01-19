@@ -4,6 +4,7 @@ import TableCell from '@material-ui/core/TableCell'
 import TableRow from '@material-ui/core/TableRow'
 import TimestepLabelField from './TimestepLabelField.jsx'
 import { connect } from 'react-redux'
+import { selectSequenceLength } from '../../selectors'
 
 function TimestepLabelTable (props) {
   const disabled = false || props.disabled
@@ -33,7 +34,7 @@ TimestepLabelTable.propTypes = {
 function mapStateToProps (state, ownProps) {
   state = state.present
   return {
-    length: state.sequences[state.active_sequence].steps.length
+    length: selectSequenceLength(state)
   }
 }
 export default connect(mapStateToProps)(TimestepLabelTable)

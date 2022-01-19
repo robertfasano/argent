@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import DDSButton from './DDSButton.jsx'
 import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
+import { selectSequenceLength } from '../../selectors'
 
 function DDSTable (props) {
   return (
@@ -66,7 +67,7 @@ function mapStateToProps (state, ownProps) {
   state = state.present
   return {
     channels: state.channels.dds,
-    length: state.sequences[state.active_sequence].steps.length
+    length: selectSequenceLength(state)
   }
 }
 export default connect(mapStateToProps)(DDSTable)

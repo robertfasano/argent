@@ -18,6 +18,7 @@ import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
 import ClearIcon from '@material-ui/icons/Clear'
 import AddIcon from '@material-ui/icons/Add'
+import { selectTimestep } from '../../selectors.js'
 
 function ADCButton (props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
@@ -251,14 +252,15 @@ const selectParameters = createSelector(state => state.parameters,
 
 function mapStateToProps (state, props) {
   state = state.present
-  const channel = state.sequences[state.active_sequence].steps[props.timestep].adc[props.board]
+  const timestep = selectTimestep(state, props.timestep)
+  const channel = timestep.adc[props.board]
   return {
     enable: channel.enable,
     parameters: channel.variables,
     allParameters: selectParameters(state),
     samples: channel.samples || 1,
-    duration: channel.duration || state.sequences[state.active_sequence].steps[props.timestep].duration,
-    skip: state.sequences[state.active_sequence].steps[props.timestep].skip || false
+    duration: channel.duration || timestep.duration,
+    skip: timestep.skip || false
   }
 }
 

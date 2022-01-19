@@ -6,8 +6,8 @@ import FolderOpenIcon from '@material-ui/icons/FolderOpen'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
-import ListItemText from '@material-ui/core/ListItemText'
 import { connect } from 'react-redux'
+import { selectActiveSequence } from '../selectors'
 
 function ScriptSelector (props) {
   const scriptName = props.script || 'None'
@@ -78,7 +78,7 @@ function mapDispatchToProps (dispatch, props) {
 function mapStateToProps (state, props) {
   state = state.present
   return {
-    script: state.sequences[state.active_sequence].script[props.variant]
+    script: selectActiveSequence(state).script[props.variant]
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(ScriptSelector)
