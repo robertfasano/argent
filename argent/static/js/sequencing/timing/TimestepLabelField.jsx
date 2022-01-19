@@ -29,6 +29,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
+  state = state.present
   return {
     label: state.sequences[state.active_sequence].steps[props.timestep].label || '',
     skip: state.sequences[state.active_sequence].steps[props.timestep].skip || false

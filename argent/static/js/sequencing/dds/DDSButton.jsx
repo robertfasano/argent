@@ -84,6 +84,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
+  state = state.present
   const channel = state.sequences[state.active_sequence].steps[props.timestep].dds[props.ch]
 
   return {

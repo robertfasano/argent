@@ -51,6 +51,7 @@ const makeSelector = () => createSelector(
 const makeMapStateToProps = () => {
   const selector = makeSelector()
   const mapStateToProps = (state, props) => {
+    state = state.present
     return { data: selector(state, props) }
   }
   return mapStateToProps

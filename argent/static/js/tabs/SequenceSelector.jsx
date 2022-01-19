@@ -10,6 +10,8 @@ import Box from '@material-ui/core/Box'
 import Button from '@material-ui/core/Button'
 import AddIcon from '@material-ui/icons/Add'
 import LoadButton from './LoadButton.jsx'
+import UndoButton from './UndoButton.jsx'
+import RedoButton from './RedoButton.jsx'
 import { connect, shallowEqual } from 'react-redux'
 import defaultSequence from '../schema.js'
 import { createSelector } from 'reselect'
@@ -59,6 +61,12 @@ function SequenceSelector (props) {
         <ListItem>
           <LoadButton/>
         </ListItem>
+        <ListItem>
+          <UndoButton/>
+        </ListItem>
+        <ListItem>
+          <RedoButton/>
+        </ListItem>
       </List>
     </Box>
     )
@@ -100,6 +108,7 @@ const selectSequenceNames = createSelector(state => state.sequences,
 )
 
 function mapStateToProps (state, ownProps) {
+  state = state.present
   return {
     sequenceNames: selectSequenceNames(state),
     activeSequence: state.active_sequence,

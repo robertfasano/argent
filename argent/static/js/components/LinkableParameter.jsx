@@ -105,6 +105,7 @@ LinkableParameter.propTypes = {
 }
 
 function mapStateToProps (state) {
+  state = state.present
   return {
     groups: state.ui.groups,
     variables: Object.keys(state.variables),

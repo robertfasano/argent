@@ -218,6 +218,7 @@ const selectVariables = createSelector(
 )
 
 function mapStateToProps (state, props) {
+  state = state.present
   return {
     variables: selectVariables(state),
     unit: props.unit || ''

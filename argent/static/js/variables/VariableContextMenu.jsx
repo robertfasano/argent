@@ -9,7 +9,7 @@ function VariableContextMenu (props) {
   return (
     <Menu
       anchorEl={props.state.anchor}
-      open={props.open}
+      open={Boolean(props.state.anchor)}
       onClose={props.close}
     >
       <MenuItem onClick={() => props.deleteVariable()}>
@@ -42,7 +42,6 @@ VariableContextMenu.propTypes = {
 
 function mapStateToProps (state, props) {
   return {
-    open: Boolean(props.state.anchor)
   }
 }
 

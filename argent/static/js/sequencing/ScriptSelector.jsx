@@ -76,6 +76,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
+  state = state.present
   return {
     script: state.sequences[state.active_sequence].script[props.variant]
   }

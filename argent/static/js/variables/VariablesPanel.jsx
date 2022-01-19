@@ -43,6 +43,7 @@ function mapDispatchToProps (dispatch) {
 }
 
 function mapStateToProps (state) {
+  state = state.present
   return {
     variableTab: state.ui.variableTab
   }

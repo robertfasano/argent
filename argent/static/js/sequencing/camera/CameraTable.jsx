@@ -61,6 +61,7 @@ CameraTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
+  state = state.present
   return {
     channels: state.channels.cam,
     steps: state.sequences[state.active_sequence].steps

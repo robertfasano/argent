@@ -40,6 +40,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
+  state = state.present
   return {
     on: state.sequences[state.active_sequence].steps[props.timestep].ttl[props.channel],
     skip: state.sequences[state.active_sequence].steps[props.timestep].skip || false

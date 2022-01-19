@@ -60,6 +60,7 @@ TTLTable.propTypes = {
 }
 
 function mapStateToProps (state) {
+  state = state.present
   return {
     channels: state.channels.ttl,
     length: state.sequences[state.active_sequence].steps.length

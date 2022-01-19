@@ -250,6 +250,7 @@ const selectParameters = createSelector(state => state.parameters,
 )
 
 function mapStateToProps (state, props) {
+  state = state.present
   const channel = state.sequences[state.active_sequence].steps[props.timestep].adc[props.board]
   return {
     enable: channel.enable,

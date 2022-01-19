@@ -31,6 +31,7 @@ Heartbeat.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
+  state = state.present
   return {
     heartbeat: state.ui.heartbeat,
     submittedPID: state.ui.pid.submitted,

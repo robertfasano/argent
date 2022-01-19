@@ -84,6 +84,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
+  state = state.present
   return {
     duration: state.sequences[state.active_sequence].steps[props.timestep].duration,
     variables: state.variables,

@@ -31,6 +31,7 @@ TimestepLabelTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
+  state = state.present
   return {
     length: state.sequences[state.active_sequence].steps.length
   }

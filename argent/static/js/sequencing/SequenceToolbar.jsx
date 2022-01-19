@@ -174,6 +174,7 @@ const selectPlaylist = createSelector(
 )
 
 function mapStateToProps (state, props) {
+  state = state.present
   return {
     playlist: selectPlaylist(state),
     variables: state.variables,

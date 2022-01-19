@@ -74,6 +74,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
+  state = state.present
   return {
     variables: state.variables,
     parameters: state.parameters,

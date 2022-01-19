@@ -9,7 +9,7 @@ function ParameterContextMenu (props) {
   return (
     <Menu
       anchorEl={props.state.anchor}
-      open={props.open}
+      open={Boolean(props.state.anchor)}
       onClose={props.close}
     >
       <MenuItem onClick={() => props.deleteParameter()}>
@@ -33,7 +33,6 @@ function ParameterContextMenu (props) {
 
 ParameterContextMenu.propTypes = {
   state: PropTypes.object,
-  open: PropTypes.bool,
   close: PropTypes.func,
   deleteParameter: PropTypes.func,
   changeGroup: PropTypes.func,
@@ -42,7 +41,6 @@ ParameterContextMenu.propTypes = {
 
 function mapStateToProps (state, props) {
   return {
-    open: Boolean(props.state.anchor)
   }
 }
 

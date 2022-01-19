@@ -129,6 +129,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
+  state = state.present
   const parameters = {}
   for (const name of props.items) {
     parameters[name] = state.parameters[name]

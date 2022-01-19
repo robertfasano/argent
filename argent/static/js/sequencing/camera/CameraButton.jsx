@@ -203,6 +203,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
+  state = state.present
   const channel = state.sequences[state.active_sequence].steps[props.timestep].cam[props.board]
   return {
     enable: channel.enable,

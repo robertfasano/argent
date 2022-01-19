@@ -72,6 +72,7 @@ DACTimelines.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
+  state = state.present
   return {
     channels: state.channels.dac
   }

@@ -66,6 +66,7 @@ TimestepContextMenu.propTypes = {
 }
 
 function mapStateToProps (state, props) {
+  state = state.present
   let skip = false
   if (props.state.index !== null) {
     skip = state.sequences[state.active_sequence].steps[props.state.index].skip || false

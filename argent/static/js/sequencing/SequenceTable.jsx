@@ -83,6 +83,7 @@ SequenceTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
+  state = state.present
   let renderTTL = false
   if (Object.keys(state.channels).includes('ttl')) {
     if (Object.keys(state.channels.ttl).length > 0) {

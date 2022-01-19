@@ -96,6 +96,7 @@ const selectVariables = createSelector(
 )
 
 function mapStateToProps (state, props) {
+  state = state.present
   const channel = state.sequences[state.active_sequence].steps[props.timestep].dac[props.board][props.ch]
   const ramp = channel.ramp
   const mode = channel.mode

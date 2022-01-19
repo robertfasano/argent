@@ -64,6 +64,7 @@ ADCTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
+  state = state.present
   return {
     channels: state.channels.adc,
     length: state.sequences[state.active_sequence].steps.length
