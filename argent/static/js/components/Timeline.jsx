@@ -220,7 +220,8 @@ const selectVariables = createSelector(
 function mapStateToProps (state, props) {
   state = state.present
   return {
-    variables: selectVariables(state),
+    // variables: selectVariables(state),
+    variables: state.variables,
     unit: props.unit || ''
   }
 }
