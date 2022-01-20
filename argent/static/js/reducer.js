@@ -352,6 +352,14 @@ export default function reducer (state = [], action) {
         draft.sequences[state.active_sequence].steps[action.timestep].skip = action.skip
       })
 
+    case 'timestep/skipAll':
+      // Disables or enables all timesteps.
+      return produce(state, draft => {
+        for (let i in state.sequences[state.active_sequence].steps) {
+          draft.sequences[state.active_sequence].steps[i].skip = action.skip
+        }
+      })
+
     case 'timestep/duration':
       // Modify a timestep duration at a given index.
       return produce(state, draft => {

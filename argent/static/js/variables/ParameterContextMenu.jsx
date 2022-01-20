@@ -39,11 +39,6 @@ ParameterContextMenu.propTypes = {
   groups: PropTypes.array
 }
 
-function mapStateToProps (state, props) {
-  return {
-  }
-}
-
 function mapDispatchToProps (dispatch, props) {
   return {
     deleteParameter: () => {
@@ -57,4 +52,4 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ParameterContextMenu)
+export default connect(() => {}, mapDispatchToProps)(ParameterContextMenu)

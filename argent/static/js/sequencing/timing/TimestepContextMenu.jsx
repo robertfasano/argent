@@ -38,14 +38,19 @@ function TimestepContextMenu (props) {
         ? (
         <MenuItem onClick={() => props.enableTimestep(props.timestep)}>
         Enable
-      </MenuItem>
+        </MenuItem>
           )
         : (
         <MenuItem onClick={() => props.disableTimestep(props.timestep)}>
         Disable
-      </MenuItem>
+        </MenuItem>
           )}
-
+      <MenuItem onClick={() => props.skipAll(false)}>
+      Enable all
+      </MenuItem>
+      <MenuItem onClick={() => props.skipAll(true)}>
+      Disable all
+      </MenuItem>
     </Menu>
   )
 }
@@ -107,6 +112,10 @@ function mapDispatchToProps (dispatch, props) {
     },
     enableTimestep: (timestep) => {
       dispatch({ type: 'timestep/skip', timestep: timestep, skip: false })
+      props.close()
+    },
+    skipAll: (skipped) => {
+      dispatch({ type: 'timestep/skipAll', skip: skipped })
       props.close()
     }
   }
