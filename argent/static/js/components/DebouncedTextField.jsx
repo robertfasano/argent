@@ -29,6 +29,10 @@ function DebouncedTextField (props) {
     setText(newText)
   }
 
+  React.useEffect(() => {
+    setText(props.value)
+  }, [props.value])
+
   const InputProps = props.InputProps || {}
   const disabled = false || props.disabled
   const inputProps = props.centered ? { style: { textAlign: 'center' } } : {}

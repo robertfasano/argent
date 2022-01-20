@@ -8,7 +8,7 @@ import { ThemeProvider } from '@material-ui/core'
 import App from './js/App.jsx'
 import theme from './js/theme.js'
 import defaultSequence from './js/schema.js'
-import undoable, { excludeAction, groupByActionTypes } from 'redux-undo'
+import undoable, { excludeAction } from 'redux-undo'
 
 function defaultStore (channels, sequences, version) {
   const state = {}
@@ -36,6 +36,7 @@ export function createGUI (sequences, channels, version) {
   const state = defaultStore(channels, sequences, version)
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
   const enhancer = composeEnhancers(persistState(['sequences', 'active_sequence', 'playlist', 'ui', 'variables', 'parameters']))
+   
   const store = createStore(undoable(reducer, { filter: excludeAction(['ui/heartbeat', 'parameters/update']) }), state, enhancer)
   // const store = createStore(reducer, state, enhancer)
 
