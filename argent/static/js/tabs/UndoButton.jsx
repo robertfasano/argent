@@ -7,14 +7,22 @@ import { ActionCreators } from 'redux-undo'
 
 function UndoButton (props) {
   return (
-    <Button onClick={() => props.dispatch(ActionCreators.undo())}>
+    <Button onClick={() => props.dispatch(ActionCreators.undo())} disabled={props.pastStates === 0}>
       <UndoIcon/>
     </Button>
   )
 }
 
 UndoButton.propTypes = {
-  dispatch: PropTypes.func
+  dispatch: PropTypes.func,
+  pastStates: PropTypes.number
 }
 
-export default connect()(UndoButton)
+const mapStateToProps = (state, props) => {
+    return {
+      pastStates: state.past.length
+    }
+  }
+  export default connect(mapStateToProps)(UndoButton)
+
+
