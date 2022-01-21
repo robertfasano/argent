@@ -30,6 +30,7 @@ class App:
         if 'influx' in self.config:
             self.influx = InfluxDBClient(self.config['influx'])
 
+        self.processes = []
         self.variables = {}
         self.parameters = {}
         self.results = {'variables': {}, 'parameters': {}}
@@ -83,8 +84,11 @@ class App:
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             env_name = self.config['environment_name']
-            os.system(f'start "" cmd /k "call activate {env_name} & artiq_run generated_experiment.py --device-db {self.device_db}"')
-
+            proc = subprocess.Popen(f'cmd /k "call activate {env_name} & artiq_run generated_experiment.py --device-db {self.device_db}"', creationflags=subprocess.CREATE_NEW_CONSOLE)
+            self.processes.append(proc)
+            if len(self.processes) >= 3:
+                self.processes[0].terminate()
+                self.processes.pop(0)
             return json.dumps(code)
 
         @self.app.route("/channels")
