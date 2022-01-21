@@ -19,10 +19,10 @@ function LinkableParameter (props) {
   }
 
   const setConstantMode = () => {
-    const currentInputValue = props.variables[props.value.split('self.')[1]]
+    const currentInputValue = props.variables[props.value.split('self.')[1]] || ''
     props.onChange(currentInputValue)
   }
-  
+
   const [inputValue, setInputValue] = React.useState('')
 
   const options = []
@@ -57,6 +57,7 @@ function LinkableParameter (props) {
             onInputChange={(event, newInputValue) => {
               setInputValue(newInputValue)
             }}
+            style={{ width: '250px'}}
             />
           </Grid>
           <Grid item xs={2}>
@@ -75,7 +76,7 @@ function LinkableParameter (props) {
                         onChange = {(value) => props.onChange(value)}
                         unit = {props.unit}
                         label={props.label}
-                        style={{ width: '100%' }}
+                        style={{ width: '250px' }}
             />
           </Grid>
           <Grid item xs={2}>
