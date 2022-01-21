@@ -22,24 +22,23 @@ function LinkableParameter (props) {
     const currentInputValue = props.variables[props.value.split('self.')[1]]
     props.onChange(currentInputValue)
   }
-
+  
   const [inputValue, setInputValue] = React.useState('')
 
-  const options = [...props.variables, ...props.parameters]
+  const options = []
+  const groups = {}
+  for (const [group, vars] of Object.entries(props.groups.variables)) {
+    for (let name of vars.slice().sort()) {    // slice is used to create a new array to allow sorting
+      options.push(name)
+      groups[name] = group
 
-  const getGroup = (variable) => {
-    if (props.variables.includes(variable)) {
-      for (const [group, vars] of Object.entries(props.groups.variables)) {
-        if (vars.includes(variable)) return group
-      }
     }
-
-    if (props.parameters.includes(variable)) {
-      for (const [group, vars] of Object.entries(props.groups.parameters)) {
-        if (vars.includes(variable)) return group
-      }
+  }
+  for (const [group, vars] of Object.entries(props.groups.parameters)) {
+    for (let name of vars.slice().sort()) {
+      options.push(name)
+      groups[name] = group
     }
-    return 'uncategorized'
   }
 
   return (
@@ -54,7 +53,7 @@ function LinkableParameter (props) {
             renderInput={(params) => <TextField {...params} label={props.label} />}
             onChange = {(event, newValue) => props.onChange('self.' + newValue)}
             inputValue={inputValue}
-            groupBy={getGroup}
+            groupBy={(option) => groups[option]}
             onInputChange={(event, newInputValue) => {
               setInputValue(newInputValue)
             }}
