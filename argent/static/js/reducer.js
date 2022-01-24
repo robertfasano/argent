@@ -284,11 +284,6 @@ export default function reducer (state = [], action) {
           }
         }
 
-        for (const [key, val] of Object.entries(sequence.parameters)) {
-          if (state.parameters[key] !== val) {
-            if (confirm(`Overwrite parameter ${key} with value ${val} (previously ${state.parameters[key]})?`)) draft.parameters[key] = val
-          }
-        }
         for (const group of Object.keys(sequence.ui.groups.variables)) {
           draft.ui.groups.variables[group] = [...new Set([...state.ui.groups.variables[group] || [], ...sequence.ui.groups.variables[group]])]
         }
