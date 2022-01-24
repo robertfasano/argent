@@ -5,7 +5,7 @@ import TableCell from '@material-ui/core/TableCell'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
 import DDSAttenuationPopover from './DDSAttenuationPopover.jsx'
-import { selectTimestep } from '../../selectors.js'
+import { selectTimestep, selectPresentState } from '../../selectors.js'
 
 function DDSButton (props) {
   // A Button which opens a Popover allowing the user to define the state of a
@@ -85,7 +85,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  state = state.present
+  state = selectPresentState(state)
   const timestep = selectTimestep(state, props.timestep)
   const channel = timestep.dds[props.ch]
 

@@ -6,6 +6,7 @@ import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import ParameterTable from './ParameterTable.jsx'
 import VariableTable from './VariableTable.jsx'
+import { selectPresentState } from '../selectors'
 
 function VariablesPanel (props) {
   return (
@@ -43,7 +44,7 @@ function mapDispatchToProps (dispatch) {
 }
 
 function mapStateToProps (state) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     variableTab: state.ui.variableTab
   }

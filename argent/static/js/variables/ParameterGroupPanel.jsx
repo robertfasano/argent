@@ -18,6 +18,7 @@ import IconButton from '@material-ui/core/IconButton'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import ClearIcon from '@material-ui/icons/Clear'
+import { selectPresentState } from '../selectors'
 
 function ParameterGroupPanel (props) {
   const expanded = props.expanded.includes(props.group)
@@ -129,7 +130,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  state = state.present
+  state = selectPresentState(state)
   const parameters = {}
   for (const name of props.items) {
     parameters[name] = state.parameters[name]

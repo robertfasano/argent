@@ -7,6 +7,7 @@ import VariableGroupPanel from './VariableGroupPanel.jsx'
 import VariableContextMenu from './VariableContextMenu.jsx'
 import Button from '@material-ui/core/Button'
 import CreateNewFolderIcon from '@material-ui/icons/CreateNewFolder'
+import { selectPresentState } from '../selectors'
 
 function VariableTable (props) {
   const [menu, setMenu] = React.useState({ anchor: null, name: null })
@@ -65,7 +66,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  state = state.present
+  state = selectPresentState(state)
   const groups = state.ui.groups.variables
 
   return {

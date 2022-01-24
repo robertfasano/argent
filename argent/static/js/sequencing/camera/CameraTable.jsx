@@ -8,7 +8,7 @@ import { connect } from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import CameraButton from './CameraButton.jsx'
-import { selectActiveSequence } from '../../selectors.js'
+import { selectActiveSequence, selectPresentState } from '../../selectors.js'
 
 function CameraTable (props) {
   return (
@@ -62,7 +62,7 @@ CameraTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     channels: state.channels.cam,
     steps: selectActiveSequence(state).steps

@@ -10,6 +10,7 @@ import { post } from '../utilities.js'
 import { v4 as uuidv4 } from 'uuid'
 import { createSelector } from 'reselect'
 import PlaylistPlayIcon from '@material-ui/icons/PlaylistPlay'
+import { selectPresentState } from '../selectors'
 
 function PlaylistPanel (props) {
   function submit (playlist) {
@@ -74,7 +75,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     variables: state.variables,
     parameters: state.parameters,

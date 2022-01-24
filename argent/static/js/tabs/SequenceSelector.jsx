@@ -15,6 +15,7 @@ import RedoButton from './RedoButton.jsx'
 import { connect, shallowEqual } from 'react-redux'
 import defaultSequence from '../schema.js'
 import { createSelector } from 'reselect'
+import { selectPresentState } from '../selectors'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -108,7 +109,7 @@ const selectSequenceNames = createSelector(state => state.sequences,
 )
 
 function mapStateToProps (state, ownProps) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     sequenceNames: selectSequenceNames(state),
     activeSequence: state.active_sequence,

@@ -13,7 +13,7 @@ import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
 import FormControl from '@material-ui/core/FormControl'
 import InputLabel from '@material-ui/core/InputLabel'
-import { selectTimestep } from '../../selectors.js'
+import { selectTimestep, selectPresentState } from '../../selectors.js'
 
 function CameraButton (props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
@@ -197,7 +197,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  state = state.present
+  state = selectPresentState(state)
   const channel = selectTimestep(state, props.timestep).cam[props.board]
   return {
     enable: channel.enable,

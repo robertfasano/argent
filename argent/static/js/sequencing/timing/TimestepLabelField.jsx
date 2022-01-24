@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import TextField from '@material-ui/core/TextField'
-import { selectTimestep } from '../../selectors.js'
+import { selectTimestep, selectPresentState } from '../../selectors.js'
 
 function TimestepLabelField (props) {
   // A button which opens a popover allowing timestep durations to be defined or linked to variables
@@ -30,7 +30,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  state = state.present
+  state = selectPresentState(state)
   const timestep = selectTimestep(state, props.timestep)
   return {
     label: timestep.label || '',

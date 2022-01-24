@@ -5,6 +5,7 @@ import FavoriteIcon from '@material-ui/icons/Favorite'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
+import { selectPresentState } from '../selectors'
 
 function Heartbeat (props) {
   const loading = props.submittedPID != null && props.submittedPID !== props.activePID
@@ -31,7 +32,7 @@ Heartbeat.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     heartbeat: state.ui.heartbeat,
     submittedPID: state.ui.pid.submitted,

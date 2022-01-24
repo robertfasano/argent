@@ -22,6 +22,7 @@ import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import ClearIcon from '@material-ui/icons/Clear'
 import DebouncedTextField from '../components/DebouncedTextField.jsx'
 import { createSelector } from 'reselect'
+import { selectPresentState } from '../selectors.js'
 
 function VariableGroupPanel (props) {
   const expanded = props.expanded.includes(props.group)
@@ -157,7 +158,7 @@ const makeSelector = () => createSelector(
 const makeMapStateToProps = () => {
   const selectVariables = makeSelector()
   const mapStateToProps = (state, props) => {
-    state = state.present
+    state = selectPresentState(state)
     return { variables: selectVariables(state, props) }
   }
   return mapStateToProps

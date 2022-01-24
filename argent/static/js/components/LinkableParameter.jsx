@@ -9,6 +9,7 @@ import LinkOffIcon from '@material-ui/icons/LinkOff'
 import IconButton from '@material-ui/core/IconButton'
 import Autocomplete from '@mui/material/Autocomplete'
 import { connect } from 'react-redux'
+import { selectPresentState } from '../selectors'
 
 function LinkableParameter (props) {
   const variableMode = String(props.value).includes('self.')
@@ -105,7 +106,7 @@ LinkableParameter.propTypes = {
 }
 
 function mapStateToProps (state) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     groups: state.ui.groups,
     variables: Object.keys(state.variables),

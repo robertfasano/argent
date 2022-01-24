@@ -8,7 +8,7 @@ import ModeSelector from '../ModeSelector.jsx'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
 import TextField from '@material-ui/core/TextField'
 import { createSelector } from 'reselect'
-import { selectTimestep } from '../../selectors.js'
+import { selectTimestep, selectPresentState } from '../../selectors.js'
 
 function DDSFrequencyPopover (props) {
   return (
@@ -96,7 +96,7 @@ const selectVariables = createSelector(
 )
 
 function mapStateToProps (state, props) {
-  state = state.present
+  state = selectPresentState(state)
   const channel = selectTimestep(state, props.timestep).dds[props.ch]
 
   return {

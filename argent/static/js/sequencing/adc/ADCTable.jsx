@@ -9,7 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import ADCButton from './ADCButton.jsx'
 import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
-import { selectActiveSequence } from '../../selectors.js'
+import { selectActiveSequence, selectPresentState } from '../../selectors.js'
 
 function ADCTable (props) {
   return (
@@ -65,7 +65,7 @@ ADCTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     channels: state.channels.adc,
     length: selectActiveSequence(state).steps.length

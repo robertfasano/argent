@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import DDSFrequencyTimeline from './DDSFrequencyTimeline.jsx'
 import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
+import { selectPresentState } from '../../selectors'
 
 function DDSFrequencyTable (props) {
   return (
@@ -55,7 +56,7 @@ DDSFrequencyTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     channels: state.channels.dds
   }

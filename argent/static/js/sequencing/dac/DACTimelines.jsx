@@ -10,6 +10,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import DACTimeline from './DACTimeline.jsx'
 import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
+import { selectPresentState } from '../../selectors'
 
 function DACTimelines (props) {
   return (
@@ -72,7 +73,7 @@ DACTimelines.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     channels: state.channels.dac
   }

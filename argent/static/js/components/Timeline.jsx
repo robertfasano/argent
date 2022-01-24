@@ -6,6 +6,7 @@ import TableCell from '@material-ui/core/TableCell'
 import PropTypes from 'prop-types'
 import { countBy } from 'lodash'
 import { createSelector } from 'reselect'
+import { selectPresentState } from '../selectors'
 
 function Timeline (props) {
   // through props, receives an array of RTIO states for all timesteps
@@ -218,7 +219,7 @@ const selectVariables = createSelector(
 )
 
 function mapStateToProps (state, props) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     // variables: selectVariables(state),
     variables: state.variables,

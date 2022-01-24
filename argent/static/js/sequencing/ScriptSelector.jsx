@@ -7,7 +7,7 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import { connect } from 'react-redux'
-import { selectActiveSequence } from '../selectors'
+import { selectActiveSequence, selectPresentState } from '../selectors'
 
 function ScriptSelector (props) {
   const scriptName = props.script || 'None'
@@ -76,7 +76,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     script: selectActiveSequence(state).script[props.variant]
   }

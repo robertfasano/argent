@@ -6,7 +6,7 @@ import Button from '@material-ui/core/Button'
 import Duration from './Duration.jsx'
 import { connect } from 'react-redux'
 import AddIcon from '@material-ui/icons/Add'
-import { selectSequenceLength } from '../../selectors'
+import { selectSequenceLength, selectPresentState } from '../../selectors'
 
 function TimestepTable (props) {
   // A row of buttons representing the durations of all steps in the sequence
@@ -42,7 +42,7 @@ TimestepTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     length: selectSequenceLength(state)
   }

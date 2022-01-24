@@ -18,7 +18,7 @@ import { post } from '../utilities.js'
 import CodeIcon from '@material-ui/icons/Code'
 import { merge } from 'lodash'
 import { createSelector } from 'reselect'
-import { selectActiveSequence } from '../selectors.js'
+import { selectActiveSequence, selectPresentState } from '../selectors.js'
 
 const flexContainer = {
   display: 'flex',
@@ -175,7 +175,7 @@ const selectPlaylist = createSelector(
 )
 
 function mapStateToProps (state, props) {
-  state = state.present
+  state = selectPresentState(state)
   return {
     playlist: selectPlaylist(state),
     variables: state.variables,

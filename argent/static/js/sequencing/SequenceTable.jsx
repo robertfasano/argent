@@ -17,7 +17,7 @@ import ADCTable from './adc/ADCTable.jsx'
 import CameraTable from './camera/CameraTable.jsx'
 import SequenceToolbar from './SequenceToolbar.jsx'
 import ScriptPopover from './ScriptPopover.jsx'
-import { selectSequenceLength } from '../selectors'
+import { selectPresentState, selectSequenceLength } from '../selectors'
 
 function SequenceTable (props) {
   // Displays a grid of widgets allowing sequences to be defined.
@@ -84,7 +84,7 @@ SequenceTable.propTypes = {
 }
 
 function mapStateToProps (state, ownProps) {
-  state = state.present
+  state = selectPresentState(state)
   let renderTTL = false
   if (Object.keys(state.channels).includes('ttl')) {
     if (Object.keys(state.channels.ttl).length > 0) {
