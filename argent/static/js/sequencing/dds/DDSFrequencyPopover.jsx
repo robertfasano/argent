@@ -6,9 +6,9 @@ import Typography from '@material-ui/core/Typography'
 import { connect, shallowEqual } from 'react-redux'
 import ModeSelector from '../ModeSelector.jsx'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
-import TextField from '@material-ui/core/TextField'
 import { createSelector } from 'reselect'
 import { selectTimestep, selectPresentState } from '../../selectors.js'
+import Ramp from '../Ramp.jsx'
 
 function DDSFrequencyPopover (props) {
   return (
@@ -41,19 +41,7 @@ function DDSFrequencyPopover (props) {
           }
 
           {props.frequency.mode === 'ramp'
-            ? (
-              <>
-                <LinkableParameter value={props.frequency.ramp.start} onChange={(value) => props.update('dds/frequency/ramp/start', value)} label='Start' unit='MHz'/>
-                <LinkableParameter value={props.frequency.ramp.stop} onChange={(value) => props.update('dds/frequency/ramp/stop', value)} label='Stop' unit='MHz'/>
-                <Box mx={1}>
-                  <TextField label='Steps'
-                            value={props.frequency.ramp.steps}
-                            onChange={(event) => props.update('dds/frequency/ramp/steps', event.target.value)}
-                            InputLabelProps={{ shrink: true }}
-                  />
-                </Box>
-              </>
-              )
+            ? <Ramp prefix='dds/frequency' ramp={props.frequency.ramp} update={props.update} unit='MHz'/>
             : null}
         </Box>
       </Popover>

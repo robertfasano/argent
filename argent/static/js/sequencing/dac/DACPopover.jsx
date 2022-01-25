@@ -9,6 +9,7 @@ import { connect, shallowEqual } from 'react-redux'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
 import { createSelector } from 'reselect'
 import { selectTimestep, selectPresentState } from '../../selectors.js'
+import Ramp from '../Ramp.jsx'
 
 function DACPopover (props) {
   return (
@@ -43,19 +44,7 @@ function DACPopover (props) {
         }
 
         {props.mode === 'ramp'
-          ? (
-            <>
-              <LinkableParameter value={props.ramp.start} onChange={(value) => props.update('dac/ramp/start', value)} label='Start' unit='V'/>
-              <LinkableParameter value={props.ramp.stop} onChange={(value) => props.update('dac/ramp/stop', value)} label='Stop' unit='V'/>
-              <Box mx={1}>
-                <TextField label='Steps'
-                          value={props.ramp.steps}
-                          onChange={(event) => props.update('dac/ramp/steps', event.target.value)}
-                          InputLabelProps={{ shrink: true }}
-                />
-              </Box>
-            </>
-            )
+          ? <Ramp prefix='dac' ramp={props.ramp} update={props.update} unit='V'/>
           : null}
 
         </Box>

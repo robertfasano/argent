@@ -6,9 +6,9 @@ import Typography from '@material-ui/core/Typography'
 import { connect, shallowEqual } from 'react-redux'
 import ModeSelector from '../ModeSelector.jsx'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
-import TextField from '@material-ui/core/TextField'
 import { createSelector } from 'reselect'
 import { selectPresentState, selectTimestep } from '../../selectors.js'
+import Ramp from '../Ramp.jsx'
 
 function DDSAttenuationPopover (props) {
   return (
@@ -40,19 +40,7 @@ function DDSAttenuationPopover (props) {
         }
 
         {props.attenuation.mode === 'ramp'
-          ? (
-            <>
-              <LinkableParameter value={props.attenuation.ramp.start} onChange={(value) => props.update('dds/attenuation/ramp/start', value)} label='Start' unit='dB'/>
-              <LinkableParameter value={props.attenuation.ramp.stop} onChange={(value) => props.update('dds/attenuation/ramp/stop', value)} label='Stop' unit='dB'/>
-              <Box mx={1}>
-                <TextField label='Steps'
-                          value={props.attenuation.ramp.steps}
-                          onChange={(event) => props.update('dds/attenuation/ramp/steps', event.target.value)}
-                          InputLabelProps={{ shrink: true }}
-                />
-              </Box>
-            </>
-            )
+          ? <Ramp prefix='dds/attenuation' ramp={props.attenuation.ramp} update={props.update} unit='MHz'/>
           : null}
 
       </Box>
