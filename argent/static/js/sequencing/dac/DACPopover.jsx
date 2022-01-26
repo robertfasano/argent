@@ -10,6 +10,7 @@ import LinkableParameter from '../../components/LinkableParameter.jsx'
 import { createSelector } from 'reselect'
 import { selectTimestep, selectPresentState } from '../../selectors.js'
 import Ramp from '../Ramp.jsx'
+import Spline from '../Spline.jsx'
 
 function DACPopover (props) {
   return (
@@ -36,6 +37,7 @@ function DACPopover (props) {
                       value={props.mode}
                       onChange = {(event) => props.update('dac/mode', event.target.value)}
                       ramp={true}
+                      spline={true}
         />
 
         {(props.mode === 'setpoint')
@@ -45,6 +47,10 @@ function DACPopover (props) {
 
         {props.mode === 'ramp'
           ? <Ramp prefix='dac' ramp={props.ramp} update={props.update} unit='V'/>
+          : null}
+
+        {props.mode === 'spline'
+          ? <Spline prefix='dac' spline={props.spline} update={props.update} unit='V'/>
           : null}
 
         </Box>
@@ -63,7 +69,8 @@ DACPopover.propTypes = {
   update: PropTypes.func,
   anchorPosition: PropTypes.array,
   open: PropTypes.bool,
-  setOpen: PropTypes.func
+  setOpen: PropTypes.func,
+  spline: PropTypes.array
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -90,11 +97,13 @@ function mapStateToProps (state, props) {
   const channel = selectTimestep(state, props.timestep).dac[props.board][props.ch]
   const ramp = channel.ramp
   const mode = channel.mode
+  const spline = channel.spline
   return {
     mode: mode,
     setpoint: channel.setpoint,
     ramp: ramp,
-    variables: selectVariables(state)
+    variables: selectVariables(state),
+    spline: spline
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(DACPopover)

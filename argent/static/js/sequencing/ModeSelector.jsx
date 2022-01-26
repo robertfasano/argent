@@ -14,8 +14,10 @@ function ModeSelector (props) {
       <FormControl component="fieldset">
         <FormLabel component="legend">{props.label}</FormLabel>
         <RadioGroup row value={props.value} onChange={props.onChange}>
-          <FormControlLabel value="setpoint" control={<Radio />} label="Setpoint" />
+          <FormControlLabel value="setpoint" control={<Radio />} label="Constant" />
           <FormControlLabel value="ramp" disabled={!props.ramp} control={<Radio />} label="Ramp" />
+          <FormControlLabel value="spline" disabled={!props.spline} control={<Radio />} label="Spline" />
+
         </RadioGroup>
       </FormControl>
     </Box>

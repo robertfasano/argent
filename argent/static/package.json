@@ -24,6 +24,7 @@
     "axios": "^0.21.1",
     "babel-loader": "^8.2.2",
     "babel-preset-react": "^6.24.1",
+    "everpolate": "^0.0.3",
     "flat": "^5.0.2",
     "highcharts": "^9.1.2",
     "highcharts-react-official": "^3.0.0",

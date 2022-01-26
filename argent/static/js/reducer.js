@@ -127,8 +127,27 @@ export default function reducer (state = [], action) {
     case 'dac/ramp/steps':
       return produce(state, draft => {
         const channels = Object.keys(selectTimestep(state, action.path.timestep).dac[action.path.board])
+        let steps = action.value
+        if (steps == 1) steps = 10
         for (const ch of channels) {
-          draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][ch].ramp.steps = action.value
+          draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][ch].ramp.steps = steps
+          draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][ch].spline.steps = steps
+        }
+      })
+
+    case 'dac/spline/points':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][action.path.ch].spline.points = action.value
+      })
+
+    case 'dac/spline/steps':
+      return produce(state, draft => {
+        const channels = Object.keys(selectTimestep(state, action.path.timestep).dac[action.path.board])
+        let steps = action.value
+        if (steps == 1) steps = 10
+        for (const ch of channels) {
+          draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][ch].ramp.steps = steps
+          draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][ch].spline.steps = steps
         }
       })
 

@@ -35,14 +35,17 @@ class Urukul:
 
     def ramp(self, step):
         ''' Only one channel can be ramped at once '''
-        if step['dds'][self.channel].get('frequency', {}).get('mode', {}) != 'ramp':
+        if step['dds'][self.channel].get('frequency', {}).get('mode', {}) == 'setpoint':
             return ''
-        ramp = step['dds'][self.channel]['frequency']['ramp']
-        ramp_cmd = ''
-        duration = f'{step["duration"]}*ms'
-        ramp_cmd += f"ramp_DDS(self.{self.channel}, {ramp['start']}, {ramp['stop']}, {ramp['steps']}, {duration}, now)\n"
-        ramp_cmd = ramp_cmd.replace("'", "") 
-        return ramp_cmd
+
+        if step['dds'][self.channel].get('frequency', {}).get('mode', {}) == 'ramp':
+            ramp = step['dds'][self.channel]['frequency']['ramp']
+            ramp_cmd = ''
+            duration = f'{step["duration"]}*ms'
+            ramp_cmd += f"ramp_DDS(self.{self.channel}, {ramp['start']}, {ramp['stop']}, {ramp['steps']}, {duration}, now)\n"
+            ramp_cmd = ramp_cmd.replace("'", "") 
+            return ramp_cmd
+
 
 class Zotino:
     ''' A container for code generation related to Zotino DAC boards. '''
@@ -66,24 +69,61 @@ class Zotino:
             return None
         return f'self.{self.board}.set_dac({voltages}, {channels})\n'.replace("'", "")
 
+    # def ramp(self, step):
+    #     ''' Assembles a set of start and stop points, then calls the ramp function '''
+    #     channels = []
+    #     starts = []
+    #     stops = []
+    #     steps = 0
+    #     for ch, state in step['dac'][self.board].items():
+    #         if state['mode'] != 'ramp':
+    #             continue
+    #         channels.append(int(ch.split(self.board)[1]))
+
+    #         steps = int(state['ramp']['steps'])
+    #         starts.append(state['ramp']['start'])
+    #         stops.append(state['ramp']['stop'] )
+
+    #     if steps == 0:
+    #         return ''
+    #     ramp_cmd = ''
+    #     duration = f'{step["duration"]}*ms'
+    #     ramp_cmd += f"ramp(self.{self.board}, {channels}, {starts}, {stops}, {steps}, {duration}, now)\n"
+    #     ramp_cmd = ramp_cmd.replace("'", "")
+    #     return ramp_cmd
+
     def ramp(self, step):
+        ''' Prepares a set of points for all channels in either 'ramp' or 'spline' mode. 'Ramp' mode is treated
+            as a special case of the more general spline mode.
+        '''
         channels = []
-        starts = []
-        stops = []
+        points = []
         steps = 0
+
+        ## collect raw points for all ramps and splines
         for ch, state in step['dac'][self.board].items():
-            if state['mode'] != 'ramp':
-                continue
-            channels.append(int(ch.split(self.board)[1]))
+            if state['mode'] == 'ramp':
+                points.append([state['ramp']['start'], state['ramp']['stop']])
+                steps = int(state['ramp']['steps'])
+                channels.append(int(ch.split(self.board)[1]))
 
-            steps = int(state['ramp']['steps'])
-            starts.append(state['ramp']['start'])
-            stops.append(state['ramp']['stop'] )
+            elif state['mode'] == 'spline':
+                points.append(state['spline']['points'])
+                steps = int(state['spline']['steps'])
+                channels.append(int(ch.split(self.board)[1]))
 
-        if steps == 0:
-            return ''
-        ramp_cmd = ''
         duration = f'{step["duration"]}*ms'
-        ramp_cmd += f"ramp(self.{self.board}, {channels}, {starts}, {stops}, {steps}, {duration}, now)\n"
-        ramp_cmd = ramp_cmd.replace("'", "")
-        return ramp_cmd
+        ## interpolate raw points
+        ## note: we need to be able to define splines with variables; therefore, the interpolation needs to be done at runtime
+        ## this is handled by having strings represented variables, e.g. "self.spline_start"
+        ## the final generated command should have a .replace("'", "")
+        cmd = ''
+        cmd += f'spline_points={points}\n'
+        cmd += f'interpolated_points = spline_ramp(spline_points, {steps})\n'
+        cmd += f'write_dac_ramp(self.{self.board}, {channels}, interpolated_points, {duration}, now)\n'
+        cmd = cmd.replace("'", "")
+
+        return cmd
+
+
+

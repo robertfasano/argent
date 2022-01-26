@@ -7,6 +7,7 @@ import PropTypes from 'prop-types'
 import { countBy } from 'lodash'
 import { createSelector } from 'reselect'
 import { selectPresentState } from '../selectors'
+import { polynomial, step } from 'everpolate'
 
 function Timeline (props) {
   // through props, receives an array of RTIO states for all timesteps
@@ -16,7 +17,6 @@ function Timeline (props) {
   const xi = []
   const yi = []
   const implicitIndices = []
-
   // calculate start points of each step (which may be NaN for undefined steps)
   for (const data of props.data) {
     if (data.mode === 'setpoint') {
@@ -25,6 +25,10 @@ function Timeline (props) {
     } else if (data.mode === 'ramp') {
       starts.push(parseLinkedParameter(data.ramp.start, props.variables))
       stops.push(parseLinkedParameter(data.ramp.stop, props.variables))
+    } else if (data.mode === 'spline') {
+      const spline = data.spline.points
+      starts.push(parseLinkedParameter(spline[0], props.variables))   // placeholder
+      stops.push(parseLinkedParameter(spline[spline.length-1], props.variables))
     }
   }
 
@@ -49,20 +53,35 @@ function Timeline (props) {
     arrayRotate(stops, true)
   }
 
-  // determine coordinates of midpoints (node locations)
-  for (let i = 0; i < starts.length; i++) {
-    nodes.push([i + 0.5, (starts[i] + stops[i]) / 2])
-  }
 
+ 
   // generate interpolated coordinates for drawing the full timeline
   for (let i = 0; i < starts.length; i++) {
-    xi.push(...linspace(i, i + 1, 100))
-    if (starts[i] === stops[i]) yi.push(...Array(100).fill(starts[i]))
-    else yi.push(...linspace(starts[i], stops[i], 100))
+    const x0 = linspace(i, i+1, 100)
+    xi.push(...x0)
+    if (props.data[i].mode === 'spline') {
+      const spline = props.data[i].spline.points
+      const interpolator = polynomial(x0, linspace(i, i+1, spline.length), spline.map(Number))   // form high-resolution idealized spline
+      const downsamplingFactor = Math.round(100 / props.data[i].spline.steps)
+      const discretizedSpline = interpolator.filter((value, index) => index % downsamplingFactor == 0) // downsample spline to number of steps
+      const filledSpline = step(x0, linspace(i, i+1, discretizedSpline.length), discretizedSpline)
+      yi.push(...filledSpline)
+    }
+
+    else if (starts[i] === stops[i]) yi.push(...Array(100).fill(starts[i]))
+    else {
+      yi.push(...step(x0, linspace(i, i+1, props.data[i].ramp.steps), linspace(starts[i], stops[i], props.data[i].ramp.steps)))
+    }
   }
 
-  let min = Math.min(...slice(nodes, 1), ...starts, ...stops)
-  let max = Math.max(...slice(nodes, 1), ...starts, ...stops)
+  // determine coordinates of midpoints (node locations)
+  for (let i = 0; i < starts.length; i++) {
+    if (props.data[i].mode === 'spline') nodes.push([i + 0.5, yi[500*i+50]])
+    else nodes.push([i + 0.5, (starts[i] + stops[i]) / 2])
+  }
+
+  let min = Math.min(...yi)
+  let max = Math.max(...yi)
   if (min === 0 && max === 0) {
     min = -1
     max = 1
@@ -79,7 +98,7 @@ function Timeline (props) {
     } else {
       points[index].color = '#67001a'
       points[index].marker = { enabled: true, radius: 3, symbol: 'circle' }
-      points[index].dataLabels = { enabled: true, format: '{y} ' + props.unit }
+      if (props.data[index].mode === 'setpoint') points[index].dataLabels = { enabled: true, format: '{y} ' + props.unit }
     }
   }
   const margin = 0.01
@@ -159,11 +178,11 @@ Timeline.propTypes = {
 function arange (start, stop, step) {
   const arr = []
   if (start < stop) {
-    for (let i = start; i < stop; i += step) {
+    for (let i = start; i <= stop; i += step) {
       arr.push(i)
     }
   } else {
-    for (let i = start; i > stop; i += step) {
+    for (let i = start; i >= stop; i += step) {
       arr.push(i)
     }
   }
@@ -171,8 +190,10 @@ function arange (start, stop, step) {
 }
 
 function linspace (start, stop, points) {
-  return arange(start, stop, (stop - start) / points)
+  return arange(start, stop, (stop - start) / (points-1))
 }
+
+
 
 function stack (arr1, arr2) {
   const arr = []

@@ -6,7 +6,6 @@ import RedoIcon from '@material-ui/icons/Redo'
 import { ActionCreators } from 'redux-undo'
 
 function RedoButton (props) {
-  console.log(props.futureStates, props.futureStates === 0)
   return (
     <Button onClick={() => props.dispatch(ActionCreators.redo())} disabled={props.futureStates === 0}>
       <RedoIcon/>
