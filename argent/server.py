@@ -34,6 +34,7 @@ class App:
         self.variables = {}
         self.parameters = {}
         self.results = {'variables': {}, 'parameters': {}}
+        self.queued_points = []
 
         self.app = Flask(__name__)
         self.socketio = SocketIO(self.app)
@@ -127,7 +128,17 @@ class App:
                 return ''
 
             elif request.method == 'GET':
-                return json.dumps(self.variables)
+                vars = self.variables
+                source = request.args.get('source', default=None)
+
+                if source == 'ARTIQ':
+                    if len(self.queued_points) > 0:
+                        point = self.queued_points.pop(0)
+                        print(point)
+                        for key, val in point.items():
+                            vars[key] = val
+
+                return json.dumps(vars)
 
         @self.app.route("/parameters", methods=['GET', 'POST'])
         def parameters():
@@ -164,6 +175,36 @@ class App:
 
             elif request.method == 'GET':
                 return json.dumps(self.results)
+
+        @self.app.route("/sweep", methods=['GET', 'POST'])
+        def sweep(): 
+            if request.method == 'POST':
+                if request.json['legend_name'] is not None:
+                    for z in request.json['legend_values']:
+                        for i in range(request.json['sweeps']):
+                            for x in request.json['values']:
+                                point = {request.json['legend_name']: z, request.json['name']: x}
+                                self.queued_points.append(point)
+                else:
+                    for i in range(request.json['sweeps']):
+                        for x in request.json['values']:
+                            point = {request.json['name']: x}
+                            self.queued_points.append(point)
+
+            return json.dumps(len(self.queued_points) > 0)
+
+ 
+        @self.app.route("/queue", methods=['GET', 'POST'])
+        def queue():
+            ''' Allows experimental points to be queued in advance '''
+            if request.method == 'POST':
+                mode = request.json.get('mode', 'append')
+                if mode == 'append':
+                    self.queued_points.extend(request.json['values'])
+                elif mode == 'write':
+                    self.queued_points = request.json['values']
+
+            return json.dumps(self.queued_points)           
 
         @self.app.route("/heartbeat", methods=['POST'])
         def heartbeat():

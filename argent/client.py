@@ -1,5 +1,6 @@
 import socketio
 import pandas as pd
+import numpy as np
 import requests
 import datetime 
 from .dataset import Dataset
@@ -52,7 +53,6 @@ class Client:
         ''' Simulate a live experiment for testing. '''
         from threading import Thread
         import time
-        import numpy as np
         requests.post(f'http://{self.address}/variables', json={'x': 1, 'A': 1})
         
         self.mock_active = True
@@ -81,5 +81,7 @@ class Client:
             raise Exception(f'Variable {name} does not exist!')
         requests.post(f"http://{self.address}/variables", json={name: value})
 
-    def sweep(self, x, start, stop, steps, averages=1, sweeps=1, plot=None, legend=None):
-        return Sweep(self, x, start, stop, steps, averages=averages, sweeps=sweeps, plot=plot, legend=legend)
+    def sweep(self, x, start, stop, steps, sweeps=1, plot=None, legend=None):
+        return Sweep(self, x, start, stop, steps, sweeps=sweeps, plot=plot, legend=legend)
+
+

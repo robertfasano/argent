@@ -52,7 +52,7 @@ def __heartbeat__(self, stage, stage_name, cycle, addr):
 @rpc(flags={"async"})
 def __pull__(self, addr):
     try:
-        self.variables = requests.get("http://{}/variables".format(addr)).json()
+        self.variables = requests.get("http://{}/variables?source=ARTIQ".format(addr)).json()
     except Exception as e:
         print(e)
 
