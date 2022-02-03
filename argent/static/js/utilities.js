@@ -28,11 +28,9 @@ export const isArrayEqual = function (x, y) {
     if (x[i].ramp.stop !== y[i].ramp.stop) isEqual = false
     if (x[i].ramp.steps !== y[i].ramp.steps) isEqual = false
     if (x[i].mode !== y[i].mode) isEqual = false
-    console.log(x[i].spline, y[i].spline)
     if ((x[i].spline.points) !== (y[i].spline.points)) isEqual = false
     if ((x[i].spline.steps) !== (y[i].spline.steps)) isEqual = false
-
   }
-  
+
   return isEqual
 }

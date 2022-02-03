@@ -298,9 +298,15 @@ export default function reducer (state = [], action) {
         const sequence = { ...action.sequence, steps: fill(action.sequence.steps, state.channels) }
 
         for (const [key, val] of Object.entries(sequence.variables)) {
-          if (state.variables[key] !== val) {
+          if (!Object.keys(state.variables).includes(key)) {
+            draft.variables[key] = val
+          } else if (state.variables[key] !== val) {
             if (confirm(`Overwrite variable ${key} with value ${val} (previously ${state.variables[key]})?`)) draft.variables[key] = val
           }
+        }
+
+        for (const [key, val] of Object.entries(sequence.parameters)) {
+          draft.parameters[key] = val
         }
 
         for (const group of Object.keys(sequence.ui.groups.variables)) {
@@ -369,7 +375,7 @@ export default function reducer (state = [], action) {
     case 'timestep/skipAll':
       // Disables or enables all timesteps.
       return produce(state, draft => {
-        for (let i in state.sequences[state.active_sequence].steps) {
+        for (const i in state.sequences[state.active_sequence].steps) {
           draft.sequences[state.active_sequence].steps[i].skip = action.skip
         }
       })

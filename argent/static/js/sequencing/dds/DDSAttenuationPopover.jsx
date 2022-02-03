@@ -8,7 +8,7 @@ import ModeSelector from '../ModeSelector.jsx'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
 import { createSelector } from 'reselect'
 import { selectPresentState, selectTimestep } from '../../selectors.js'
-import Ramp from '../Ramp.jsx'
+import LinearRamp from '../LinearRamp.jsx'
 
 function DDSAttenuationPopover (props) {
   return (
@@ -40,7 +40,7 @@ function DDSAttenuationPopover (props) {
         }
 
         {props.attenuation.mode === 'ramp'
-          ? <Ramp prefix='dds/attenuation' ramp={props.attenuation.ramp} update={props.update} unit='MHz'/>
+          ? <LinearRamp prefix='dds/attenuation' ramp={props.attenuation.ramp} update={props.update} unit='MHz'/>
           : null}
 
       </Box>

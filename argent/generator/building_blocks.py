@@ -42,7 +42,7 @@ class Urukul:
             ramp = step['dds'][self.channel]['frequency']['ramp']
             ramp_cmd = ''
             duration = f'{step["duration"]}*ms'
-            ramp_cmd += f"ramp_DDS(self.{self.channel}, {ramp['start']}, {ramp['stop']}, {ramp['steps']}, {duration}, now)\n"
+            ramp_cmd += f"ramp_DDS(self.{self.channel}, {ramp['start']}, {ramp['stop']}, {int(float(ramp['steps']))}, {duration}, now)\n"
             ramp_cmd = ramp_cmd.replace("'", "") 
             return ramp_cmd
 
@@ -69,29 +69,6 @@ class Zotino:
             return None
         return f'self.{self.board}.set_dac({voltages}, {channels})\n'.replace("'", "")
 
-    # def ramp(self, step):
-    #     ''' Assembles a set of start and stop points, then calls the ramp function '''
-    #     channels = []
-    #     starts = []
-    #     stops = []
-    #     steps = 0
-    #     for ch, state in step['dac'][self.board].items():
-    #         if state['mode'] != 'ramp':
-    #             continue
-    #         channels.append(int(ch.split(self.board)[1]))
-
-    #         steps = int(state['ramp']['steps'])
-    #         starts.append(state['ramp']['start'])
-    #         stops.append(state['ramp']['stop'] )
-
-    #     if steps == 0:
-    #         return ''
-    #     ramp_cmd = ''
-    #     duration = f'{step["duration"]}*ms'
-    #     ramp_cmd += f"ramp(self.{self.board}, {channels}, {starts}, {stops}, {steps}, {duration}, now)\n"
-    #     ramp_cmd = ramp_cmd.replace("'", "")
-    #     return ramp_cmd
-
     def ramp(self, step):
         ''' Prepares a set of points for all channels in either 'ramp' or 'spline' mode. 'Ramp' mode is treated
             as a special case of the more general spline mode.
@@ -104,23 +81,18 @@ class Zotino:
         for ch, state in step['dac'][self.board].items():
             if state['mode'] == 'ramp':
                 points.append([state['ramp']['start'], state['ramp']['stop']])
-                steps = int(state['ramp']['steps'])
+                steps = int(float(state['ramp']['steps']))
                 channels.append(int(ch.split(self.board)[1]))
 
             elif state['mode'] == 'spline':
                 points.append(state['spline']['points'])
-                steps = int(state['spline']['steps'])
+                steps = int(float(state['spline']['steps']))
                 channels.append(int(ch.split(self.board)[1]))
+        if len(points) == 0:
+            return ''
 
         duration = f'{step["duration"]}*ms'
-        ## interpolate raw points
-        ## note: we need to be able to define splines with variables; therefore, the interpolation needs to be done at runtime
-        ## this is handled by having strings represented variables, e.g. "self.spline_start"
-        ## the final generated command should have a .replace("'", "")
-        cmd = ''
-        cmd += f'spline_points={points}\n'
-        cmd += f'interpolated_points = spline_ramp(spline_points, {steps})\n'
-        cmd += f'write_dac_ramp(self.{self.board}, {channels}, interpolated_points, {duration}, now)\n'
+        cmd = f'spline_ramp(self.{self.board}, {channels}, {points}, {steps}, {duration}, now)\n'
         cmd = cmd.replace("'", "")
 
         return cmd

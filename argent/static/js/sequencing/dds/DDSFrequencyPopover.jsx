@@ -8,7 +8,7 @@ import ModeSelector from '../ModeSelector.jsx'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
 import { createSelector } from 'reselect'
 import { selectTimestep, selectPresentState } from '../../selectors.js'
-import Ramp from '../Ramp.jsx'
+import LinearRamp from '../LinearRamp.jsx'
 
 function DDSFrequencyPopover (props) {
   return (
@@ -41,7 +41,7 @@ function DDSFrequencyPopover (props) {
           }
 
           {props.frequency.mode === 'ramp'
-            ? <Ramp prefix='dds/frequency' ramp={props.frequency.ramp} update={props.update} unit='MHz'/>
+            ? <LinearRamp prefix='dds/frequency' ramp={props.frequency.ramp} update={props.update} unit='MHz'/>
             : null}
         </Box>
       </Popover>

@@ -1,7 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import Box from '@material-ui/core/Box'
-import TextField from '@material-ui/core/TextField'
 import LinkableParameter from '../components/LinkableParameter'
 import FixedUnitInput from '../components/FixedUnitInput'
 
@@ -11,7 +10,7 @@ function Ramp (props) {
       <LinkableParameter value={props.ramp.start} onChange={(value) => props.update(props.prefix + '/ramp/start', value)} label='Start' unit={props.unit}/>
       <LinkableParameter value={props.ramp.stop} onChange={(value) => props.update(props.prefix + '/ramp/stop', value)} label='Stop' unit={props.unit}/>
       <Box mx={1}>
-        <FixedUnitInput value={props.spline.steps}
+        <FixedUnitInput value={props.ramp.steps}
                           onChange = {(value) => props.update(props.prefix + '/ramp/steps', value)}
                           unit = {''}
                           label={'Steps'}
@@ -19,7 +18,7 @@ function Ramp (props) {
         />
       </Box>
     </>
-    )
+  )
 }
 
 Ramp.propTypes = {

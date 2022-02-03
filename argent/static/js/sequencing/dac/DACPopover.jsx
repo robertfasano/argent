@@ -3,14 +3,13 @@ import PropTypes from 'prop-types'
 import Popover from '@material-ui/core/Popover'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import TextField from '@material-ui/core/TextField'
 import ModeSelector from '../ModeSelector.jsx'
 import { connect, shallowEqual } from 'react-redux'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
 import { createSelector } from 'reselect'
 import { selectTimestep, selectPresentState } from '../../selectors.js'
-import Ramp from '../Ramp.jsx'
-import Spline from '../Spline.jsx'
+import LinearRamp from '../LinearRamp.jsx'
+import QuadraticRamp from '../QuadraticRamp.jsx'
 
 function DACPopover (props) {
   return (
@@ -46,11 +45,11 @@ function DACPopover (props) {
         }
 
         {props.mode === 'ramp'
-          ? <Ramp prefix='dac' ramp={props.ramp} update={props.update} unit='V'/>
+          ? <LinearRamp prefix='dac' ramp={props.ramp} update={props.update} unit='V'/>
           : null}
 
         {props.mode === 'spline'
-          ? <Spline prefix='dac' spline={props.spline} update={props.update} unit='V'/>
+          ? <QuadraticRamp prefix='dac' spline={props.spline} update={props.update} unit='V'/>
           : null}
 
         </Box>

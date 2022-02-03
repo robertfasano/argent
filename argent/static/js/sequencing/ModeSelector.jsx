@@ -16,7 +16,7 @@ function ModeSelector (props) {
         <RadioGroup row value={props.value} onChange={props.onChange}>
           <FormControlLabel value="setpoint" control={<Radio />} label="Constant" />
           <FormControlLabel value="ramp" disabled={!props.ramp} control={<Radio />} label="Ramp" />
-          <FormControlLabel value="spline" disabled={!props.spline} control={<Radio />} label="Spline" />
+          <FormControlLabel value="spline" disabled={!props.spline} control={<Radio />} label="Quadratic" />
 
         </RadioGroup>
       </FormControl>
