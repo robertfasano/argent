@@ -25,7 +25,8 @@ function defaultStore (channels, sequences, version) {
     heartbeat: false,
     pid: { active: null, submitted: null },
     variableTab: 'Variables',
-    groups: { parameters: { default: [] }, variables: { default: [] } }
+    groups: { parameters: { default: [] }, variables: { default: [] } },
+    variables: {}
   }
 
   state.version = version
@@ -40,11 +41,11 @@ export function createGUI (sequences, channels, version) {
   const persistConfig = {
     key: 'root',
     whitelist: 'present',
-    storage,
+    storage
   }
   const undoableReducer = undoable(reducer, { filter: excludeAction(['ui/heartbeat', 'parameters/update']) })
   const persistedReducer = persistReducer(persistConfig, undoableReducer)
-  
+
   const store = createStore(persistedReducer, state, enhancer)
   const persistor = persistStore(store)
 

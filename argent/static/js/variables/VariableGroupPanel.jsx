@@ -83,6 +83,7 @@ function VariableGroupPanel (props) {
             <TableHead>
             <TableRow>
                 <TableCell> Name </TableCell>
+                <TableCell> Default </TableCell>
                 <TableCell> Value </TableCell>
             </TableRow>
             </TableHead>
@@ -94,6 +95,9 @@ function VariableGroupPanel (props) {
                     </TableCell>
                     <TableCell>
                     <DebouncedTextField value={value} onBlur={(value) => props.updateVariable(key, value)}/>
+                    </TableCell>
+                    <TableCell>
+                    <TextField disabled value={props.currentVariables[key]}/>
                     </TableCell>
                 </TableRow>
             ))}
@@ -131,7 +135,8 @@ VariableGroupPanel.propTypes = {
   group: PropTypes.string,
   expanded: PropTypes.array,
   setExpanded: PropTypes.func,
-  deleteGroup: PropTypes.func
+  deleteGroup: PropTypes.func,
+  currentVariables: PropTypes.object
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -155,11 +160,28 @@ const makeSelector = () => createSelector(
   { memoizeOptions: { resultEqualityCheck: shallowEqual } }
 )
 
+const makeCurrentVariablesSelector = () => createSelector(
+  state => state.ui.variables,
+  (state, props) => props.items,
+  (variables, items) => {
+    const vars = {}
+    for (const name of items) {
+      vars[name] = variables[name]
+    }
+    return vars
+  },
+  { memoizeOptions: { resultEqualityCheck: shallowEqual } }
+)
+
 const makeMapStateToProps = () => {
   const selectVariables = makeSelector()
+  const selectCurrentVariables = makeCurrentVariablesSelector()
   const mapStateToProps = (state, props) => {
     state = selectPresentState(state)
-    return { variables: selectVariables(state, props) }
+    return {
+      variables: selectVariables(state, props),
+      currentVariables: selectCurrentVariables(state, props)
+    }
   }
   return mapStateToProps
 }

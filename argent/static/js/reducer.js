@@ -440,6 +440,14 @@ export default function reducer (state = [], action) {
         draft.ui.variableTab = action.name
       })
 
+    case 'ui/variables/update':
+      return produce(state, draft => {
+        draft.ui.variables = {}
+        for (const [key, val] of Object.entries(action.variables)) {
+          draft.ui.variables[key] = toDecimalString(val)
+        }
+      })
+
     case 'parameters/update':
       return produce(state, draft => {
         // update master outputs table

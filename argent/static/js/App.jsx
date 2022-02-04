@@ -40,6 +40,7 @@ function App (props) {
       props.dispatch({ type: 'ui/heartbeat', pid: data.pid })
       get('/results', (result) => {
         props.dispatch({ type: 'parameters/update', parameters: result.parameters, sequence: result.sequence })
+        props.dispatch({ type: 'ui/variables/update', variables: result.variables })
       })
     })
   },
