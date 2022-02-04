@@ -59,7 +59,7 @@ function App (props) {
       <div className={classes.appBarSpacer} />
 
       <main className={classes.content}>
-        <Grid container>
+        <Grid container wrap='nowrap' sx={{ overflow: 'auto' }}>
           <Grid item>
             <Box mx={2}>
               <Paper elevation={6} style={{ width: '375px' }}>

@@ -43,7 +43,7 @@ function DACTimelines (props) {
             Object.keys(props.channels[board]).map(ch => (
               <TableRow key={`${board}${ch}`}>
                 <TableCell>
-                  <Typography style={{ fontSize: 14 }}>
+                  <Typography style={{ fontSize: 14 }} noWrap={true}>
                     {props.channels[board][ch]}
                   </Typography>
                 </TableCell>

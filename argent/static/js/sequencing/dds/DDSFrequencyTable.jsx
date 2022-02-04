@@ -33,7 +33,7 @@ function DDSFrequencyTable (props) {
         <React.Fragment key={ch + '-fragment'}>
           <TableRow>
             <TableCell>
-              <Typography style={{ fontSize: 14 }}>
+              <Typography style={{ fontSize: 14 }} noWrap={true}>
                 {props.channels[ch]}
               </Typography>
             </TableCell>

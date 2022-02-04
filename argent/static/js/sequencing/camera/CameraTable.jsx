@@ -32,7 +32,7 @@ function CameraTable (props) {
       {Object.keys(props.channels).map(board => (
           <TableRow key={`${board}`}>
             <TableCell>
-              <Typography style={{ fontSize: 14 }}>
+              <Typography style={{ fontSize: 14 }} noWrap={true}>
                 {props.channels[board]}
               </Typography>
             </TableCell>

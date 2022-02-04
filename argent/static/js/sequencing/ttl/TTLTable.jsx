@@ -33,7 +33,7 @@ function TTLTable (props) {
     {Object.keys(props.channels).map(i => (
       <TableRow key={i}>
         <TableCell style={{ width: '100px' }}>
-          <Typography style={{ fontSize: 14 }}>
+          <Typography style={{ fontSize: 14 }} noWrap={true}>
             {props.channels[i]}
           </Typography>
         </TableCell>
