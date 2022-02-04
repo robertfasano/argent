@@ -5,13 +5,14 @@ import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
-import CycleCard from './CycleCard.jsx'
+import StageCard from './StageCard.jsx'
 import { post } from '../utilities.js'
 import { v4 as uuidv4 } from 'uuid'
 import { createSelector } from 'reselect'
 import PlaylistPlayIcon from '@material-ui/icons/PlaylistPlay'
 import { selectPresentState } from '../selectors'
 import structuredClone from '@ungap/structured-clone'
+import FragmentContextMenu from './FragmentContextMenu.jsx'
 
 function PlaylistPanel (props) {
   function submit (playlist) {
@@ -21,7 +22,12 @@ function PlaylistPanel (props) {
     props.setPID(pid)
   }
 
+  const [menuState, setMenuState] = React.useState({ anchor: null, stage: null, fragment: null })
+
+  const closeMenu = () => setMenuState({ anchor: null, stage: null, fragment: null })
   return (
+  <>
+  <FragmentContextMenu anchor={menuState.anchor} close={closeMenu} menuState={menuState}/>
   <Box p={2}>
       <Grid container>
         <Grid item xs={10}>
@@ -38,20 +44,13 @@ function PlaylistPanel (props) {
         </Typography>
       </Box>
       {props.playlist.map((stage, index) => (
-        <CycleCard key={index} name={stage.name} index={index} length={props.playlist.length}/>
+        <StageCard key={index} name={stage.name} index={index} length={props.playlist.length} setMenuState={setMenuState}/>
       )
       )}
   </Box>
+  </>
   )
 }
-
-// const getPlaylist = (playlist, sequences, state) => {
-//   const ms = []
-//   for (const index in playlist) {
-//     ms.push({ ...playlist[index], sequence: sequences[playlist[index].name] })
-//   }
-//   return ms
-// }
 
 const getPlaylist = (playlist, sequences, state) => {
   const ms = []

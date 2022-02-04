@@ -19,10 +19,8 @@ UndoButton.propTypes = {
 }
 
 const mapStateToProps = (state, props) => {
-    return {
-      pastStates: state.past.length
-    }
+  return {
+    pastStates: state.past.length
   }
-  export default connect(mapStateToProps)(UndoButton)
-
-
+}
+export default connect(mapStateToProps)(UndoButton)

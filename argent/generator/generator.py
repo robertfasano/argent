@@ -91,20 +91,20 @@ def generate_run(playlist, config, variables, parameters):
                 with open(filename) as file:
                     code += textwrap.indent(file.read(), '\t\t') + '\n'
 
-            ## sync with server
-            all_parameters = ['self.'+var for var in parameters]
-            self_parameters = str(all_parameters).replace("'", "")
-            self_variables = str(['self.'+var for var in variables]).replace("'", "")
-            if parameters == {} and variables == {}:
-                code += '\t\t' + f'__heartbeat__(self, {i}, "{fragment["name"]}", self.__cycle__, "{config["addr"]}")\n'
-            elif parameters == {}:
-                code += '\t\t' + f'__push_variables__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
-            elif variables == {}:
-                code += '\t\t' + f'__push_parameters__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, "{config["addr"]}")\n'
-            else:
-                code += '\t\t' + f'__push__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
+        ## sync with server
+        all_parameters = ['self.'+var for var in parameters]
+        self_parameters = str(all_parameters).replace("'", "")
+        self_variables = str(['self.'+var for var in variables]).replace("'", "")
+        if parameters == {} and variables == {}:
+            code += '\t\t' + f'__heartbeat__(self, {i}, "{fragment["name"]}", self.__cycle__, "{config["addr"]}")\n'
+        elif parameters == {}:
+            code += '\t\t' + f'__push_variables__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
+        elif variables == {}:
+            code += '\t\t' + f'__push_parameters__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, "{config["addr"]}")\n'
+        else:
+            code += '\t\t' + f'__push__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
 
-            i += 1
+        i += 1
 
     ## broadcast parameters and variables
     code += '\n\t\t##Sync variables with server\n'

@@ -220,6 +220,17 @@ export default function reducer (state = [], action) {
         draft.playlist.push(action.sequence)
       })
 
+    case 'playlist/changeStage':
+      // Append a sequence to the master sequence.
+      return produce(state, draft => {
+        const fragment = state.playlist[action.currentStage].fragments[action.currentFragment]
+        draft.playlist[action.targetStage].fragments.push(fragment)
+        draft.playlist[action.currentStage].fragments.splice(action.currentFragment, 1)
+        if (state.playlist[action.currentStage].fragments.length == 1) {
+          draft.playlist.splice(action.currentStage, 1)
+        }
+      })
+
     case 'playlist/insert':
       // Insert a new sequence in the master sequence. The inserted sequence is
       // a duplicate of the previous one, or the next one if inserted in the
@@ -232,6 +243,19 @@ export default function reducer (state = [], action) {
         draft.playlist.splice(action.timestep + 1, 0, newTimestep)
       })
 
+    case 'playlist/merge':
+      // Merge all fragments in the playlist into a new fragment
+      return produce(state, draft => {
+        draft.active_sequence = action.name
+        const makeRepeated = (arr, repeats) => Array.from({ length: repeats }, () => arr).flat()
+        const newSequence = { steps: [], script: { preparation: null, analysis: null } }
+        for (const fragment of state.playlist[action.stage].fragments) {
+          const steps = state.sequences[fragment.name].steps
+          newSequence.steps = [...newSequence.steps, ...makeRepeated(steps, fragment.reps)]
+        }
+        draft.sequences[action.name] = newSequence
+      })
+
     case 'playlist/remove':
       // Remove a sequence from the master sequence.
       return produce(state, draft => {
@@ -242,6 +266,18 @@ export default function reducer (state = [], action) {
       // Swap two stages in the master sequence.
       return produce(state, draft => {
         swap(draft.playlist, action.a, action.b)
+      })
+
+    case 'playlist/fragment/remove':
+      // Remove a fragment from a stage.
+      return produce(state, draft => {
+        draft.playlist[action.stage].fragments.splice(action.fragment, 1)
+      })
+
+    case 'playlist/fragment/swap':
+      // Swap two fragments within a stage.
+      return produce(state, draft => {
+        swap(draft.playlist[action.stage].fragments, action.a, action.b)
       })
 
     case 'playlist/updateReps':
