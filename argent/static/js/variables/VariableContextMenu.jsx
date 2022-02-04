@@ -17,7 +17,7 @@ function VariableContextMenu (props) {
       </MenuItem>
       <NestedMenuItem
           label="Move to"
-          parentMenuOpen={props.open}
+          parentMenuOpen={Boolean(props.state.anchor)}
         >
 
       {props.groups.sort().map(group => (
