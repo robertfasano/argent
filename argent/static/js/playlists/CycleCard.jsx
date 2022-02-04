@@ -9,36 +9,42 @@ import { connect } from 'react-redux'
 import ClearIcon from '@material-ui/icons/Clear'
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
+import SequenceCard from './SequenceCard.jsx'
+import { selectPresentState } from '../selectors.js'
 
-function SequenceCard (props) {
+function CycleCard (props) {
   return (
     <Box>
       <Paper elevation={4}>
-        <Box mx={4} my={1}>
+        <Box mx={2} my={1}>
           <Grid container alignItems='center'>
             <Grid item xs={6}>
-              <Typography style={{ fontSize: 18 }}> <b> {props.name} </b> </Typography>
+              <Typography style={{ fontSize: 18 }}> <b> - Stage {props.index}  </b> </Typography>
 
             </Grid>
             <Grid item xs={2}>
-                {/* <IconButton onClick={props.moveUp} disabled={props.index === 0} > */}
-                <IconButton onClick={props.moveUp} disabled={true} >
+                <IconButton onClick={props.moveUp} disabled={props.index === 0} >
                   <KeyboardArrowUpIcon fontSize="large"/>
                 </IconButton>
             </Grid>
             <Grid item xs={2}>
-                {/* <IconButton onClick={props.moveDown} disabled={props.index === props.length - 1} > */}
-                <IconButton onClick={props.moveDown} disabled={true} >
+                <IconButton onClick={props.moveDown} disabled={props.index === props.length - 1} >
                   <KeyboardArrowDownIcon fontSize="large"/>
                 </IconButton>
             </Grid>
             <Grid item xs={2}>
-              {/* <IconButton onClick={props.remove} > */}
-              <IconButton onClick={props.remove} disabled={true}>
+              <IconButton onClick={props.remove} >
                 <ClearIcon fontSize="large"/>
               </IconButton>
             </Grid>
           </Grid>
+
+          <Box pb={1}>
+          {props.fragments.map((stage, index) => (
+            <SequenceCard key={index} name={stage.name} index={index} length={props.fragments.length}/>
+          )
+          )}
+          </Box>
 
         </Box>
       </Paper>
@@ -46,13 +52,14 @@ function SequenceCard (props) {
   )
 }
 
-SequenceCard.propTypes = {
+CycleCard.propTypes = {
   name: PropTypes.string,
   index: PropTypes.number,
   remove: PropTypes.func,
   moveDown: PropTypes.func,
   moveUp: PropTypes.func,
-  length: PropTypes.number
+  length: PropTypes.number,
+  fragments: PropTypes.array
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -70,7 +77,9 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function mapStateToProps (state, props) {
+  state = selectPresentState(state)
   return {
+    fragments: state.playlist[props.index].fragments
   }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(SequenceCard)
+export default connect(mapStateToProps, mapDispatchToProps)(CycleCard)

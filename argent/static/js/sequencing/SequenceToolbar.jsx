@@ -144,7 +144,7 @@ function mapDispatchToProps (dispatch, props) {
       dispatch({ type: 'sequence/close', name: props.name })
     },
     addToPlaylist: () => {
-      dispatch({ type: 'playlist/append', sequence: { name: props.name, reps: 1 } })
+      dispatch({ type: 'playlist/append', sequence: { fragments: [{ name: props.name, reps: 1 }] } })
     },
     setPID: (pid) => {
       dispatch({ type: 'ui/pid', value: pid })
@@ -170,7 +170,8 @@ const generateYAML = createSelector(
 const selectPlaylist = createSelector(
   state => state.sequences,
   state => state.active_sequence,
-  (sequences, name) => [{ name: name, reps: 1, sequence: sequences[name] }],
+  (sequences, name) => [{ fragments: [{ name, sequence: sequences[name], reps: 1 }] }],
+
   { memoizeOptions: { resultEqualityCheck: (a, b) => a == b } }
 )
 

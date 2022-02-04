@@ -69,7 +69,7 @@ DACPopover.propTypes = {
   anchorPosition: PropTypes.array,
   open: PropTypes.bool,
   setOpen: PropTypes.func,
-  spline: PropTypes.array
+  spline: PropTypes.object
 }
 
 function mapDispatchToProps (dispatch, props) {

@@ -5,12 +5,13 @@ import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
-import SequenceCard from './SequenceCard.jsx'
+import CycleCard from './CycleCard.jsx'
 import { post } from '../utilities.js'
 import { v4 as uuidv4 } from 'uuid'
 import { createSelector } from 'reselect'
 import PlaylistPlayIcon from '@material-ui/icons/PlaylistPlay'
 import { selectPresentState } from '../selectors'
+import structuredClone from '@ungap/structured-clone'
 
 function PlaylistPanel (props) {
   function submit (playlist) {
@@ -37,17 +38,29 @@ function PlaylistPanel (props) {
         </Typography>
       </Box>
       {props.playlist.map((stage, index) => (
-        <SequenceCard key={index} name={stage.name} index={index} length={props.playlist.length}/>
+        <CycleCard key={index} name={stage.name} index={index} length={props.playlist.length}/>
       )
       )}
   </Box>
   )
 }
 
+// const getPlaylist = (playlist, sequences, state) => {
+//   const ms = []
+//   for (const index in playlist) {
+//     ms.push({ ...playlist[index], sequence: sequences[playlist[index].name] })
+//   }
+//   return ms
+// }
+
 const getPlaylist = (playlist, sequences, state) => {
   const ms = []
   for (const index in playlist) {
-    ms.push({ ...playlist[index], sequence: sequences[playlist[index].name] })
+    const item = structuredClone(playlist[index])
+    for (const fragmentIndex in playlist[index].fragments) {
+      item.fragments[fragmentIndex].sequence = sequences[playlist[index].fragments[fragmentIndex].name]
+    }
+    ms.push(item)
   }
   return ms
 }
@@ -76,6 +89,7 @@ function mapDispatchToProps (dispatch, props) {
 
 function mapStateToProps (state, props) {
   state = selectPresentState(state)
+
   return {
     variables: state.variables,
     parameters: state.parameters,

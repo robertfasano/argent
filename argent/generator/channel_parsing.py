@@ -7,9 +7,10 @@ def get_ttl_channels(playlist):
     '''
     ttls = []
     for stage in playlist:
-        sequence = stage['sequence']['steps']
-        for step in sequence:
-            ttls.extend(step.get('ttl', {}).keys())
+        for fragment in stage['fragments']:
+            sequence = fragment['sequence']['steps']
+            for step in sequence:
+                ttls.extend(step.get('ttl', {}).keys())
     return list(np.unique(ttls))
 
 def get_dac_channels(playlist):
@@ -19,9 +20,10 @@ def get_dac_channels(playlist):
     '''
     dacs = []
     for stage in playlist:
-        sequence = stage['sequence']['steps']
-        for step in sequence:
-            dacs.extend(step.get('dac', {}).keys())
+        for fragment in stage['fragments']:
+            sequence = fragment['sequence']['steps']
+            for step in sequence:
+                dacs.extend(step.get('dac', {}).keys())
     return list(np.unique(dacs))
 
 def get_adc_boards(playlist):
@@ -31,11 +33,12 @@ def get_adc_boards(playlist):
     '''
     boards = []
     for stage in playlist:
-        sequence = stage['sequence']['steps']
-        for step in sequence:
-            for board in step['adc']:
-                if step['adc'][board]['enable']:
-                    boards.append(board)
+        for fragment in stage['fragments']:
+            sequence = fragment['sequence']['steps']
+            for step in sequence:
+                for board in step['adc']:
+                    if step['adc'][board]['enable']:
+                        boards.append(board)
     return list(np.unique(boards))
 
 def get_grabber_boards(playlist):
@@ -45,23 +48,25 @@ def get_grabber_boards(playlist):
     '''
     boards = []
     for stage in playlist:
-        sequence = stage['sequence']['steps']
-        for step in sequence:
-            if 'cam' in step:
-                for board in step['cam']:
-                    if step['cam'][board]['enable']:
-                        boards.append(board)
+        for fragment in stage['fragments']:
+            sequence = fragment['sequence']['steps']
+            for step in sequence:
+                if 'cam' in step:
+                    for board in step['cam']:
+                        if step['cam'][board]['enable']:
+                            boards.append(board)
     return list(np.unique(boards))
 
 def get_data_arrays(playlist):
     arrays = {}
     for stage in playlist:
-        sequence = stage['sequence']['steps']
-        for i, step in enumerate(sequence):
-            for board in step['adc']:
-                if step['adc'][board]['enable']:
-                    name = stage['name'].replace(' ', '_') + '_' + str(i)
-                    arrays[name] = f'[[0]*8]*{int(step["adc"][board]["samples"])}'
+        for fragment in stage['fragments']:
+            sequence = fragment['sequence']['steps']
+            for i, step in enumerate(sequence):
+                for board in step['adc']:
+                    if step['adc'][board]['enable']:
+                        name = fragment['name'].replace(' ', '_') + '_' + str(i)
+                        arrays[name] = f'[[0]*8]*{int(step["adc"][board]["samples"])}'
 
     return arrays
 
@@ -74,13 +79,16 @@ def get_dds_boards(playlist):
     '''
     boards = []
     for stage in playlist:
-        for step in stage['sequence']['steps']:
-            boards.extend([ch.split('_')[0] for ch in step.get('dds', {}).keys()])
+        for fragment in stage['fragments']:
+            for step in fragment['sequence']['steps']:
+                boards.extend([ch.split('_')[0] for ch in step.get('dds', {}).keys()])
     return list(np.unique(boards))
 
 def get_dds_channels(playlist):
     channels = []
     for stage in playlist:
-        for step in stage['sequence']['steps']:
-            channels.extend(step.get('dds', {}).keys())
+        for fragment in stage['fragments']:
+            for step in fragment['sequence']['steps']:
+                channels.extend(step.get('dds', {}).keys())
     return list(np.unique(channels))
+

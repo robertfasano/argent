@@ -21,6 +21,7 @@
     "@mui/icons-material": "^5.2.5",
     "@mui/material": "^5.2.7",
     "@mui/styles": "^5.2.3",
+    "@ungap/structured-clone": "^0.3.4",
     "axios": "^0.21.1",
     "babel-loader": "^8.2.2",
     "babel-preset-react": "^6.24.1",

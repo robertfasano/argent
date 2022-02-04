@@ -25,7 +25,8 @@ def generate_experiment(playlist, config, pid, variables={}, parameters={}):
     print('Generating playlist')
     print(playlist)
     for i in range(len(playlist)):
-        playlist[i]['sequence']['steps'] = remove_redundant_events(playlist[i]['sequence']['steps'])
+        for j in range(len(playlist[i]['fragments'])):
+            playlist[i]['fragments'][j]['sequence']['steps'] = remove_redundant_events(playlist[i]['fragments'][j]['sequence']['steps'])
 
     code = 'import requests\n'
     code += 'import numpy as np\n'
@@ -70,39 +71,40 @@ def generate_run(playlist, config, variables, parameters):
 
     i = 0
     for stage in playlist:
-        ## load imported prep scripts
-        if stage['sequence']['script']['preparation'] is not None:
-            filename = './repository/' + stage['sequence']['script']['preparation']
-            with open(filename) as file:
-                code += textwrap.indent(file.read(), '\t\t') + '\n'
+        for fragment in stage['fragments']:
+            ## load imported prep scripts
+            if fragment['sequence']['script']['preparation'] is not None:
+                filename = './repository/' + fragment['sequence']['script']['preparation']
+                with open(filename) as file:
+                    code += textwrap.indent(file.read(), '\t\t') + '\n'
 
-        function_call = f"\t\tself.{stage['name'].replace(' ', '_')}()\n"
-        if int(stage['reps']) == 1:
-            code += function_call
-        else:
-            code += f'\t\tfor i in range({stage["reps"]}):\n'
-            code += '\t' + function_call
+            function_call = f"\t\tself.{fragment['name'].replace(' ', '_')}()\n"
+            if int(fragment['reps']) == 1:
+                code += function_call
+            else:
+                code += f'\t\tfor i in range({fragment["reps"]}):\n'
+                code += '\t' + function_call
 
-        ## load imported analysis scripts
-        if stage['sequence']['script']['analysis'] is not None:
-            filename = './repository/' + stage['sequence']['script']['analysis']
-            with open(filename) as file:
-                code += textwrap.indent(file.read(), '\t\t') + '\n'
+            ## load imported analysis scripts
+            if fragment['sequence']['script']['analysis'] is not None:
+                filename = './repository/' + fragment['sequence']['script']['analysis']
+                with open(filename) as file:
+                    code += textwrap.indent(file.read(), '\t\t') + '\n'
 
-        ## sync with server
-        all_parameters = ['self.'+var for var in parameters]
-        self_parameters = str(all_parameters).replace("'", "")
-        self_variables = str(['self.'+var for var in variables]).replace("'", "")
-        if parameters == {} and variables == {}:
-            code += '\t\t' + f'__heartbeat__(self, {i}, "{stage["name"]}", self.__cycle__, "{config["addr"]}")\n'
-        elif parameters == {}:
-            code += '\t\t' + f'__push_variables__(self, {i}, "{stage["name"]}", self.__cycle__, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
-        elif variables == {}:
-            code += '\t\t' + f'__push_parameters__(self, {i}, "{stage["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, "{config["addr"]}")\n'
-        else:
-            code += '\t\t' + f'__push__(self, {i}, "{stage["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
+            ## sync with server
+            all_parameters = ['self.'+var for var in parameters]
+            self_parameters = str(all_parameters).replace("'", "")
+            self_variables = str(['self.'+var for var in variables]).replace("'", "")
+            if parameters == {} and variables == {}:
+                code += '\t\t' + f'__heartbeat__(self, {i}, "{fragment["name"]}", self.__cycle__, "{config["addr"]}")\n'
+            elif parameters == {}:
+                code += '\t\t' + f'__push_variables__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
+            elif variables == {}:
+                code += '\t\t' + f'__push_parameters__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, "{config["addr"]}")\n'
+            else:
+                code += '\t\t' + f'__push__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
 
-        i += 1
+            i += 1
 
     ## broadcast parameters and variables
     code += '\n\t\t##Sync variables with server\n'
@@ -120,12 +122,13 @@ def generate_run(playlist, config, variables, parameters):
     code += '\n'
 
     ## write individual stage functions
-    stages = []
+    fragments = []
     for stage in playlist:
-        if stage['name'] in stages:
-            continue
-        code += generate_stage(stage)
-        stages.append(stage['name'])
+        for fragment in stage['fragments']:
+            if fragment['name'] in fragments:
+                continue
+            code += generate_stage(fragment)
+            fragments.append(fragment['name'])
 
     return code
 
