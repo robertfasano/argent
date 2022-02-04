@@ -17,10 +17,10 @@ function StageCard (props) {
   return (
     <Box>
       <Paper elevation={4}>
-        <Box mx={2} my={1}>
+        <Box mx={2} my={1} pt={1}>
           <Grid container alignItems='center'>
             <Grid item xs={4}>
-              <Typography style={{ fontSize: 18 }}> <b> - Stage {props.index}  </b> </Typography>
+              <Typography style={{ fontSize: 18 }}> <b> - Stage {props.index}  </b> <br/> {props.duration} ms </Typography>
 
             </Grid>
             <Grid item xs={2}>
@@ -73,7 +73,8 @@ StageCard.propTypes = {
   length: PropTypes.number,
   fragments: PropTypes.array,
   setMenuState: PropTypes.func,
-  merge: PropTypes.func
+  merge: PropTypes.func,
+  duration: PropTypes.number
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -94,10 +95,24 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
+function parseDuration (setpoint, variables) {
+  if (setpoint.includes('self.')) return parseFloat(variables[setpoint.split('self.')[1]])
+  else return parseFloat(setpoint)
+}
+
 function mapStateToProps (state, props) {
   state = selectPresentState(state)
+  const fragments = state.playlist[props.index].fragments
+  let duration = 0
+  for (const fragment of fragments) {
+    for (const step of state.sequences[fragment.name].steps) {
+      duration = duration + parseDuration(step.duration, state.variables)
+    }
+  }
+
   return {
-    fragments: state.playlist[props.index].fragments
+    fragments,
+    duration
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(StageCard)

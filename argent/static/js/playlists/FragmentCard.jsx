@@ -9,6 +9,7 @@ import { connect } from 'react-redux'
 import ClearIcon from '@material-ui/icons/Clear'
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
+import { selectPresentState } from '../selectors'
 
 function FragmentCard (props) {
   const handleContextMenu = (event) => {
@@ -22,7 +23,7 @@ function FragmentCard (props) {
         <Box mx={4} my={1}>
           <Grid container alignItems='center'>
             <Grid item xs={6}>
-              <Typography style={{ fontSize: 18 }} onContextMenu={handleContextMenu}> <b> {props.name} </b> </Typography>
+              <Typography style={{ fontSize: 18 }} onContextMenu={handleContextMenu}> <b> {props.name} </b> <br/> {props.duration} ms </Typography>
 
             </Grid>
             <Grid item xs={2}>
@@ -56,7 +57,8 @@ FragmentCard.propTypes = {
   moveUp: PropTypes.func,
   length: PropTypes.number,
   setMenuState: PropTypes.func,
-  stageIndex: PropTypes.number
+  stageIndex: PropTypes.number,
+  duration: PropTypes.number
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -73,8 +75,20 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
+function parseDuration (setpoint, variables) {
+  if (setpoint.includes('self.')) return parseFloat(variables[setpoint.split('self.')[1]])
+  else return parseFloat(setpoint)
+}
+
 function mapStateToProps (state, props) {
+  state = selectPresentState(state)
+  let duration = 0
+  for (const step of state.sequences[props.name].steps) {
+    duration = duration + parseDuration(step.duration, state.variables)
+  }
+
   return {
+    duration: duration
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(FragmentCard)
