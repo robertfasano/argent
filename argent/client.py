@@ -49,11 +49,15 @@ class Client:
         else:
             return None
 
+    def post(self, endpoint, json_data):
+        requests.post(f"http://{self.address}{endpoint}", json=json_data)
+
     def mock(self, config='./config.yml'):
         ''' Simulate a live experiment for testing. '''
         from threading import Thread
         import time
-        requests.post(f'http://{self.address}/variables', json={'x': 1, 'A': 1})
+
+        self.post('/variables', {'x': 1, 'A': 1})
         
         self.mock_active = True
 
@@ -66,7 +70,7 @@ class Client:
                 payload ={'stage': 0, 'cycle': i, 'timestamp': datetime.datetime.now().isoformat(),
                         'variables': {'x': x, 'A': A},
                         'parameters': {'y': A*np.exp(-x) + np.random.normal(0, 0.01)}}
-                requests.post(f'http://{self.address}/results', json=payload)
+                self.post('/results', payload)
                 i += 1
                 time.sleep(0.25)
 
@@ -74,12 +78,12 @@ class Client:
         
 
     def record(self, name):
-        requests.post(f"http://{self.address}/record", json={"__run__": name})
+        self.post('/record', {"__run__": name})
 
     def set(self, name, value):
         if self.get(name) is None:
             raise Exception(f'Variable {name} does not exist!')
-        requests.post(f"http://{self.address}/variables", json={name: value})
+        self.post('/variables', {name: value})
 
     def sweep(self, x, start, stop, steps, sweeps=1, plot=None, legend=None):
         return Sweep(self, x, start, stop, steps, sweeps=sweeps, plot=plot, legend=legend)

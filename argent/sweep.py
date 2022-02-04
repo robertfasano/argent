@@ -38,8 +38,7 @@ class Sweep:
 
     def run(self):
         sweep_points = list(np.linspace(self.start, self.stop, self.steps))
-        requests.post(f"http://{self.client.address}/sweep", json={'name': self.x, 'values': sweep_points, 'legend_name': self.legend[0], 'legend_values': self.legend[1], 'sweeps': self.sweeps})
-
+        self.client.post('/sweep', {'name': self.x, 'values': sweep_points, 'legend_name': self.legend[0], 'legend_values': self.legend[1], 'sweeps': self.sweeps})
         data_length = len(self.dataset.data)
         first_cycle = True
         while True:
