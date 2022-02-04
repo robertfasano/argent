@@ -10,6 +10,7 @@ import defaultSequence from './js/schema.js'
 import undoable, { excludeAction } from 'redux-undo'
 import { persistStore, persistReducer } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
+import { PersistGate } from 'redux-persist/integration/react'
 
 function defaultStore (channels, sequences, version) {
   const state = {}
@@ -43,15 +44,17 @@ export function createGUI (sequences, channels, version) {
     whitelist: 'present',
     storage
   }
-  const undoableReducer = undoable(reducer, { filter: excludeAction(['ui/heartbeat', 'parameters/update']) })
+  const undoableReducer = undoable(reducer, { filter: excludeAction(['ui/heartbeat', 'parameters/update', 'ui/variables/update']) })
   const persistedReducer = persistReducer(persistConfig, undoableReducer)
 
   const store = createStore(persistedReducer, state, enhancer)
   const persistor = persistStore(store)
 
   ReactDOM.render(<Provider store={store}>
-                    <ThemeProvider theme={theme}>
-                      <App/>
-                    </ThemeProvider>
+                    <PersistGate loading={null} persistor={persistor}>
+                      <ThemeProvider theme={theme}>
+                        <App/>
+                      </ThemeProvider>
+                    </PersistGate>
                   </Provider>, document.getElementById('root'))
 }
