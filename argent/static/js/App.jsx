@@ -62,14 +62,16 @@ function App (props) {
         <Grid container wrap='nowrap' sx={{ overflow: 'auto' }}>
           <Grid item>
             <Box mx={2}>
-              <Paper elevation={6} style={{ width: '375px' }}>
-                <ErrorBoundary>
-                  <VariablesPanel/>
-                </ErrorBoundary>
-              </Paper>
+              <Box mb={2}>
               <Paper elevation={6} style={{ width: '375px' }}>
                 <ErrorBoundary>
                   <PlaylistPanel/>
+                </ErrorBoundary>
+              </Paper>
+              </Box>
+              <Paper elevation={6} style={{ width: '375px' }}>
+                <ErrorBoundary>
+                  <VariablesPanel/>
                 </ErrorBoundary>
               </Paper>
             </Box>
