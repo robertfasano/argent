@@ -88,4 +88,8 @@ class Client:
     def sweep(self, x, start, stop, steps, sweeps=1, plot=None, legend=None):
         return Sweep(self, x, start, stop, steps, sweeps=sweeps, plot=plot, legend=legend)
 
+    def stop(self):
+        ''' Clear the experimental queue '''
+        self.post('/queue', {'mode': 'write', 'values': []})
+
 

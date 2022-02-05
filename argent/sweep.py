@@ -2,6 +2,7 @@ import numpy as np
 from argent.live_plot import LivePlot
 import requests
 import json
+from threading import Thread
 
 class Sweep:
     def __init__(self, client, x, start, stop, steps, sweeps=1, plot=None, legend=None):
@@ -32,11 +33,13 @@ class Sweep:
         if self.legend is None:
             self.legend = [None, []]
 
-        if plot is not None:
-            self.progress_plot = LivePlot(self.dataset, x, plot, xlim=[start, stop], legend=legend)
-        self.run()
+        self.thread = Thread(target=self.run)
+        self.thread.start()
 
     def run(self):
+        if self.y is not None:
+            self.progress_plot = LivePlot(self.dataset, self.x, self.y, xlim=[self.start, self.stop], legend=self.legend)
+
         sweep_points = list(np.linspace(self.start, self.stop, self.steps))
         self.client.post('/sweep', {'name': self.x, 'values': sweep_points, 'legend_name': self.legend[0], 'legend_values': self.legend[1], 'sweeps': self.sweeps})
         data_length = len(self.dataset.data)
@@ -64,6 +67,9 @@ class Sweep:
 
     def save(self, filename):
         self.dataset.data.to_csv(filename)
+
+    def stop(self):
+        self.client.stop()
 
     def sweeping(self):
         return json.loads(requests.get(f"http://{self.client.address}/sweep").text)
