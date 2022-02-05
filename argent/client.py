@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import requests
 import datetime 
+import json
 from .dataset import Dataset
 from .sweep import Sweep
 
@@ -36,6 +37,10 @@ class Client:
             continue
 
         return self.data.iloc[-points::]
+
+    def config(self):
+        ''' Load the config file currently used by the server '''
+        return json.loads(requests.get(f'http://{self.address}/config').text)
 
     def dataset(self, name=''):
         return Dataset(self, name=name)

@@ -1,51 +1,62 @@
 from IPython.display import display, clear_output
-import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.express as px
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings("ignore")
 
 class LivePlot:
-    def __init__(self, dataset, x, y, legend=None, xlim=None):
+    def __init__(self, dataset, x, y, legend=None, xlim=None, backend='matplotlib'):
         self.dataset = dataset
         self.x = x
         self.y = y
         self.legend = legend
-        
-        self.fig = plt.figure(dpi=400, figsize=(9, 4.5))
-        self.ax = plt.gca()
-        self.xlim = xlim
+        self.backend = backend
+    
+        if backend == 'matplotlib':
+            self.fig = plt.figure(dpi=200, figsize=(9, 4.5))
+            self.ax = plt.gca()
 
 
     def update(self):
-        x = self.dataset.data[self.x]
-        y = self.dataset.data[self.y]
-        
+        x, y = self.x, self.y
         if self.legend is None:
-            z = self.dataset.data['__stage__']
+            z = '__stage__'
         else:
-            z = self.dataset.data[self.legend[0]]
-        z_vals = z.unique()
-            
-        concat = pd.concat([x, y, z], axis=1).dropna()
-        concat.columns = ['x', 'y', 'z']
-        self.ax.clear()
-        for z0 in z_vals:
-            subdata = concat[concat.z == z0]
-            mean = subdata.groupby(subdata.x).mean()
-            sterror = subdata.groupby(subdata.x).sem()
-            sterror.y = sterror.y.fillna(0)
-            if self.legend is None:
-                label = f'Stage {z0}'
-            else:
-                label = f'{self.legend[0]}={z0}'
-            self.ax.errorbar(mean.index, mean.y, sterror.y, capsize=4, linestyle='None', markersize=4, marker='o', label=label)
+            z = self.legend[0]
 
-                
-        plt.ylabel(self.y)
-        plt.xlabel(self.x)
+        data = self.dataset.data
+        df = pd.DataFrame()
 
-        if len(z_vals) > 1 or self.legend is not None:
+        for z0 in data[z].unique():
+            subdata = data[data[z] == z0]
+            df = df.append(pd.concat([subdata.groupby(x).mean()[y].rename(y), subdata.groupby(x).sem()[y].rename(f'{y}_err'), subdata.groupby(x).mean()[z].rename(z)], axis=1)  )  
+
+        df[z] = df[z].astype(str)
+
+        if self.backend == 'plotly':
+            fig = px.scatter(df, y=y, error_y=f'{y}_err', symbol=z, color=z, template='plotly_white', width=1280, height=720)
+            fig.update_layout(legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            ))
+
+        else:
+            self.ax.clear()
+            for z0 in df[z].unique():
+                subdata = df[df[z] == z0]
+                if self.legend is None:
+                    label = f'Stage {z0}'
+                else:
+                    label = f'{self.legend[0]}={z0}'
+                self.ax.errorbar(subdata.index, subdata[y], subdata[f'{y}_err'], capsize=4, linestyle='None', markersize=4, marker='o', label=label)
+            plt.xlabel(x)
+            plt.ylabel(y)
             plt.legend()
-        
-        if self.xlim is not None:
-            self.ax.set_xlim(self.xlim)
-        display(self.fig)
+            fig = self.fig
+
+        display(fig)
         clear_output(wait = True)
