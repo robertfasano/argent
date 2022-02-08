@@ -115,7 +115,7 @@ function CameraButton (props) {
                     onChange = {(event) => props.setParameter('self.' + event.target.value)}
                     autoWidth={true}
                     >
-              {Object.keys(props.allParameters).map((key, index) => (
+              {Object.keys(props.allVariables).map((key, index) => (
                 <MenuItem value={key} key={key}>
                   {key}
                 </MenuItem>
@@ -137,7 +137,7 @@ CameraButton.propTypes = {
   changeChannel: PropTypes.func,
   newOutput: PropTypes.func,
   parameters: PropTypes.object,
-  allParameters: PropTypes.object,
+  allVariables: PropTypes.object,
   removeOutput: PropTypes.func,
   updateOperation: PropTypes.func,
   replaceOutput: PropTypes.func,
@@ -204,7 +204,7 @@ function mapStateToProps (state, props) {
     channel: channel,
     ROI: channel.ROI,
     parameter: channel.parameter,
-    allParameters: state.parameters,
+    allVariables: state.variables,
     duration: channel.duration || selectTimestep(state, props.timestep).duration
   }
 }

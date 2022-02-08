@@ -18,7 +18,7 @@ function PlaylistPanel (props) {
   function submit (playlist) {
     const pid = uuidv4()
     post('/variables', props.variables)
-    post('/submit', { playlist: playlist, pid: pid, variables: props.variables, parameters: props.parameters })
+    post('/submit', { playlist: playlist, pid: pid, variables: props.variables })
     props.setPID(pid)
   }
 
@@ -74,7 +74,6 @@ const selectPlaylist = createSelector(state => state.playlist,
 PlaylistPanel.propTypes = {
   playlist: PropTypes.array,
   variables: PropTypes.object,
-  parameters: PropTypes.object,
   setPID: PropTypes.func
 }
 
@@ -91,7 +90,6 @@ function mapStateToProps (state, props) {
 
   return {
     variables: state.variables,
-    parameters: state.parameters,
     playlist: selectPlaylist(state)
   }
 }

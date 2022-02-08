@@ -32,7 +32,7 @@ function ADCButton (props) {
     opacity: props.skip ? 0.25 : 1
   }
 
-  const firstUnusedVariable = props.allParameters.filter(name => !Object.keys(props.parameters).includes(name))[0]
+  const firstUnusedVariable = props.allVariables.filter(name => !Object.keys(props.variables).includes(name))[0]
 
   const handleContextMenu = (event) => {
     event.preventDefault()
@@ -96,7 +96,7 @@ function ADCButton (props) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.keys(props.parameters).map((name) => (
+              {Object.keys(props.variables).map((name) => (
                 <TableRow key={name}>
                   <TableCell>
                     <Select label="Variable"
@@ -107,7 +107,7 @@ function ADCButton (props) {
                       <MenuItem value={''} key={''}>
                         {''}
                       </MenuItem>
-                      {props.allParameters.map((key, index) => (
+                      {props.allVariables.map((key, index) => (
                         <MenuItem value={key} key={key}>
                           {key}
                         </MenuItem>
@@ -116,7 +116,7 @@ function ADCButton (props) {
                   </TableCell>
                   <TableCell>
                     <Select label="Channel"
-                            value={props.parameters[name].ch}
+                            value={props.variables[name].ch}
                             onChange = {(event) => props.changeChannel(event, name)}
                             style={{ width: '100%' }}
                             >
@@ -129,7 +129,7 @@ function ADCButton (props) {
                   </TableCell>
                   <TableCell>
                     <Select label="Operation"
-                            value={props.parameters[name].operation}
+                            value={props.variables[name].operation}
                             onChange={(event) => props.updateOperation(event, name)}
                             style={{ width: '100%' }}
                             >
@@ -168,8 +168,8 @@ ADCButton.propTypes = {
   toggle: PropTypes.func,
   changeChannel: PropTypes.func,
   newOutput: PropTypes.func,
-  parameters: PropTypes.object,
-  allParameters: PropTypes.array,
+  variables: PropTypes.object,
+  allVariables: PropTypes.array,
   removeOutput: PropTypes.func,
   updateOperation: PropTypes.func,
   replaceOutput: PropTypes.func,
@@ -245,8 +245,8 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-const selectParameters = createSelector(state => state.parameters,
-  parameters => Object.keys(parameters),
+const selectVariableNames = createSelector(state => state.variables,
+  variables => Object.keys(variables),
   { memoizeOptions: { resultEqualityCheck: shallowEqual } }
 )
 
@@ -256,8 +256,8 @@ function mapStateToProps (state, props) {
   const channel = timestep.adc[props.board]
   return {
     enable: channel.enable,
-    parameters: channel.variables,
-    allParameters: selectParameters(state),
+    variables: channel.variables,
+    allVariables: selectVariableNames(state),
     samples: channel.samples || 1,
     duration: channel.duration || timestep.duration,
     skip: timestep.skip || false

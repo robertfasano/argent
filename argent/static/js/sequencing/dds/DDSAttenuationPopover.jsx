@@ -7,7 +7,7 @@ import { connect, shallowEqual } from 'react-redux'
 import ModeSelector from '../ModeSelector.jsx'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
 import { createSelector } from 'reselect'
-import { selectPresentState, selectTimestep } from '../../selectors.js'
+import { selectPresentState, selectTimestep, selectVariableValues } from '../../selectors.js'
 import LinearRamp from '../LinearRamp.jsx'
 
 function DDSAttenuationPopover (props) {
@@ -75,17 +75,17 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
+
 const selectVariables = createSelector(
-  state => state.variables,
-  state => state.parameters,
-  (variables, parameters) => Object.assign({}, variables, parameters),
+  // state => state.variables,
+  state => selectVariableValues(state),
+  (variables) => Object.assign({}, variables),
   { memoizeOptions: { resultEqualityCheck: shallowEqual } }
 )
 
 function mapStateToProps (state, props) {
   state = selectPresentState(state)
   const channel = selectTimestep(state, props.timestep).dds[props.ch]
-
   return {
     enable: channel.enable,
     attenuation: channel.attenuation,

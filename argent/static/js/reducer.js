@@ -336,24 +336,12 @@ export default function reducer (state = [], action) {
         for (const [key, val] of Object.entries(sequence.variables)) {
           if (!Object.keys(state.variables).includes(key)) {
             draft.variables[key] = val
-          } else if (state.variables[key] !== val) {
-            if (confirm(`Overwrite variable ${key} with value ${val} (previously ${state.variables[key]})?`)) draft.variables[key] = val
+          } else if (state.variables[key].value !== val.value) {
+            if (confirm(`Overwrite variable ${key} with value ${val.value} (previously ${state.variables[key].value})?`)) draft.variables[key] = val
           }
         }
 
-        for (const [key, val] of Object.entries(sequence.parameters)) {
-          draft.parameters[key] = val
-        }
-
-        for (const group of Object.keys(sequence.ui.groups.variables)) {
-          draft.ui.groups.variables[group] = [...new Set([...state.ui.groups.variables[group] || [], ...sequence.ui.groups.variables[group]])]
-        }
-        for (const group of Object.keys(sequence.ui.groups.parameters)) {
-          draft.ui.groups.parameters[group] = [...new Set([...state.ui.groups.parameters[group] || [], ...sequence.ui.groups.parameters[group]])]
-        }
-        delete sequence.ui
         delete sequence.variables
-        delete sequence.parameters
         draft.sequences[action.name] = sequence
         draft.active_sequence = action.name
       })
@@ -471,99 +459,44 @@ export default function reducer (state = [], action) {
         draft.ui.pid.submitted = action.value
       })
 
-    case 'ui/changeVariableTab':
+    case 'variables/current':
       return produce(state, draft => {
-        draft.ui.variableTab = action.name
-      })
-
-    case 'ui/variables/update':
-      return produce(state, draft => {
-        draft.ui.variables = {}
         for (const [key, val] of Object.entries(action.variables)) {
-          draft.ui.variables[key] = toDecimalString(val)
-        }
-      })
-
-    case 'parameters/update':
-      return produce(state, draft => {
-        // update master outputs table
-        for (const [key, val] of Object.entries(action.parameters)) {
-          draft.parameters[key] = toDecimalString(val)
-        }
-      })
-
-    case 'parameters/updateGroup':
-      return produce(state, draft => {
-        draft.parameters[action.name] = action.value
-
-        for (const group of Object.keys(state.ui.groups.parameters)) {
-          draft.ui.groups.parameters[group] = deleteElement(state.ui.groups.parameters[group], action.name)
-        }
-        draft.ui.groups.parameters[action.group].push(action.name)
-      })
-
-    case 'parameters/addGroup':
-      return produce(state, draft => {
-        const newGroup = state.ui.groups.parameters[action.name] || []
-        draft.ui.groups.parameters[action.name] = newGroup
-      })
-
-    case 'parameters/changeGroup':
-      return produce(state, draft => {
-        for (const group of Object.keys(state.ui.groups.parameters)) {
-          draft.ui.groups.parameters[group] = deleteElement(state.ui.groups.parameters[group], action.name)
-        }
-        draft.ui.groups.parameters[action.group].push(action.name)
-      })
-
-    case 'parameters/deleteGroup':
-      return produce(state, draft => {
-        delete draft.ui.groups.parameters[action.group]
-      })
-
-    case 'parameters/delete':
-      return produce(state, draft => {
-        delete draft.parameters[action.name]
-        for (const group of Object.keys(state.ui.groups.parameters)) {
-          draft.ui.groups.parameters[group] = deleteElement(state.ui.groups.parameters[group], action.name)
+          draft.variables[key].current = toDecimalString(val)
         }
       })
 
     case 'variables/update':
       return produce(state, draft => {
-        draft.variables[action.name] = toDecimalString(action.value)
-
-        for (const group of Object.keys(state.ui.groups.variables)) {
-          draft.ui.groups.variables[group] = deleteElement(state.ui.groups.variables[group], action.name)
+        if (!Object.keys(state.variables).includes(action.name)) {
+          draft.variables[action.name] = {value: null, group: 'default', sync: false, current: null}
         }
-        draft.ui.groups.variables[action.group].push(action.name)
+        draft.variables[action.name].value = toDecimalString(action.value)
+        draft.variables[action.name].current = toDecimalString(action.value)
       })
 
-    case 'variables/addGroup':
+    case 'variables/sync':
       return produce(state, draft => {
-        const newGroup = state.ui.groups.variables[action.name] || []
-        draft.ui.groups.variables[action.name] = newGroup
-      })
+        draft.variables[action.name].sync = action.value
+      })     
 
     case 'variables/changeGroup':
       return produce(state, draft => {
-        for (const group of Object.keys(state.ui.groups.variables)) {
-          draft.ui.groups.variables[group] = deleteElement(state.ui.groups.variables[group], action.name)
-        }
-        draft.ui.groups.variables[action.group].push(action.name)
+        draft.variables[action.name].group = action.group
       })
 
     case 'variables/deleteGroup':
       return produce(state, draft => {
-        delete draft.ui.groups.variables[action.group]
+        for (const name of Object.keys(state.variables)) {
+          if (state.variables[name].group == action.group) {
+            draft.variables[name].group == 'default'
+          }
+        }
       })
 
     case 'variables/delete':
       return produce(state, draft => {
         delete draft.variables[action.name]
-        for (const group of Object.keys(state.ui.groups.variables)) {
-          draft.ui.groups.variables[group] = deleteElement(state.ui.groups.variables[group], action.name)
-        }
       })
 
     default : return state

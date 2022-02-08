@@ -5,7 +5,7 @@ import TableCell from '@material-ui/core/TableCell'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
 import DDSAttenuationPopover from './DDSAttenuationPopover.jsx'
-import { selectTimestep, selectPresentState } from '../../selectors.js'
+import { selectTimestep, selectPresentState, selectVariableValues } from '../../selectors.js'
 
 function DDSButton (props) {
   // A Button which opens a Popover allowing the user to define the state of a
@@ -93,7 +93,7 @@ function mapStateToProps (state, props) {
     enable: channel.enable,
     attenuation: channel.attenuation,
     frequency: channel.frequency,
-    variables: state.variables,
+    variables: selectVariableValues(state),
     skip: timestep.skip || false
   }
 }
