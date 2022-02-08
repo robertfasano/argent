@@ -33,8 +33,9 @@ class Sweep:
         if self.legend is None:
             self.legend = [None, []]
 
-        self.thread = Thread(target=self.run)
-        self.thread.start()
+        self.run()
+        # self.thread = Thread(target=self.run)
+        # self.thread.start()
 
     def plot(self, x=None, y=None):
         ''' Convenience function for plotting sweep data with variables other than the instantiated x and y choices '''
@@ -47,7 +48,7 @@ class Sweep:
 
     def run(self):
         if self.y is not None:
-            self.progress_plot = LivePlot(self.dataset, self.x, self.y, xlim=[0.95*self.start, 1.05*self.stop], legend=self.legend, backend=self.client.config().get('plotting_backend', 'matplotlib'))
+            self.progress_plot = LivePlot(self.dataset, self.x, self.y, xlim=[self.start, self.stop], legend=self.legend, backend=self.client.config().get('plotting_backend', 'matplotlib'))
 
         sweep_points = list(np.linspace(self.start, self.stop, self.steps))
         self.client.post('/sweep', {'name': self.x, 'values': sweep_points, 'legend_name': self.legend[0], 'legend_values': self.legend[1], 'sweeps': self.sweeps})

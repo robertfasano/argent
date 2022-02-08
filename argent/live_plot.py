@@ -1,6 +1,7 @@
 from IPython.display import display, clear_output
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
@@ -12,10 +13,15 @@ class LivePlot:
         self.y = y
         self.legend = legend
         self.backend = backend
-    
+        self.xlim = xlim
+
         if backend == 'matplotlib':
             self.fig = plt.figure(dpi=200, figsize=(9, 4.5))
             self.ax = plt.gca()
+            plt.xlim(xlim)
+            
+        elif backend == 'plotly':
+            self.fig = None
 
 
     def update(self):
@@ -35,15 +41,22 @@ class LivePlot:
         df[z] = df[z].astype(str)
 
         if self.backend == 'plotly':
-            fig = px.scatter(df, y=y, error_y=f'{y}_err', symbol=z, color=z, template='plotly_white', width=1280, height=720)
-            fig.update_layout(legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
-            ))
-
+            if self.fig is None:
+                self.fig = px.scatter(df, y=y, error_y=f'{y}_err', symbol=z, color=z, template='plotly_white', width=1280, height=720)
+                self.fig = go.FigureWidget(self.fig)
+                self.fig.update_layout(legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1
+                ))
+                self.fig.update_xaxes(range=self.xlim)
+            else:
+                ## update data
+                self.fig.data[0]['y'] = df[y]
+                self.fig.data[0]['x'] = df.index
+                self.fig.data[0]['error_y']['array'] = df[f'{y}_err']
         else:
             self.ax.clear()
             for z0 in df[z].unique():
@@ -56,7 +69,6 @@ class LivePlot:
             plt.xlabel(x)
             plt.ylabel(y)
             plt.legend()
-            fig = self.fig
 
-        display(fig)
+        display(self.fig)
         clear_output(wait = True)
