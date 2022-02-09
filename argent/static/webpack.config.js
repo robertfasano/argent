@@ -1,8 +1,9 @@
 const path = require('path')
-
+const mode = 'development'
 const distPath = path.join(__dirname, '/dist')
 const entryPath = path.join(__dirname, '/index.jsx')
 const config = {
+  devtool: mode === 'production' ? false : 'source-map',
   entry: entryPath,
   output: {
     path: distPath,
