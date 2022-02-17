@@ -1,11 +1,10 @@
 import React from 'react'
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
-import { connect, shallowEqual } from 'react-redux'
+import { connect } from 'react-redux'
 import TableCell from '@material-ui/core/TableCell'
 import PropTypes from 'prop-types'
 import { countBy } from 'lodash'
-import { createSelector } from 'reselect'
 import { selectPresentState, selectVariableValues } from '../selectors'
 import { polynomial, step } from 'everpolate'
 
@@ -222,25 +221,9 @@ function parseLinkedParameter (setpoint, variables) {
   else return parseFloat(setpoint)
 }
 
-function slice (array, axis) {
-  const slice = []
-  for (let i = 0; i < array.length; i++) {
-    slice.push(array[i][axis])
-  }
-  return slice
-}
-
-const selectVariables = createSelector(
-  state => state.variables,
-  (variables) => Object.assign({}, variables),
-  { memoizeOptions: { resultEqualityCheck: shallowEqual } }
-)
-
 function mapStateToProps (state, props) {
   state = selectPresentState(state)
   return {
-    // variables: selectVariables(state),
-    // variables: state.variables,
     variables: selectVariableValues(state),
     unit: props.unit || ''
   }
