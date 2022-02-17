@@ -1,6 +1,7 @@
 def build(self):
     self.__pid__ = '{{pid}}'
     self.__cycle__ = 0
+    self.__stage__ = 0
     self.setattr_device('core')
 
     for ttl in {{channels['ttl']}}:

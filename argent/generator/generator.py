@@ -71,6 +71,7 @@ def generate_run(playlist, config, variables, parameters):
 
     i = 0
     for stage in playlist:
+        code += f'\t\tself.__stage__ = {i}\n'
         for fragment in stage['fragments']:
             ## load imported prep scripts
             if fragment['sequence']['script']['preparation'] is not None:
