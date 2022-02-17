@@ -47,8 +47,10 @@ def generate_experiment(playlist, config, pid, variables={}):
             'adc': get_adc_boards(playlist),
             'cam': get_grabber_boards(playlist)}
 
+
     code += textwrap.indent(env.get_template("build.j2").render(pid=pid, 
                                                                 variables=variables, 
+                                                                variable_values = dict(zip(variables.keys(), [d['value'] for d in variables.values()])),
                                                                 arrays=get_data_arrays(playlist),
                                                                 channels=channels
                                                                 ), 

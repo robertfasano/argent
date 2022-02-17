@@ -21,6 +21,7 @@ def build(self):
     {% for key, value in variables.items() -%}
     self.{{key}} = {{value.value}}
     {% endfor %}
+    self.variables = {{variable_values}}
 
     ## data arrays
     {% for key, value in arrays.items() -%}

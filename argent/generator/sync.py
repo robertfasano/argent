@@ -27,7 +27,7 @@ def __pull__(self, addr):
     try:
         variables = requests.get("http://{}/variables?source=ARTIQ".format(addr)).json()
         for name in variables:
-            self.variables[name] = float(variables[name].value)
+            self.variables[name] = float(variables[name]['value'])
     except Exception as e:
         print(e)
 

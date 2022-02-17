@@ -342,10 +342,11 @@ export default function reducer (state = [], action) {
         const sequence = { ...action.sequence, steps: fill(action.sequence.steps, state.channels) }
 
         for (const [key, val] of Object.entries(sequence.variables)) {
+          const defaultVariable = { value: '', sync: false, current: '' }
           if (!Object.keys(state.variables).includes(key)) {
-            draft.variables[key] = val
+            draft.variables[key] = Object.assign(defaultVariable, val)
           } else if (state.variables[key].value !== val.value) {
-            if (confirm(`Overwrite variable ${key} with value ${val.value} (previously ${state.variables[key].value})?`)) draft.variables[key] = val
+            if (confirm(`Overwrite variable ${key} with value ${val.value} (previously ${state.variables[key].value})?`)) draft.variables[key] = Object.assign(defaultVariable, val)
           }
         }
 
@@ -461,7 +462,6 @@ export default function reducer (state = [], action) {
           draft.sequences[state.active_sequence].steps[i].ttl[action.channel] = action.value
         }
       })
-    
 
     case 'ui/heartbeat':
       // Toggle the heartbeat state
@@ -486,7 +486,7 @@ export default function reducer (state = [], action) {
     case 'variables/update':
       return produce(state, draft => {
         if (!Object.keys(state.variables).includes(action.name)) {
-          draft.variables[action.name] = {value: null, group: 'default', sync: false, current: null}
+          draft.variables[action.name] = { value: null, group: 'default', sync: false, current: null }
         }
         draft.variables[action.name].value = toDecimalString(action.value)
         draft.variables[action.name].current = toDecimalString(action.value)
@@ -495,7 +495,7 @@ export default function reducer (state = [], action) {
     case 'variables/sync':
       return produce(state, draft => {
         draft.variables[action.name].sync = action.value
-      })     
+      })
 
     case 'variables/changeGroup':
       return produce(state, draft => {
