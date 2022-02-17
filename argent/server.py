@@ -120,7 +120,10 @@ class App:
         def variables():
             if request.method == 'POST':
                 for key, val in request.json.items():
-                    self.variables[key] = val
+                    if isinstance(val, dict):
+                        self.variables[key] = val
+                    elif isinstance(val, float):
+                        self.variables[key]['value'] = val
 
                 return ''
 
@@ -133,7 +136,7 @@ class App:
                         point = self.queued_points.pop(0)
                         print(point)
                         for key, val in point.items():
-                            vars[key] = val
+                            vars[key]['value'] = val
 
                 return json.dumps(vars)
 
