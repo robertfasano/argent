@@ -55,24 +55,28 @@ class Sweep:
         data_length = len(self.dataset.data)
         first_cycle = True
         while True:
-            ## check if a new point has come in
-            new_length = len(self.dataset.data)
-            if new_length == data_length:
-                continue
-            data_length = new_length
-
-            # don't plot points from before sweep
-            if first_cycle:
-                y_value = self.dataset.data.iloc[-1][self.x]
-                if y_value != sweep_points[0]:
+            try:
+                ## check if a new point has come in
+                new_length = len(self.dataset.data)
+                if new_length == data_length:
                     continue
-                else:
-                    first_cycle = False
-                    self.dataset.start_time = self.dataset.data.index[-2]
+                data_length = new_length
 
-            self.progress_plot.update()
+                # don't plot points from before sweep
+                if first_cycle:
+                    y_value = self.dataset.data.iloc[-1][self.x]
+                    if y_value != sweep_points[0]:
+                        continue
+                    else:
+                        first_cycle = False
+                        self.dataset.start_time = self.dataset.data.index[-2]
 
-            if not self.sweeping():
+                self.progress_plot.update()
+
+                if not self.sweeping():
+                    break
+            except KeyboardInterrupt:
+                self.client.stop()
                 break
 
         self.dataset.stop()
