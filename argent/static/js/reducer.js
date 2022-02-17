@@ -151,6 +151,14 @@ export default function reducer (state = [], action) {
         }
       })
 
+    case 'dds/setAll':
+      // Sets the switch state to true or false for the entire sequence.
+      return produce(state, draft => {
+        for (const i in state.sequences[state.active_sequence].steps) {
+          draft.sequences[state.active_sequence].steps[i].dds[action.channel].enable = action.value
+        }
+      })
+
     case 'dds/attenuation/setpoint':
       return produce(state, draft => {
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.setpoint = action.value
@@ -445,6 +453,15 @@ export default function reducer (state = [], action) {
         const ttlChecked = selectTimestep(state, action.path.timestep).ttl[action.path.channel]
         draft.sequences[state.active_sequence].steps[action.path.timestep].ttl[action.path.channel] = !ttlChecked
       })
+
+    case 'ttl/setAll':
+      // Sets the TTL state to true or false for the entire sequence.
+      return produce(state, draft => {
+        for (const i in state.sequences[state.active_sequence].steps) {
+          draft.sequences[state.active_sequence].steps[i].ttl[action.channel] = action.value
+        }
+      })
+    
 
     case 'ui/heartbeat':
       // Toggle the heartbeat state

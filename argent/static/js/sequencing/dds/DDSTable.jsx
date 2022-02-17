@@ -8,12 +8,38 @@ import { connect } from 'react-redux'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import DDSButton from './DDSButton.jsx'
+import DDSContextMenu from './DDSContextMenu.jsx'
+import DDSAttenuationPopover from './DDSAttenuationPopover.jsx'
 import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
 import { selectSequenceLength, selectPresentState } from '../../selectors'
 
 function DDSTable (props) {
+  const [menu, setMenu] = React.useState({ anchor: null, channel: null, timestep: null })
+
+  function handleMenu (event, channel, timestep) {
+    event.preventDefault()
+    setMenu({ anchor: event.currentTarget, channel: channel, timestep: timestep })
+  }
+
+  function closeMenu () {
+    setMenu({ anchor: null, channel: null, timestep: null })
+  }
+
+  const [popover, setPopover] = React.useState({ anchor: null, channel: null, timestep: null })
+
+  function handlePopover (anchor, channel, timestep) {
+    event.preventDefault()
+    setPopover({ anchor: anchor, channel: channel, timestep: timestep })
+  }
+
+  function closePopover () {
+    setPopover({ anchor: null, channel: null, timestep: null })
+  }
+
   return (
     <>
+    <DDSContextMenu state={menu} close={closeMenu} handlePopover={handlePopover}/>
+    <DDSAttenuationPopover state={popover} close={closePopover}/>
     <TableRow>
       <TableCell colSpan={9} align='left'>
         <IconButton onClick={props.setExpanded} color='default' >
@@ -39,7 +65,7 @@ function DDSTable (props) {
             </TableCell>
             {
               [...Array(props.length).keys()].map((step, index) => (
-                <DDSButton timestep={index} ch={ch} key={'dds-' + ch + index}/>
+                <DDSButton timestep={index} ch={ch} key={'dds-' + ch + index} onContextMenu={(event) => handleMenu(event, ch, index)}/>
               )
               )
 

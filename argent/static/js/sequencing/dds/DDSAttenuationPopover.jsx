@@ -13,9 +13,9 @@ import LinearRamp from '../LinearRamp.jsx'
 function DDSAttenuationPopover (props) {
   return (
     <Popover
-      open={Boolean(props.anchorEl)}
-      anchorEl={props.anchorEl}
-      onClose={(event) => props.setAnchorEl(null)}
+      open={Boolean(props.state.anchor)}
+      anchorEl={props.state.anchor}
+      onClose={props.close}
       anchorOrigin={{
         vertical: 'top',
         horizontal: 'right'
@@ -24,44 +24,45 @@ function DDSAttenuationPopover (props) {
         vertical: 'top',
         horizontal: 'left'
       }}
-    >
-      <Box p={1}>
-        <Typography style={{ fontWeight: 'bold', fontSize: 24 }}>
-            DDS attenuation
-        </Typography>
-        <ModeSelector label={'Attenuation mode'}
-                      value={props.attenuation.mode}
-                      onChange = {(event) => props.update('dds/attenuation/mode', event.target.value)}
-                      ramp={false}
-        />
-        {(props.attenuation.mode === 'setpoint')
-          ? <LinkableParameter value={props.attenuation.setpoint} onChange={(value) => props.update('dds/attenuation/setpoint', value)} label='Attenuation' unit='dB'/>
-          : null
-        }
+    > { props.state.anchor === null ? null :       
+    <Box p={1}>
+      <Typography style={{ fontWeight: 'bold', fontSize: 24 }}>
+          DDS attenuation
+      </Typography>
+      <ModeSelector label={'Attenuation mode'}
+                    value={props.channel.attenuation.mode}
+                    onChange = {(event) => props.update('dds/attenuation/mode', event.target.value)}
+                    ramp={false}
+      />
+      {(props.channel.attenuation.mode === 'setpoint')
+        ? <LinkableParameter value={props.channel.attenuation.setpoint} onChange={(value) => props.update('dds/attenuation/setpoint', value)} label='Attenuation' unit='dB'/>
+        : null
+      }
 
-        {props.attenuation.mode === 'ramp'
-          ? <LinearRamp prefix='dds/attenuation' ramp={props.attenuation.ramp} update={props.update} unit='MHz'/>
-          : null}
+      {props.channel.attenuation.mode === 'ramp'
+        ? <LinearRamp prefix='dds/attenuation' ramp={props.channel.attenuation.ramp} update={props.update} unit='MHz'/>
+        : null}
 
-      </Box>
+    </Box>
+  }
+
     </Popover>
   )
 }
 
 DDSAttenuationPopover.propTypes = {
-  enable: PropTypes.bool,
-  attenuation: PropTypes.object,
   toggleSwitch: PropTypes.func,
   variables: PropTypes.object,
   update: PropTypes.func,
   anchorEl: PropTypes.object,
-  setAnchorEl: PropTypes.func
+  setAnchorEl: PropTypes.func,
+  channel: PropTypes.object
 }
 
 function mapDispatchToProps (dispatch, props) {
   const path = {
-    ch: props.ch,
-    timestep: props.timestep
+    ch: props.state.channel,
+    timestep: props.state.timestep
   }
 
   return {
@@ -85,11 +86,11 @@ const selectVariables = createSelector(
 
 function mapStateToProps (state, props) {
   state = selectPresentState(state)
-  const channel = selectTimestep(state, props.timestep).dds[props.ch]
+  const channel = props.state.anchor === null? null : selectTimestep(state, props.state.timestep).dds[props.state.channel]
   return {
-    enable: channel.enable,
-    attenuation: channel.attenuation,
-    variables: selectVariables(state)
+    open: Boolean(props.state.anchor),
+    variables: selectVariables(state),
+    channel: channel
 
   }
 }

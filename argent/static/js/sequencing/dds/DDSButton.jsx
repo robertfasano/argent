@@ -4,7 +4,6 @@ import Button from '@material-ui/core/Button'
 import TableCell from '@material-ui/core/TableCell'
 import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
-import DDSAttenuationPopover from './DDSAttenuationPopover.jsx'
 import { selectTimestep, selectPresentState, selectVariableValues } from '../../selectors.js'
 
 function DDSButton (props) {
@@ -45,12 +44,11 @@ function DDSButton (props) {
                 disableRipple={true}
                 style={style}
                 onClick={props.toggleSwitch}
-                onContextMenu={handleContextMenu}
+                onContextMenu={props.onContextMenu}
                 >
         <Typography style={style}> {displayText} </Typography>
         </Button>
       </TableCell>
-      <DDSAttenuationPopover anchorEl={anchorEl} setAnchorEl={setAnchorEl} ch={props.ch} timestep={props.timestep}/>
     </>
   )
 }

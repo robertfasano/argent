@@ -10,11 +10,24 @@ import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import TTLButton from './TTLButton.jsx'
 import TimestepLabelTable from '../timing/TimestepLabelTable.jsx'
 import { selectSequenceLength, selectPresentState } from '../../selectors'
+import TTLContextMenu from './TTLContextMenu.jsx'
 
 function TTLTable (props) {
+  const [menu, setMenu] = React.useState({ anchor: null, channel: null })
+
+  function handleMenu (event, channel) {
+    event.preventDefault()
+    setMenu({ anchor: event.currentTarget, channel: channel })
+  }
+
+  function closeMenu () {
+    setMenu({ anchor: null, channel: null })
+  }
+
   return (
 
 <>
+  <TTLContextMenu state={menu} close={closeMenu} />
   <TableRow>
     <TableCell>
       <IconButton onClick={props.setExpanded} >
@@ -39,7 +52,7 @@ function TTLTable (props) {
         </TableCell>
         {
             [...Array(props.length).keys()].map((index) => (
-              <TTLButton timestep={index} channel={i} key={'ttl-' + i + index}/>
+              <TTLButton timestep={index} channel={i} key={'ttl-' + i + index} onContextMenu={(event) => handleMenu(event, i)}/>
             ))
         }
       </TableRow>
