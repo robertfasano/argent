@@ -89,3 +89,13 @@ class Sweep:
 
     def sweeping(self):
         return json.loads(requests.get(f"http://{self.client.address}/sweep").text)
+
+    def find_max(self, x, y):
+        ''' Returns a value of variable x coinciding with the maximum of variable y '''
+        idx = self.dataset.data[y].idxmax()
+        return self.dataset.data.loc[idx, x]
+
+    def find_min(self, x, y):
+        ''' Returns a value of variable x coinciding with the minimum of variable y '''
+        idx = self.dataset.data[y].idxmin()
+        return self.dataset.data.loc[idx, x]
