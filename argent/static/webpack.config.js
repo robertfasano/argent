@@ -3,6 +3,7 @@ const mode = 'development'
 const distPath = path.join(__dirname, '/dist')
 const entryPath = path.join(__dirname, '/index.jsx')
 const config = {
+  mode: mode,
   devtool: mode === 'production' ? false : 'source-map',
   entry: entryPath,
   output: {
