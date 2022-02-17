@@ -9,7 +9,7 @@ import LinkOffIcon from '@material-ui/icons/LinkOff'
 import IconButton from '@material-ui/core/IconButton'
 import Autocomplete from '@mui/material/Autocomplete'
 import { connect } from 'react-redux'
-import { selectPresentState } from '../selectors'
+import { selectPresentState, selectVariableGroups } from '../selectors'
 
 function LinkableParameter (props) {
   const variableMode = String(props.value).includes('self.')
@@ -28,17 +28,11 @@ function LinkableParameter (props) {
 
   const options = []
   const groups = {}
-  for (const [group, vars] of Object.entries(props.groups.variables)) {
+  for (const [group, vars] of Object.entries(props.groups)) {
     for (let name of vars.slice().sort()) {    // slice is used to create a new array to allow sorting
       options.push(name)
       groups[name] = group
 
-    }
-  }
-  for (const [group, vars] of Object.entries(props.groups.parameters)) {
-    for (let name of vars.slice().sort()) {
-      options.push(name)
-      groups[name] = group
     }
   }
 
@@ -99,7 +93,6 @@ LinkableParameter.propTypes = {
   onChange: PropTypes.func,
   value: PropTypes.string,
   variables: PropTypes.array,
-  parameters: PropTypes.array,
   unit: PropTypes.string,
   label: PropTypes.string,
   groups: PropTypes.object
@@ -107,10 +100,10 @@ LinkableParameter.propTypes = {
 
 function mapStateToProps (state) {
   state = selectPresentState(state)
+
   return {
-    groups: state.ui.groups,
+    groups: selectVariableGroups(state),
     variables: Object.keys(state.variables),
-    parameters: Object.keys(state.parameters)
   }
 }
 

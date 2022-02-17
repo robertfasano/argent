@@ -43,7 +43,7 @@ function SequenceSelector (props) {
       i = i + 1
       name = `new sequence (${i})`
     }
-    props.load(name, { steps: defaultSequence(props.channels), variables: {}, parameters: {}, script: { analysis: null, preparation: null }, ui: { groups: { variables: {}, parameters: {} } } })
+    props.load(name, { steps: defaultSequence(props.channels), variables: {}, script: { analysis: null, preparation: null } })
   }
 
   const AddTab = () => {

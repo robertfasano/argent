@@ -18,7 +18,7 @@ import { post } from '../utilities.js'
 import CodeIcon from '@material-ui/icons/Code'
 import { merge } from 'lodash'
 import { createSelector } from 'reselect'
-import { selectActiveSequence, selectPresentState } from '../selectors.js'
+import { selectActiveSequence, selectPresentState, selectVariableGroups } from '../selectors.js'
 
 const flexContainer = {
   display: 'flex',
@@ -35,13 +35,13 @@ function SequenceToolbar (props) {
   function submit (playlist) {
     const pid = uuidv4()
     post('/variables', props.variables)
-    post('/submit', { playlist: playlist, pid: pid, variables: props.variables, parameters: props.parameters })
+    post('/submit', { playlist: playlist, pid: pid, variables: props.variables })
     props.setPID(pid)
   }
 
   function generate () {
     const pid = uuidv4()
-    post('/generate', { playlist: props.playlist, pid: pid, variables: props.variables, parameters: props.parameters })
+    post('/generate', { playlist: props.playlist, pid: pid, variables: props.variables })
   }
 
   const onDownload = () => {
@@ -124,7 +124,6 @@ SequenceToolbar.propTypes = {
   duplicate: PropTypes.func,
   delete: PropTypes.func,
   addToPlaylist: PropTypes.func,
-  parameters: PropTypes.object,
   variables: PropTypes.object,
   setPID: PropTypes.func,
   setScriptAnchor: PropTypes.func
@@ -155,14 +154,10 @@ function mapDispatchToProps (dispatch, props) {
 const generateYAML = createSelector(
   state => selectActiveSequence(state),
   state => state.variables,
-  state => state.parameters,
   state => state.version,
-  state => state.ui.groups,
-  (sequence, variables, parameters, version, groups) => {
+  (sequence, variables, version) => {
     const seq = merge({}, sequence)
     seq.variables = variables
-    seq.parameters = parameters
-    seq.ui = { groups: groups }
     return '# Created with Argent commit ' + version + '\n' + yaml.dump(seq)
   }
 )
@@ -180,7 +175,6 @@ function mapStateToProps (state, props) {
   return {
     playlist: selectPlaylist(state),
     variables: state.variables,
-    parameters: state.parameters,
     text: generateYAML(state)
   }
 }

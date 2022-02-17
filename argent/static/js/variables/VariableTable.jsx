@@ -5,9 +5,7 @@ import Typography from '@material-ui/core/Typography'
 import { connect } from 'react-redux'
 import VariableGroupPanel from './VariableGroupPanel.jsx'
 import VariableContextMenu from './VariableContextMenu.jsx'
-import Button from '@material-ui/core/Button'
-import CreateNewFolderIcon from '@material-ui/icons/CreateNewFolder'
-import { selectPresentState } from '../selectors'
+import { selectPresentState, selectVariableGroups } from '../selectors'
 
 function VariableTable (props) {
   const [menu, setMenu] = React.useState({ anchor: null, name: null })
@@ -32,22 +30,17 @@ function VariableTable (props) {
 
   return (
         <>
+        <Box p={2}>
+        <Typography style={{ fontSize: 24 }}> <b>Variables</b> </Typography>
         <VariableContextMenu state={menu} close={closeMenu} groups={Object.keys(props.groups)}/>
-        <Box my={2}>
-          <Typography>Variables are synchronized from the server to the experiment at the end of each experimental cycle.
-          </Typography>
+        <Box mt={2}>
+          <VariableGroupPanel key={'default'} group={'default'} items={props.groups.default} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>
         </Box>
-        <VariableGroupPanel key={'default'} group={'default'} items={props.groups.default} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>
         {Object.entries(props.groups).sort().map(([key, value]) => (
           (key !== 'default') ? (<VariableGroupPanel key={key} group={key} items={value} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>) : null
 
         ))
         }
-        <Box py={1}>
-          <Button onClick={props.addGroup} style={{ textTransform: 'none', width: 150 }}>
-            <CreateNewFolderIcon/>
-            <Box px={2}>New group</Box>
-          </Button>
         </Box>
         </>
   )
@@ -56,22 +49,18 @@ function VariableTable (props) {
 VariableTable.propTypes = {
   variables: PropTypes.object,
   groups: PropTypes.object,
-  addGroup: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
   return {
-    addGroup: (name) => dispatch({ type: 'variables/addGroup', name: prompt('Enter new group name:') })
   }
 }
 
 function mapStateToProps (state, props) {
   state = selectPresentState(state)
-  const groups = state.ui.groups.variables
-
   return {
     variables: state.variables,
-    groups: groups
+    groups: selectVariableGroups(state)
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(VariableTable)

@@ -13,6 +13,7 @@ function TTLButton (props) {
               disableRipple={true}
               style={{ backgroundColor: props.on ? '#67001a' : '#D3D3D3', opacity: props.skip ? 0.25 : 1 }}
               onClick={props.toggle}
+              onContextMenu={props.onContextMenu}
               >
       <React.Fragment/>
       </Button>

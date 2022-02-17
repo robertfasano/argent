@@ -16,18 +16,14 @@ function defaultStore (channels, sequences, version) {
   const state = {}
   state.channels = channels
   state.sequences = sequences
-  state.sequences = { 'new sequence': { steps: defaultSequence(channels), script: { preparation: null, analysis: null }, ui: { groups: { variables: { default: [] }, parameters: { default: [] } } } } }
+  state.sequences = { 'new sequence': { steps: defaultSequence(channels), script: { preparation: null, analysis: null } } }
   state.active_sequence = 'new sequence'
-  state.playlist = [{ name: 'new sequence', reps: 1 }]
+  state.playlist = []
   state.variables = {}
-  state.parameters = {}
 
   state.ui = {
     heartbeat: false,
-    pid: { active: null, submitted: null },
-    variableTab: 'Variables',
-    groups: { parameters: { default: [] }, variables: { default: [] } },
-    variables: {}
+    pid: { active: null, submitted: null }
   }
 
   state.version = version
@@ -44,7 +40,7 @@ export function createGUI (sequences, channels, version) {
     whitelist: 'present',
     storage
   }
-  const undoableReducer = undoable(reducer, { filter: excludeAction(['ui/heartbeat', 'parameters/update', 'ui/variables/update']) })
+  const undoableReducer = undoable(reducer, { filter: excludeAction(['ui/heartbeat', 'variables/current']) })
   const persistedReducer = persistReducer(persistConfig, undoableReducer)
 
   const store = createStore(persistedReducer, state, enhancer)

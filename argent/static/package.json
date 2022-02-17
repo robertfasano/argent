@@ -7,7 +7,7 @@
     "build": "webpack -p --progress --config webpack.config.js",
     "dev-build": "webpack --progress -d --config webpack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "webpack --progress -d --config webpack.config.js --watch"
+    "watch": "webpack --progress --config webpack.config.js --watch"
   },
   "author": "",
   "license": "MIT",
@@ -23,13 +23,13 @@
     "@mui/styles": "^5.2.3",
     "@ungap/structured-clone": "^0.3.4",
     "axios": "^0.21.1",
-    "babel-loader": "^8.2.2",
+    "babel-loader": "^8.2.3",
     "babel-preset-react": "^6.24.1",
     "everpolate": "^0.0.3",
     "flat": "^5.0.2",
     "highcharts": "^9.1.2",
     "highcharts-react-official": "^3.0.0",
-    "immer": "^6.0.9",
+    "immer": "^9.0.12",
     "js-yaml": "^4.1.0",
     "material-ui-nested-menu-item": "^1.0.2",
     "react": "^17.0.2",
@@ -39,10 +39,10 @@
     "redux-persist": "^6.0.0",
     "redux-undo": "^1.0.1",
     "reselect": "^4.1.4",
-    "socket.io-client": "^2.4.0",
+    "socket.io-client": "^4.4.1",
     "uuid": "^8.3.2",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12"
+    "webpack": "^5.68.0",
+    "webpack-cli": "^4.9.2"
   },
   "babel": {
     "presets": [

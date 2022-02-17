@@ -7,7 +7,7 @@ import { connect, shallowEqual } from 'react-redux'
 import ModeSelector from '../ModeSelector.jsx'
 import LinkableParameter from '../../components/LinkableParameter.jsx'
 import { createSelector } from 'reselect'
-import { selectTimestep, selectPresentState } from '../../selectors.js'
+import { selectTimestep, selectPresentState, selectVariableValues } from '../../selectors.js'
 import LinearRamp from '../LinearRamp.jsx'
 
 function DDSFrequencyPopover (props) {
@@ -76,10 +76,12 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
+
+
 const selectVariables = createSelector(
-  state => state.variables,
-  state => state.parameters,
-  (variables, parameters) => Object.assign({}, variables, parameters),
+  // state => state.variables,
+  state => selectVariableValues(state),
+  (variables) => Object.assign({}, variables),
   { memoizeOptions: { resultEqualityCheck: shallowEqual } }
 )
 

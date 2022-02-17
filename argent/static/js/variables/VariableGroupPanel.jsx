@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import TableCell from '@material-ui/core/TableCell'
 import Paper from '@material-ui/core/Paper'
+import Checkbox from '@material-ui/core/Checkbox'
 import TableRow from '@material-ui/core/TableRow'
 import TextField from '@material-ui/core/TextField'
 import { connect, shallowEqual } from 'react-redux'
@@ -85,6 +86,7 @@ function VariableGroupPanel (props) {
                 <TableCell> Name </TableCell>
                 <TableCell> Default </TableCell>
                 <TableCell> Value </TableCell>
+                <TableCell> Sync </TableCell>
             </TableRow>
             </TableHead>
             <TableBody>
@@ -94,10 +96,13 @@ function VariableGroupPanel (props) {
                     <TextField disabled value={key} onContextMenu={(event) => props.handleMenu(event, key)}/>
                     </TableCell>
                     <TableCell>
-                    <DebouncedTextField value={value} onBlur={(value) => props.updateVariable(key, value)}/>
+                    <DebouncedTextField value={value.value} onBlur={(value) => props.updateVariable(key, value)}/>
                     </TableCell>
                     <TableCell>
-                    <TextField disabled value={props.currentVariables[key]}/>
+                    <TextField disabled value={value.current}/>
+                    </TableCell>
+                    <TableCell>
+                      <Checkbox checked={value.sync} onChange={(event) => props.syncVariable(key, event.target.checked)} />
                     </TableCell>
                 </TableRow>
             ))}
@@ -136,13 +141,15 @@ VariableGroupPanel.propTypes = {
   expanded: PropTypes.array,
   setExpanded: PropTypes.func,
   deleteGroup: PropTypes.func,
-  currentVariables: PropTypes.object
+  currentVariables: PropTypes.object,
+  syncVariable: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
   return {
     updateVariable: (name, value) => dispatch({ type: 'variables/update', name: name, value: value, group: props.group }),
-    deleteGroup: () => dispatch({ type: 'variables/deleteGroup', group: props.group })
+    deleteGroup: () => dispatch({ type: 'variables/deleteGroup', group: props.group }),
+    syncVariable: (name, value) => dispatch({ type: 'variables/sync', name: name, value: value }),
 
   }
 }
@@ -160,27 +167,12 @@ const makeSelector = () => createSelector(
   { memoizeOptions: { resultEqualityCheck: shallowEqual } }
 )
 
-const makeCurrentVariablesSelector = () => createSelector(
-  state => state.ui.variables,
-  (state, props) => props.items,
-  (variables, items) => {
-    const vars = {}
-    for (const name of items) {
-      vars[name] = variables[name]
-    }
-    return vars
-  },
-  { memoizeOptions: { resultEqualityCheck: shallowEqual } }
-)
-
 const makeMapStateToProps = () => {
   const selectVariables = makeSelector()
-  const selectCurrentVariables = makeCurrentVariablesSelector()
   const mapStateToProps = (state, props) => {
     state = selectPresentState(state)
     return {
-      variables: selectVariables(state, props),
-      currentVariables: selectCurrentVariables(state, props)
+      variables: selectVariables(state, props)
     }
   }
   return mapStateToProps

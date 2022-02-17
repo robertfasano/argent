@@ -32,8 +32,7 @@ class App:
 
         self.processes = []
         self.variables = {}
-        self.parameters = {}
-        self.results = {'variables': {}, 'parameters': {}}
+        self.results = {'variables': {}}
         self.queued_points = []
 
         self.app = Flask(__name__)
@@ -66,8 +65,7 @@ class App:
             sequence = request.json['playlist']
             pid = request.json['pid']
             variables = request.json['variables']
-            parameters = request.json['parameters']
-            code = generate_experiment(sequence, self.config, pid, variables, parameters)
+            code = generate_experiment(sequence, self.config, pid, variables)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             return json.dumps(code)
@@ -80,8 +78,7 @@ class App:
             sequence = request.json['playlist']
             pid = request.json['pid']
             variables = request.json['variables']
-            parameters = request.json['parameters']
-            code = generate_experiment(sequence, self.config, pid, variables, parameters)
+            code = generate_experiment(sequence, self.config, pid, variables)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             env_name = self.config['environment_name']
@@ -140,18 +137,6 @@ class App:
 
                 return json.dumps(vars)
 
-        @self.app.route("/parameters", methods=['GET', 'POST'])
-        def parameters():
-            if request.method == 'POST':
-                for key, val in request.json.items():
-                    self.parameters[key] = val
-
-                self.socketio.emit('heartbeat', {"pid": request.json['pid']})
-                return ''
-
-            elif request.method == 'GET':
-                return json.dumps(self.parameters)
-
         @self.app.route("/results", methods=['GET', 'POST'])
         def results():
             if request.method == 'POST':
@@ -162,7 +147,7 @@ class App:
 
                 ## write data to Influx
                 results = request.json
-                data = {**results['variables'], **results['parameters']}
+                data = {**results['variables']}
                 timestamp = datetime.datetime.fromisoformat(results['timestamp'])
                 data['__stage__'] = results['stage']
                 data['__cycle__'] = results['cycle']

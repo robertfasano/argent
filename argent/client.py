@@ -17,7 +17,7 @@ class Client:
 
         @self.client.on('heartbeat')
         def heartbeat(results):
-            data = {**results['variables'], **results['parameters']}
+            data = {**results['variables']}
             timestamp = datetime.datetime.fromisoformat(results['timestamp'])
             data['__stage__'] = results['stage']
             data['__cycle__'] = results['cycle']
@@ -47,8 +47,6 @@ class Client:
 
     def get(self, name):
         results = requests.get(f"http://{self.address}/results").json()
-        if name in results['parameters']:
-            return results['parameters'][name]
         if name in results['variables']:
             return results['variables'][name]
         else:
@@ -72,9 +70,9 @@ class Client:
                 x = requests.get(f"http://{self.address}/variables").json()['x']
                 A = requests.get(f"http://{self.address}/variables").json()['A']
 
-                payload ={'stage': 0, 'cycle': i, 'timestamp': datetime.datetime.now().isoformat(),
-                        'variables': {'x': x, 'A': A},
-                        'parameters': {'y': A*np.exp(-x) + np.random.normal(0, 0.01)}}
+                payload = {'stage': 0, 'cycle': i, 'timestamp': datetime.datetime.now().isoformat(),
+                           'variables': {'x': x, 'A': A, 'y': A*np.exp(-x) + np.random.normal(0, 0.01)},
+                          }
                 self.post('/results', payload)
                 i += 1
                 time.sleep(0.25)

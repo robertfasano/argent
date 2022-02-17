@@ -14,7 +14,7 @@ env = Environment(
 )
 
 ''' Code generation '''
-def generate_experiment(playlist, config, pid, variables={}, parameters={}):
+def generate_experiment(playlist, config, pid, variables={}):
     ''' The main entrypoint for the code generator. The overall process is:
         1. Remove redundant events from the sequence to minimize RTIO overhead.
         2. Generate the build stage of the experiment (defining hardware).
@@ -49,18 +49,17 @@ def generate_experiment(playlist, config, pid, variables={}, parameters={}):
 
     code += textwrap.indent(env.get_template("build.j2").render(pid=pid, 
                                                                 variables=variables, 
-                                                                parameters=parameters, 
                                                                 arrays=get_data_arrays(playlist),
                                                                 channels=channels
                                                                 ), 
                             '\t')
     code += textwrap.indent(env.get_template("init.j2").render(channels=channels), '\t') + '\n'
-    code += textwrap.indent(generate_run(playlist, config, variables, parameters), '\t')
+    code += textwrap.indent(generate_run(playlist, config, variables), '\t')
 
     return code
 
 
-def generate_run(playlist, config, variables, parameters):
+def generate_run(playlist, config, variables):
     ''' Generates the main loop of the experiment. Different stages of the overall
         playlist are written into individual kernel functions for readability,
         which are then executed repeatedly in a While block.
@@ -93,29 +92,23 @@ def generate_run(playlist, config, variables, parameters):
                     code += textwrap.indent(file.read(), '\t\t') + '\n'
 
         ## sync with server
-        all_parameters = ['self.'+var for var in parameters]
-        self_parameters = str(all_parameters).replace("'", "")
         self_variables = str(['self.'+var for var in variables]).replace("'", "")
-        if parameters == {} and variables == {}:
+        if variables == {}:
             code += '\t\t' + f'__heartbeat__(self, {i}, "{fragment["name"]}", self.__cycle__, "{config["addr"]}")\n'
-        elif parameters == {}:
-            code += '\t\t' + f'__push_variables__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
-        elif variables == {}:
-            code += '\t\t' + f'__push_parameters__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, "{config["addr"]}")\n'
         else:
-            code += '\t\t' + f'__push__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(parameters.keys())}, {self_parameters}, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
+            code += '\t\t' + f'__push__(self, {i}, "{fragment["name"]}", self.__cycle__, {list(variables.keys())}, {self_variables}, "{config["addr"]}")\n'
 
         i += 1
 
-    ## broadcast parameters and variables
     code += '\n\t\t##Sync variables with server\n'
     code += '\t\t' + f'__pull__(self, "{config["addr"]}")\n'
 
 
     ## update input variables
     if len(variables) > 0:
-        for var in variables:
-            code += '\t\t' + f'self.{var} = __update__(self, "{var}")\n'
+        for key in variables:
+            if variables[key]['sync']:
+                code += '\t\t' + f'self.{key} = __update__(self, "{key}")\n'
         code += '\t\t' + 'print("Finished with slack", (now_mu() - self.core.get_rtio_counter_mu())*1e-6, "ms")\n'
         code += '\t\t' + 'self.core.break_realtime()\n'
         code += '\t\t' + 'delay(10*ms)\n'

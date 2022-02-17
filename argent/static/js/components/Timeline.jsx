@@ -6,7 +6,7 @@ import TableCell from '@material-ui/core/TableCell'
 import PropTypes from 'prop-types'
 import { countBy } from 'lodash'
 import { createSelector } from 'reselect'
-import { selectPresentState } from '../selectors'
+import { selectPresentState, selectVariableValues } from '../selectors'
 import { polynomial, step } from 'everpolate'
 
 function Timeline (props) {
@@ -232,8 +232,7 @@ function slice (array, axis) {
 
 const selectVariables = createSelector(
   state => state.variables,
-  state => state.parameters,
-  (variables, parameters) => Object.assign({}, variables, parameters),
+  (variables) => Object.assign({}, variables),
   { memoizeOptions: { resultEqualityCheck: shallowEqual } }
 )
 
@@ -241,7 +240,8 @@ function mapStateToProps (state, props) {
   state = selectPresentState(state)
   return {
     // variables: selectVariables(state),
-    variables: state.variables,
+    // variables: state.variables,
+    variables: selectVariableValues(state),
     unit: props.unit || ''
   }
 }

@@ -6,6 +6,11 @@ import MenuItem from '@material-ui/core/MenuItem'
 import NestedMenuItem from 'material-ui-nested-menu-item'
 
 function VariableContextMenu (props) {
+  function createNewGroup () {
+    const name = prompt('Enter new group name:')
+    props.changeGroup(name)
+  }
+
   return (
     <Menu
       anchorEl={props.state.anchor}
@@ -25,6 +30,7 @@ function VariableContextMenu (props) {
             {group}
         </MenuItem>))
         }
+        <MenuItem key={'__new__'} onClick={createNewGroup}>New group</MenuItem>
 
       </NestedMenuItem>
     </Menu>

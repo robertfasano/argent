@@ -17,14 +17,9 @@ def build(self):
     for cam in {{channels['cam']}}:
         self.setattr_device(cam)
 
-    ## parameters
-    {% for key, value in parameters.items() -%}
-    self.{{key}} = 0.0
-    {% endfor %}
-
     ## variables
     {% for key, value in variables.items() -%}
-    self.{{key}} = {{value}}
+    self.{{key}} = {{value.value}}
     {% endfor %}
 
     ## data arrays

@@ -3,7 +3,8 @@ import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import SequenceTable from './sequencing/SequenceTable.jsx'
-import VariablesPanel from './variables/VariablesPanel.jsx'
+import VariableTable from './variables/VariableTable.jsx'
+
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { connect } from 'react-redux'
@@ -39,8 +40,7 @@ function App (props) {
     socket.on('heartbeat', (data) => {
       props.dispatch({ type: 'ui/heartbeat', pid: data.pid })
       get('/results', (result) => {
-        props.dispatch({ type: 'parameters/update', parameters: result.parameters, sequence: result.sequence })
-        props.dispatch({ type: 'ui/variables/update', variables: result.variables })
+        props.dispatch({ type: 'variables/current', variables: result.variables })
       })
     })
   },
@@ -71,7 +71,7 @@ function App (props) {
               </Box>
               <Paper elevation={6} style={{ width: '375px' }}>
                 <ErrorBoundary>
-                  <VariablesPanel/>
+                  <VariableTable/>
                 </ErrorBoundary>
               </Paper>
             </Box>
