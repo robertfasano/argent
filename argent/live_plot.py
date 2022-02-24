@@ -25,8 +25,10 @@ class LivePlot:
 
 
     def update(self):
+        clear_output(wait = True)
+
         x, y = self.x, self.y
-        if self.legend is None:
+        if self.legend[0] is None:
             z = '__stage__'
         else:
             z = self.legend[0]
@@ -61,14 +63,14 @@ class LivePlot:
             self.ax.clear()
             for z0 in df[z].unique():
                 subdata = df[df[z] == z0]
-                if self.legend is None:
+                if self.legend[0] is None:
                     label = f'Stage {z0}'
                 else:
                     label = f'{self.legend[0]}={z0}'
                 self.ax.errorbar(subdata.index, subdata[y], subdata[f'{y}_err'], capsize=4, linestyle='None', markersize=4, marker='o', label=label)
             plt.xlabel(x)
             plt.ylabel(y)
-            plt.legend()
+            if self.legend[0] is not None or len(df[z].unique()) > 1:
+                plt.legend()
 
         display(self.fig)
-        clear_output(wait = True)
