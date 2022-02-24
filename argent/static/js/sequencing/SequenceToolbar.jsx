@@ -154,11 +154,10 @@ function mapDispatchToProps (dispatch, props) {
 const generateYAML = createSelector(
   state => selectActiveSequence(state),
   state => state.variables,
-  state => state.version,
-  (sequence, variables, version) => {
+  (sequence, variables) => {
     const seq = merge({}, sequence)
     seq.variables = variables
-    return '# Created with Argent commit ' + version + '\n' + yaml.dump(seq)
+    return yaml.dump(seq)
   }
 )
 

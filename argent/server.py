@@ -49,8 +49,7 @@ class App:
             ''' The main entrypoint for the webapp '''
             return render_template('index.html',
                                    sequences=json.dumps({}),
-                                   channels=self.config['channels'],
-                                   version=version()
+                                   channels=self.config['channels']
                                   )
 
         @self.app.route("/config")
@@ -198,11 +197,6 @@ class App:
         def heartbeat():
             self.socketio.emit('heartbeat', self.results)
             return ''
-
-        @self.app.route("/version")
-        def version():
-            ''' Returns the current commit id '''
-            return json.dumps(subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=path).strip().decode())
 
     def host(self):
         self.socketio.run(self.app, host=self.addr, port=int(self.port), debug=False)

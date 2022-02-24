@@ -12,7 +12,7 @@ import { persistStore, persistReducer } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import { PersistGate } from 'redux-persist/integration/react'
 
-function defaultStore (channels, sequences, version) {
+function defaultStore (channels, sequences) {
   const state = {}
   state.channels = channels
   state.sequences = sequences
@@ -26,13 +26,12 @@ function defaultStore (channels, sequences, version) {
     pid: { active: null, submitted: null }
   }
 
-  state.version = version
   return state
 }
 
-export function createGUI (sequences, channels, version) {
+export function createGUI (sequences, channels) {
   sequences = JSON.parse(sequences)
-  const state = defaultStore(channels, sequences, version)
+  const state = defaultStore(channels, sequences)
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
   const enhancer = composeEnhancers()
   const persistConfig = {
