@@ -22,8 +22,6 @@ def generate_experiment(playlist, config, pid, variables={}):
         4. Generate the run stage of the experiment (the main sequence loop).
         5. Assemble the code from 2-4 into a complete file.
     '''
-    print('Generating playlist')
-    print(playlist)
     for i in range(len(playlist)):
         for j in range(len(playlist[i]['fragments'])):
             playlist[i]['fragments'][j]['sequence']['steps'] = remove_redundant_events(playlist[i]['fragments'][j]['sequence']['steps'])
@@ -71,14 +69,18 @@ def generate_run(playlist, config, variables):
     code += '\twhile True:\n'
 
     i = 0
+    prep_scripts = {}
+    analysis_scripts = {}
     for stage in playlist:
         code += f'\t\tself.__stage__ = {i}\n'
         for fragment in stage['fragments']:
             ## load imported prep scripts
-            if fragment['sequence']['script']['preparation'] is not None:
-                filename = './repository/' + fragment['sequence']['script']['preparation']
+            prep_filename = fragment['sequence']['script']['preparation']
+            if prep_filename is not None:
+                filename = './repository/' + prep_filename
                 with open(filename) as file:
-                    code += textwrap.indent(file.read(), '\t\t') + '\n'
+                    code += f'\t\tself.__{prep_filename.split(".py")[0]}__()\n'
+                    prep_scripts[prep_filename.split('.py')[0]] = textwrap.indent(file.read(), '\t\t') + '\n'
 
             function_call = f"\t\tself.{fragment['name'].replace(' ', '_')}()\n"
             if int(fragment['reps']) == 1:
@@ -88,10 +90,12 @@ def generate_run(playlist, config, variables):
                 code += '\t' + function_call
 
             ## load imported analysis scripts
-            if fragment['sequence']['script']['analysis'] is not None:
-                filename = './repository/' + fragment['sequence']['script']['analysis']
+            analysis_filename = fragment['sequence']['script']['analysis']
+            if analysis_filename is not None:
+                filename = './repository/' + analysis_filename
                 with open(filename) as file:
-                    code += textwrap.indent(file.read(), '\t\t') + '\n'
+                    code += f'\t\tself.__{analysis_filename.split(".py")[0]}__()\n'
+                    analysis_scripts[analysis_filename.split('.py')[0]] = textwrap.indent(file.read(), '\t\t') + '\n'
 
         ## sync with server
         self_variables = str(['self.'+var for var in variables]).replace("'", "")
@@ -125,6 +129,19 @@ def generate_run(playlist, config, variables):
                 continue
             code += generate_stage(fragment)
             fragments.append(fragment['name'])
+
+    # write scripts
+    for script in prep_scripts:
+        code += '@kernel\n'
+        code += f'def __{script}__(self):\n'
+        code += f"\t'''Imported from {script}.py'''\n"
+        code += textwrap.indent(textwrap.dedent(prep_scripts[script]), '\t') + '\n'
+
+    for script in analysis_scripts:
+        code += '@kernel\n'
+        code += f'def __{script}__(self):\n'
+        code += f"\t'''Imported from {script}.py'''\n"
+        code += textwrap.indent(textwrap.dedent(analysis_scripts[script]), '\t') + '\n'
 
     return code
 
