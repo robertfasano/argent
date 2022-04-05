@@ -36,10 +36,9 @@ export function createGUI (sequences, channels) {
   const enhancer = composeEnhancers()
   const persistConfig = {
     key: 'root',
-    whitelist: 'present',
     storage
   }
-  const undoableReducer = undoable(reducer, { filter: excludeAction(['ui/heartbeat', 'variables/current']) })
+  const undoableReducer = undoable(reducer, { limit: 10, filter: excludeAction(['ui/heartbeat', 'variables/current']) })
   const persistedReducer = persistReducer(persistConfig, undoableReducer)
 
   const store = createStore(persistedReducer, state, enhancer)
