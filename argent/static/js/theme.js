@@ -1,9 +1,9 @@
-import { createMuiTheme } from '@material-ui/core/styles'
+import { createTheme } from '@material-ui/core/styles'
 
 const cellWidth = '85px'
 const cellHeight = '30px'
 
-const theme = createMuiTheme({
+const theme = createTheme({
   typography: {
     fontFamily: ['Roboto', 'Arial']
   },
