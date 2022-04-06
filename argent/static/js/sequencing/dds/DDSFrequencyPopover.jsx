@@ -12,7 +12,8 @@ import LinearRamp from '../LinearRamp.jsx'
 
 function DDSFrequencyPopover (props) {
   return (
-    <Popover
+    props.open
+      ? <Popover
         anchorReference="anchorPosition"
         open={props.open}
         anchorPosition={{ top: props.anchorPosition[1], left: props.anchorPosition[0] }}
@@ -45,6 +46,8 @@ function DDSFrequencyPopover (props) {
             : null}
         </Box>
       </Popover>
+      : null
+
   )
 }
 
@@ -76,8 +79,6 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-
-
 const selectVariables = createSelector(
   // state => state.variables,
   state => selectVariableValues(state),
@@ -86,6 +87,7 @@ const selectVariables = createSelector(
 )
 
 function mapStateToProps (state, props) {
+  if (!props.open) return {}
   state = selectPresentState(state)
   const channel = selectTimestep(state, props.timestep).dds[props.ch]
 

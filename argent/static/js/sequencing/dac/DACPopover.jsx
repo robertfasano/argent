@@ -13,7 +13,8 @@ import QuadraticRamp from '../QuadraticRamp.jsx'
 
 function DACPopover (props) {
   return (
-      <Popover
+    props.open
+      ? <Popover
         anchorReference="anchorPosition"
         open={props.open}
         anchorPosition={{ top: props.anchorPosition[1], left: props.anchorPosition[0] }}
@@ -54,6 +55,7 @@ function DACPopover (props) {
 
         </Box>
       </Popover>
+      : null
   )
 }
 
@@ -91,9 +93,8 @@ const selectVariables = createSelector(
   { memoizeOptions: { resultEqualityCheck: shallowEqual } }
 )
 
-
-
 function mapStateToProps (state, props) {
+  if (!props.open) return {}
   state = selectPresentState(state)
   const channel = selectTimestep(state, props.timestep).dac[props.board][props.ch]
   const ramp = channel.ramp
