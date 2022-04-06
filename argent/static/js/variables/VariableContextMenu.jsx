@@ -46,6 +46,10 @@ VariableContextMenu.propTypes = {
   groups: PropTypes.array
 }
 
+function mapStateToProps (state) {
+  return {}
+}
+
 function mapDispatchToProps (dispatch, props) {
   return {
     deleteVariable: () => {
@@ -59,4 +63,4 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-export default connect(() => {}, mapDispatchToProps)(VariableContextMenu)
+export default connect(mapStateToProps, mapDispatchToProps)(VariableContextMenu)
