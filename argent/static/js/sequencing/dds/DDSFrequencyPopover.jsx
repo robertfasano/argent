@@ -26,6 +26,7 @@ function DDSFrequencyPopover (props) {
           vertical: 'top',
           horizontal: 'left'
         }}
+        disableRestoreFocus={true}
     >
         <Box p={1}>
           <Typography style={{ fontWeight: 'bold', fontSize: 24 }}>

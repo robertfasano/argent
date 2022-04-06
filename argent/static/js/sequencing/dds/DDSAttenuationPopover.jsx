@@ -24,8 +24,11 @@ function DDSAttenuationPopover (props) {
         vertical: 'top',
         horizontal: 'left'
       }}
-    > { props.state.anchor === null ? null :       
-    <Box p={1}>
+      disableRestoreFocus={true}
+    >
+    { props.state.anchor === null
+      ? null
+      : <Box p={1}>
       <Typography style={{ fontWeight: 'bold', fontSize: 24 }}>
           DDS attenuation
       </Typography>
@@ -76,7 +79,6 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-
 const selectVariables = createSelector(
   // state => state.variables,
   state => selectVariableValues(state),
@@ -86,7 +88,7 @@ const selectVariables = createSelector(
 
 function mapStateToProps (state, props) {
   state = selectPresentState(state)
-  const channel = props.state.anchor === null? null : selectTimestep(state, props.state.timestep).dds[props.state.channel]
+  const channel = props.state.anchor === null ? null : selectTimestep(state, props.state.timestep).dds[props.state.channel]
   return {
     open: Boolean(props.state.anchor),
     variables: selectVariables(state),
