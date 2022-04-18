@@ -22,10 +22,6 @@ const theme = createTheme({
     },
     MuiTableCell: {
       root: { // This can be referred from Material UI API documentation.
-        width: cellWidth,
-        height: cellHeight,
-        minWidth: cellWidth,
-        minHeight: cellHeight,
         borderBottom: false,
         padding: '2px 1px 2px 1px'
       }

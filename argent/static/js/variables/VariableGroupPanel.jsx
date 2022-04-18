@@ -50,7 +50,7 @@ function VariableGroupPanel (props) {
   return (
     <Box pb={1}>
     <Paper elevation={6}>
-    <Box px={2} pr={5}>
+    <Box px={2} pr={1}>
     <Grid container alignItems='center'>
         <Grid item xs={3}>
           <IconButton onClick={() => props.setExpanded(props.group)} >
@@ -78,7 +78,9 @@ function VariableGroupPanel (props) {
         <Divider/>
         <Table>
             <colgroup>
-            <col style={{ width: '90%' }}/>
+            <col style={{ width: '50%' }}/>
+            <col style={{ width: '20%' }}/>
+            <col style={{ width: '20%' }}/>
             <col style={{ width: '10%' }}/>
             </colgroup>
             <TableHead>
@@ -149,7 +151,7 @@ function mapDispatchToProps (dispatch, props) {
   return {
     updateVariable: (name, value) => dispatch({ type: 'variables/update', name: name, value: value, group: props.group }),
     deleteGroup: () => dispatch({ type: 'variables/deleteGroup', group: props.group }),
-    syncVariable: (name, value) => dispatch({ type: 'variables/sync', name: name, value: value }),
+    syncVariable: (name, value) => dispatch({ type: 'variables/sync', name: name, value: value })
 
   }
 }

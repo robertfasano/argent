@@ -8,7 +8,7 @@ import { selectTimestep, selectPresentState } from '../../selectors.js'
 function TTLButton (props) {
   // A simple boolean Button allowing the TTL state at a timestep to be toggled.
   return (
-    <TableCell component="th" scope="row">
+    <TableCell component="th" scope="row" style={{ width: '85px' }}>
       <Button variant="contained"
               disableRipple={true}
               style={{ backgroundColor: props.on ? '#67001a' : '#D3D3D3', opacity: props.skip ? 0.25 : 1 }}
@@ -24,7 +24,8 @@ function TTLButton (props) {
 TTLButton.propTypes = {
   on: PropTypes.bool,
   toggle: PropTypes.func,
-  skip: PropTypes.bool
+  skip: PropTypes.bool,
+  onContextMenu: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {

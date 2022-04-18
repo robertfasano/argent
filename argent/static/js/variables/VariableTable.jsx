@@ -48,7 +48,7 @@ function VariableTable (props) {
 
 VariableTable.propTypes = {
   variables: PropTypes.object,
-  groups: PropTypes.object,
+  groups: PropTypes.object
 }
 
 function mapDispatchToProps (dispatch, props) {
