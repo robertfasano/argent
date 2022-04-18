@@ -29,11 +29,16 @@ function LinkableParameter (props) {
   const options = []
   const groups = {}
   for (const [group, vars] of Object.entries(props.groups)) {
-    for (let name of vars.slice().sort()) {    // slice is used to create a new array to allow sorting
+    for (const name of vars.slice().sort()) { // slice is used to create a new array to allow sorting
       options.push(name)
       groups[name] = group
-
     }
+  }
+
+  function onChange (newValue) {
+    if (newValue == null) {
+      props.onChange('')
+    } else props.onChange('self.' + newValue)
   }
 
   return (
@@ -46,13 +51,13 @@ function LinkableParameter (props) {
             <Autocomplete options={options}
             value={props.value.split('self.')[1]}
             renderInput={(params) => <TextField {...params} label={props.label} />}
-            onChange = {(event, newValue) => props.onChange('self.' + newValue)}
+            onChange = {(event, newValue) => onChange(newValue)}
             inputValue={inputValue}
             groupBy={(option) => groups[option]}
             onInputChange={(event, newInputValue) => {
               setInputValue(newInputValue)
             }}
-            style={{ width: '250px'}}
+            style={{ width: '250px' }}
             />
           </Grid>
           <Grid item xs={2}>
@@ -103,7 +108,7 @@ function mapStateToProps (state) {
 
   return {
     groups: selectVariableGroups(state),
-    variables: Object.keys(state.variables),
+    variables: Object.keys(state.variables)
   }
 }
 
