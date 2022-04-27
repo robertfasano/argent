@@ -32,6 +32,7 @@ function VariableGroupPanel (props) {
     const name = prompt('New variable name:')
     if (name !== null) {
       props.updateVariable(name, '')
+      props.changeGroup(name)
     }
   }
 
@@ -144,14 +145,16 @@ VariableGroupPanel.propTypes = {
   setExpanded: PropTypes.func,
   deleteGroup: PropTypes.func,
   currentVariables: PropTypes.object,
-  syncVariable: PropTypes.func
+  syncVariable: PropTypes.func,
+  changeGroup: PropTypes.func
 }
 
 function mapDispatchToProps (dispatch, props) {
   return {
     updateVariable: (name, value) => dispatch({ type: 'variables/update', name: name, value: value, group: props.group }),
     deleteGroup: () => dispatch({ type: 'variables/deleteGroup', group: props.group }),
-    syncVariable: (name, value) => dispatch({ type: 'variables/sync', name: name, value: value })
+    syncVariable: (name, value) => dispatch({ type: 'variables/sync', name: name, value: value }),
+    changeGroup: (name) => dispatch({ type: 'variables/changeGroup', name: name, group: props.group })
 
   }
 }
