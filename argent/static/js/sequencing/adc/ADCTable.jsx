@@ -36,7 +36,7 @@ function ADCTable (props) {
           <TableRow key={`${board}`}>
             <TableCell>
               <Typography style={{ fontSize: 14 }} noWrap={true}>
-                {props.channels[board]}
+                {board}
               </Typography>
             </TableCell>
             {

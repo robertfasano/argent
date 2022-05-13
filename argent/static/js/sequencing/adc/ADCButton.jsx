@@ -121,9 +121,9 @@ function ADCButton (props) {
                             onChange = {(event) => props.changeChannel(event, name)}
                             style={{ width: '100%' }}
                             >
-                      {[...Array(8).keys()].map((key, index) => (
+                        {Object.keys(props.channels).map((key, index) => (
                         <MenuItem value={key} key={key}>
-                          {key}
+                          {props.channels[key]}
                         </MenuItem>
                       ))}
                     </Select>
@@ -178,7 +178,8 @@ ADCButton.propTypes = {
   setDuration: PropTypes.func,
   samples: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   setSamples: PropTypes.func,
-  skip: PropTypes.bool
+  skip: PropTypes.bool,
+  channels: PropTypes.object
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -261,7 +262,8 @@ function mapStateToProps (state, props) {
     allVariables: selectVariableNames(state),
     samples: channel.samples || 1,
     duration: channel.duration || timestep.duration,
-    skip: timestep.skip || false
+    skip: timestep.skip || false,
+    channels: state.channels.adc[props.board]
   }
 }
 
