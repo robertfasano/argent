@@ -68,7 +68,7 @@ function ADCButton (props) {
           </Typography>
           <Box m={1}>
           <Grid container spacing={2}>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
               <FixedUnitInput value={props.duration}
                       onChange={props.setDuration}
                       unit = 'ms'
@@ -76,13 +76,21 @@ function ADCButton (props) {
                       style={{ width: '100%' }}
               />
             </Grid>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
             <TextField label='Samples'
                        value={props.samples}
                        onChange={props.setSamples}
                        InputLabelProps={{ shrink: true }}
             />
           </Grid>
+          <Grid item xs={2}>
+              <FixedUnitInput value={props.delay}
+                      onChange={props.setDelay}
+                      unit = 'ms'
+                      label = 'Delay'
+                      style={{ width: '100%' }}
+              />
+            </Grid>
           </Grid>
           </Box>
 
@@ -179,7 +187,8 @@ ADCButton.propTypes = {
   samples: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   setSamples: PropTypes.func,
   skip: PropTypes.bool,
-  channels: PropTypes.object
+  channels: PropTypes.object,
+  delay: PropTypes.number
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -233,6 +242,12 @@ function mapDispatchToProps (dispatch, props) {
       path: path
     }),
 
+    setDelay: (value) => dispatch({
+      type: 'adc/delay',
+      value: value,
+      path: path
+    }),
+
     setDuration: (value) => dispatch({
       type: 'adc/duration',
       value: value,
@@ -259,6 +274,7 @@ function mapStateToProps (state, props) {
   return {
     enable: channel.enable,
     variables: channel.variables,
+    delay: channel.delay || 0,
     allVariables: selectVariableNames(state),
     samples: channel.samples || 1,
     duration: channel.duration || timestep.duration,

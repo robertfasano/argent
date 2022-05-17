@@ -25,6 +25,11 @@ function toDecimalString (num) {
 
 export default function reducer (state = [], action) {
   switch (action.type) {
+    case 'adc/delay':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.path.timestep].adc[action.path.board].delay = action.value
+      })
+
     case 'adc/duration':
       return produce(state, draft => {
         draft.sequences[state.active_sequence].steps[action.path.timestep].adc[action.path.board].duration = action.value

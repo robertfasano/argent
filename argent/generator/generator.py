@@ -205,8 +205,12 @@ def generate_stage(stage):
 
         ## adc
         sampler_state = step.get('adc', {})
+        step_code += textwrap.indent('now = now_mu()\n', '\t')   ## record state before ADC reads to unwind variable delays for later DAC/DDS ramp execution
+
         for board, state in sampler_state.items():
             if state['enable']:
+                if state['delay'] != 0:
+                    step_code += '\t' + f'delay({float(state["delay"])}*ms)\n'
                 if int(state['samples']) == 1:
                     cmd = f'self.{board}.sample_mu(self.{stage["name"].replace(" ", "_")}_{i}[0])\n'
                 else:
@@ -232,7 +236,6 @@ def generate_stage(stage):
             ramps += Urukul(channel).ramp(step)
         if ramps != '':
             step_code += '\t' + 'with parallel:\n'
-            step_code += textwrap.indent('now = now_mu()\n', '\t\t')
             step_code += textwrap.indent(ramps, '\t\t')
 
         if step_code != '':
