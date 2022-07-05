@@ -1,12 +1,8 @@
-{%- if on != '[]' -%}
-for dds in {{on}}:
-    dds.cfg_sw(True)
+{% for dds in on -%}
     delay(20*ns)
-
-{% endif -%}
-{%- if off != '[]' -%}
-for dds in {{off}}:
-    dds.cfg_sw(False)
+self.{{dds}}.sw.on()
+{% endfor -%}
+{% for dds in off -%}
     delay(20*ns)
-
-{% endif -%}
+self.{{dds}}.sw.off()
+{% endfor -%}
