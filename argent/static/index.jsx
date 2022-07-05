@@ -38,7 +38,7 @@ export function createGUI (sequences, channels) {
     key: 'root',
     storage
   }
-  const undoableReducer = undoable(reducer, { limit: 10, filter: excludeAction(['ui/heartbeat', 'variables/current']) })
+  const undoableReducer = undoable(reducer, { limit: 3, filter: excludeAction(['ui/heartbeat', 'variables/current']) })
   const persistedReducer = persistReducer(persistConfig, undoableReducer)
 
   const store = createStore(persistedReducer, state, enhancer)
