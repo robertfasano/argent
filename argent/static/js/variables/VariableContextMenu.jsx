@@ -20,6 +20,9 @@ function VariableContextMenu (props) {
       <MenuItem onClick={() => props.deleteVariable()}>
         Delete
       </MenuItem>
+      <MenuItem onClick={() => props.replaceWithConstant()}>
+        Reduce to constant
+      </MenuItem>
       <NestedMenuItem
           label="Move to"
           parentMenuOpen={Boolean(props.state.anchor)}
@@ -42,6 +45,7 @@ VariableContextMenu.propTypes = {
   open: PropTypes.bool,
   close: PropTypes.func,
   deleteVariable: PropTypes.func,
+  replaceWithConstant: PropTypes.func,
   changeGroup: PropTypes.func,
   groups: PropTypes.array
 }
@@ -58,6 +62,11 @@ function mapDispatchToProps (dispatch, props) {
     },
     changeGroup: (group) => {
       dispatch({ type: 'variables/changeGroup', name: props.state.name, group: group })
+      props.close()
+    },
+    replaceWithConstant: () => {
+      dispatch({ type: 'variables/replaceWithConstant', name: props.state.name })
+      dispatch({ type: 'variables/delete', name: props.state.name })
       props.close()
     }
   }

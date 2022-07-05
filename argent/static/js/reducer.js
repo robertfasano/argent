@@ -1,6 +1,6 @@
 import produce from 'immer'
 import { defaultTimestep, fill } from './schema.js'
-import { merge } from 'lodash'
+import { merge, cloneDeep } from 'lodash'
 import { selectTimestep } from './selectors.js'
 
 function swap (array, a, b) {
@@ -21,6 +21,14 @@ function toDecimalString (num) {
     return num + '.0'
   }
   return num
+}
+
+const findAndReplace = (object, oldValue, newValue) => {
+  for (const [key, val] of Object.entries(object)) {
+    if (val === 'self.' + oldValue) object[key] = newValue
+    else if (typeof (val) === 'object' & val !== null) object[key] = findAndReplace(object[key], oldValue, newValue)
+  }
+  return object
 }
 
 export default function reducer (state = [], action) {
@@ -479,6 +487,11 @@ export default function reducer (state = [], action) {
       // Toggle the heartbeat state
       return produce(state, draft => {
         draft.ui.pid.submitted = action.value
+      })
+
+    case 'variables/replaceWithConstant':
+      return produce(state, draft => {
+        draft.sequences = findAndReplace(cloneDeep(state.sequences), action.name, state.variables[action.name].value)
       })
 
     case 'variables/current':
