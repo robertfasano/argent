@@ -2,16 +2,12 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import TableCell from '@material-ui/core/TableCell'
 import Paper from '@material-ui/core/Paper'
-import Checkbox from '@material-ui/core/Checkbox'
 import TableRow from '@material-ui/core/TableRow'
-import TextField from '@material-ui/core/TextField'
 import { connect, shallowEqual } from 'react-redux'
-import { post } from '../utilities.js'
 import Button from '@material-ui/core/Button'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import AddIcon from '@material-ui/icons/Add'
-import SendIcon from '@material-ui/icons/Send'
 import TableBody from '@material-ui/core/TableBody'
 import TableHead from '@material-ui/core/TableHead'
 import Table from '@material-ui/core/Table'
@@ -21,13 +17,14 @@ import IconButton from '@material-ui/core/IconButton'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import ClearIcon from '@material-ui/icons/Clear'
-import DebouncedTextField from '../components/DebouncedTextField.jsx'
 import { createSelector } from 'reselect'
 import { selectPresentState } from '../selectors.js'
+import VariableRow from './VariableRow.jsx'
+import VariableSyncButton from './VariableSyncButton.jsx'
+import { arrayShallowEqual } from '../utilities.js'
 
 function VariableGroupPanel (props) {
   const expanded = props.expanded.includes(props.group)
-
   function addVariable () {
     const name = prompt('New variable name:')
     if (name !== null) {
@@ -36,12 +33,8 @@ function VariableGroupPanel (props) {
     }
   }
 
-  function sendVariables () {
-    post('/variables', props.variables)
-  }
-
   function deleteGroup () {
-    if (Object.keys(props.variables).length > 0) {
+    if (props.names.length > 0) {
       alert('Cannot delete a non-empty group!')
     } else {
       props.deleteGroup()
@@ -93,21 +86,8 @@ function VariableGroupPanel (props) {
             </TableRow>
             </TableHead>
             <TableBody>
-            {Object.entries(props.variables).sort().map(([key, value]) => (
-                <TableRow key={key}>
-                    <TableCell>
-                    <TextField disabled value={key} onContextMenu={(event) => props.handleMenu(event, key)}/>
-                    </TableCell>
-                    <TableCell>
-                    <DebouncedTextField value={value.value} onBlur={(value) => props.updateVariable(key, value)}/>
-                    </TableCell>
-                    <TableCell>
-                    <TextField disabled value={value.current}/>
-                    </TableCell>
-                    <TableCell>
-                      <Checkbox checked={value.sync} onChange={(event) => props.syncVariable(key, event.target.checked)} />
-                    </TableCell>
-                </TableRow>
+            {props.names.sort().map(key => (
+                <VariableRow key={key} name={key}/>
             ))}
                 <TableRow>
                 <TableCell>
@@ -117,10 +97,7 @@ function VariableGroupPanel (props) {
                     </Button>
                 </TableCell>
                 <TableCell>
-                    <Button onClick={sendVariables} style={{ textTransform: 'none' }}>
-                    <SendIcon/>
-                    <Box px={2}>Send</Box>
-                    </Button>
+                    <VariableSyncButton items={props.names}/>
                 </TableCell>
                 </TableRow>
                 </TableBody>
@@ -135,10 +112,8 @@ function VariableGroupPanel (props) {
   )
 }
 VariableGroupPanel.propTypes = {
-  variables: PropTypes.object,
   updateVariable: PropTypes.func,
-  name: PropTypes.string,
-  items: PropTypes.array,
+  names: PropTypes.array,
   handleMenu: PropTypes.func,
   group: PropTypes.string,
   expanded: PropTypes.array,
@@ -159,25 +134,25 @@ function mapDispatchToProps (dispatch, props) {
   }
 }
 
-const makeSelector = () => createSelector(
+const selectVariableNames = () => createSelector(
   state => state.variables,
-  (state, props) => props.items,
-  (variables, items) => {
-    const vars = {}
-    for (const name of items) {
-      vars[name] = variables[name]
+  (state, props) => props.group,
+  (variables, group) => {
+    const vars = []
+    for (const name of Object.keys(variables)) {
+      if (variables[name].group === group) vars.push(name)
     }
     return vars
   },
-  { memoizeOptions: { resultEqualityCheck: shallowEqual } }
+  { memoizeOptions: { resultEqualityCheck: arrayShallowEqual } }
 )
 
 const makeMapStateToProps = () => {
-  const selectVariables = makeSelector()
+  const selectNames = selectVariableNames()
   const mapStateToProps = (state, props) => {
     state = selectPresentState(state)
     return {
-      variables: selectVariables(state, props)
+      names: selectNames(state, props)
     }
   }
   return mapStateToProps

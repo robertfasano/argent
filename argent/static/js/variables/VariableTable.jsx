@@ -37,7 +37,7 @@ function VariableTable (props) {
           <VariableGroupPanel key={'default'} group={'default'} items={props.groups.default} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>
         </Box>
         {Object.entries(props.groups).sort().map(([key, value]) => (
-          (key !== 'default') ? (<VariableGroupPanel key={key} group={key} items={value} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>) : null
+          (key !== 'default') ? (<VariableGroupPanel key={key} group={key} handleMenu={handleMenu} expanded={expanded} setExpanded={toggleExpanded}/>) : null
 
         ))
         }
@@ -47,7 +47,6 @@ function VariableTable (props) {
 }
 
 VariableTable.propTypes = {
-  variables: PropTypes.object,
   groups: PropTypes.object
 }
 
@@ -59,7 +58,6 @@ function mapDispatchToProps (dispatch, props) {
 function mapStateToProps (state, props) {
   state = selectPresentState(state)
   return {
-    variables: state.variables,
     groups: selectVariableGroups(state)
   }
 }

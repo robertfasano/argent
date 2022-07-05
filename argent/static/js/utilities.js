@@ -18,6 +18,14 @@ export function post (url, payload = {}, callback = (response) => null) {
   }
 }
 
+export const arrayShallowEqual = function (arr1, arr2) {
+  let isEqual = true
+  for (const i in arr1) {
+    if (arr1[i] !== arr2[i]) isEqual = false
+  }
+  return isEqual
+}
+
 export const isArrayEqual = function (x, y) {
   if (x.length !== y.length) return false
 
@@ -28,7 +36,7 @@ export const isArrayEqual = function (x, y) {
     if (x[i].ramp.stop !== y[i].ramp.stop) isEqual = false
     if (x[i].ramp.steps !== y[i].ramp.steps) isEqual = false
     if (x[i].mode !== y[i].mode) isEqual = false
-    if ((x[i].spline.points) !== (y[i].spline.points)) isEqual = false
+    if (!arrayShallowEqual(x[i].spline.points, y[i].spline.points)) isEqual = false
     if ((x[i].spline.steps) !== (y[i].spline.steps)) isEqual = false
   }
 
