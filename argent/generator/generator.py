@@ -106,8 +106,14 @@ def generate_run(playlist, config, variables):
 
         i += 1
 
-    code += '\n\t\t##Sync variables with server\n'
-    code += '\t\t' + f'__pull__(self, "{config["addr"]}")\n'
+    synced_variables = []
+    for key in variables:
+        if variables[key]['sync']:
+            synced_variables.append(key)
+
+    if len(synced_variables) > 0:
+        code += '\n\t\t##Sync variables with server\n'
+        code += '\t\t' + f'__pull__(self, "{config["addr"]}")\n'
 
 
     ## update input variables
