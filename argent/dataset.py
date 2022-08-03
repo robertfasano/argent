@@ -30,6 +30,12 @@ class Dataset:
         ''' Returns the timestamp of the most recent data point '''
         return self.client.data.index[-1]
     
+    @classmethod
+    def load(self, filename):
+        df = pd.read_csv(filename, index_col=0)
+        df.index = pd.DatetimeIndex(df.index)
+        return df
+        
     @property
     def data(self):            
         if self.stop_time is not None:

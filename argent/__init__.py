@@ -27,3 +27,4 @@ class Configurator:
         self.save(config)
         
 from .client import Client
+from .dataset import Dataset
