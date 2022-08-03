@@ -15,6 +15,8 @@ Install using pip:
 
 ```pip install git+https://github.com/robertfasano/argent```
 
+Argent also requires Microsoft Visual C++ 14.0 or greater, currently available at https://visualstudio.microsoft.com/visual-cpp-build-tools/.
+
 # Feature requests
 Contact me at robert.fasano@nist.gov or submit a pull request.
 
