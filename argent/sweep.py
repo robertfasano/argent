@@ -3,6 +3,7 @@ from argent.live_plot import LivePlot
 import requests
 import json
 from threading import Thread
+import time
 
 class Sweep:
     def __init__(self, client, x, start, stop, steps, sweeps=1, plot=None, legend=None):
@@ -54,11 +55,14 @@ class Sweep:
         self.client.post('/sweep', {'name': self.x, 'values': sweep_points, 'legend_name': self.legend[0], 'legend_values': self.legend[1], 'sweeps': self.sweeps})
         data_length = len(self.dataset.data)
         first_cycle = True
+
+       
         while True:
             try:
                 ## check if a new point has come in
                 new_length = len(self.dataset.data)
                 if new_length == data_length:
+                    time.sleep(0.01)
                     continue
                 data_length = new_length
 
@@ -70,8 +74,8 @@ class Sweep:
                     else:
                         first_cycle = False
                         self.dataset.start_time = self.dataset.data.index[-2]
-
-                self.progress_plot.update()
+                if self.y is not None:
+                    self.progress_plot.update()
 
                 if not self.sweeping():
                     break
