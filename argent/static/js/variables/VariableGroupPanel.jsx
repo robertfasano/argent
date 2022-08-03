@@ -87,7 +87,7 @@ function VariableGroupPanel (props) {
             </TableHead>
             <TableBody>
             {props.names.sort().map(key => (
-                <VariableRow key={key} name={key}/>
+                <VariableRow key={key} name={key} handleMenu={props.handleMenu}/>
             ))}
                 <TableRow>
                 <TableCell>
