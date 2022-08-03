@@ -188,8 +188,8 @@ def generate_stage(stage):
                 on.append(ch)
             elif enabled == False:
                 off.append(ch)
-        on = str(['self.'+ch for ch in on]).replace("'", "")
-        off = str(['self.'+ch for ch in off]).replace("'", "")
+        on = [ch for ch in on]
+        off = [ch for ch in off]
         step_code += textwrap.indent(env.get_template("rf_switch.j2").render(on=on, off=off), '\t') 
 
         ## dds frequency and attenuation
