@@ -83,10 +83,13 @@ class Client:
     def record(self, name):
         self.post('/record', {"__run__": name})
 
-    def set(self, name, value):
+    def set(self, name, value, save=False):
         if self.get(name) is None:
             raise Exception(f'Variable {name} does not exist!')
         self.post('/variables', {name: value})
+
+        if save:
+            self.post('/variables/default', {name: value})
 
     def sweep(self, x, start, stop, steps, sweeps=1, plot=None, legend=None):
         return Sweep(self, x, start, stop, steps, sweeps=sweeps, plot=plot, legend=legend)

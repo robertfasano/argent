@@ -121,8 +121,8 @@ class App:
                 for key, val in request.json.items():
                     if isinstance(val, dict):
                         self.variables[key] = val
-                    elif isinstance(val, float):
-                        self.variables[key]['value'] = val
+                    elif isinstance(val, float) or isinstance(val, int):
+                        self.variables[key]['value'] = float(val)
 
                 return ''
 
@@ -138,6 +138,11 @@ class App:
                             vars[key]['value'] = val
 
                 return json.dumps(vars)
+
+        @self.app.route("/variables/default", methods=['POST'])
+        def defaults():
+            print('updating default variable', request.json)
+            self.socketio.emit('default', request.json)
 
         @self.app.route("/results", methods=['GET', 'POST'])
         def results():

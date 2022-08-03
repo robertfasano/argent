@@ -501,6 +501,13 @@ export default function reducer (state = [], action) {
         }
       })
 
+    case 'variables/default':
+      return produce(state, draft => {
+        for (const [key, val] of Object.entries(action.variables)) {
+          draft.variables[key].value = toDecimalString(val)
+        }
+      })
+
     case 'variables/update':
       return produce(state, draft => {
         if (!Object.keys(state.variables).includes(action.name)) {

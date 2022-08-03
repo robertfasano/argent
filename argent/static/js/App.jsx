@@ -43,6 +43,10 @@ function App (props) {
         props.dispatch({ type: 'variables/current', variables: result.variables })
       })
     })
+
+    socket.on('default', (data) => {
+      props.dispatch({ type: 'variables/default', variables: data })
+    })
   },
   [])
 
