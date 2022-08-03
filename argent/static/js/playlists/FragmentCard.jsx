@@ -76,7 +76,7 @@ function mapDispatchToProps (dispatch, props) {
 }
 
 function parseDuration (setpoint, variables) {
-  if (setpoint.includes('self.')) return parseFloat(variables[setpoint.split('self.')[1]])
+  if (setpoint.includes('self.')) return parseFloat(variables[setpoint.split('self.')[1]].value)
   else return parseFloat(setpoint)
 }
 
