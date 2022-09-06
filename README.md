@@ -28,6 +28,132 @@ python setup.py develop
 
 Argent also requires Microsoft Visual C++ 14.0 or greater, currently available at https://visualstudio.microsoft.com/visual-cpp-build-tools/.
 
+# The config file
+Before running Argent, you'll need a properly setup config.yml file. This file is essentially gateware between ARTIQ's device_db.py file and Argent, declaring and naming hardware channels. An example config.yml file is shown in the repository. The required fields are:
+* device_db: a relative path from your config.yml file to ARTIQ's device_db.py. Example: "./device_db.py" (for both files in the same folder)
+* addr: an IPv4 address and port for the Argent server. Example: "127.0.0.1:8051" (running on localhost with port 8051)
+* environment_name: the name of the conda environment where your ARTIQ software is installed. Example: "artiq6"
+* channels: a set of (key, value) entries for each channel type. The keys correspond to the channel names as they appear in the device_db.py file, while the values are display names to list in the UI.
+    * ttl: (key, value) entries for digital I/O channels
+    * dac: (key, value) entries for Zotino boards, grouped by board. Keys should have the format {board_name}{channel_number}. For example, if your Zotino board appears as "zotinoA" in the device_db, then channel 0 should have the key "zotinoA0".
+    * dds: (key, value) entries for Urukul channels
+    * adc: (key, value) entries for Sampler channels, grouped by board. Keys should be an integer from 0-7.
+
+The optional "influx" field can be used to define a connection to an Influx database; if this is passed, all experimental variables (see the Variables section below) will be written into the database after each cycle. The subfields are:
+* addr: an IPv4 address and port for the InfluxDB server. Default value is "127.0.0.1:8086".
+* token: an Influx token generated in the Data->Tokens section of the Influx browser app
+* org: the organization name associated with your database
+* timezone: Example: "US/Mountain".
+* bucket: the name of the Influx bucket to store data in
+
+# Running Argent
+To start the server, navigate to the directory containing your config.yml file in a terminal, activate the conda environment where Argent is installed, and run the command "argent_run". For example:
+```
+conda activate argent
+cd argent_folder
+argent_run
+```
+The server will start and the web interface can be accessed in a browser at the address defined in your config file.
+
+# Sequence Editor
+The Sequence Editor is used to define experimental sequences. Let's examine the various elements, starting at the top and moving down.
+
+## Basic sequence actions
+The panel at the top of the editor allows you to select between multiple loaded sequences, create a new blank sequence, or load a sequence from file. Below this is a row of buttons:
+* Run: send the sequence to the ARTIQ hardware for execution
+* Generate: run the code generation step but do not send the hardware (for debugging or testing)
+* Add to playlist: add the currently selected sequence to the playlist (see the Playlists section below)
+* Rename: rename the sequence
+* Save: download the sequence as a .yml file
+* Close: remove the sequence from memory
+* Scripts: open the Scripts interface (see the following section)
+
+## Scripts
+The "Preparation script" and "Analysis script" features allow you to upload a script to run before and after each cycle of the sequence, similar to ARTIQ's built in prepare() and analyze() functions. This allows the user to implement more complicated logic beyond the capabilities of the sequence editor, e.g. to implement a servo loop. Uploaded scripts should include an entrypoint function whose name matches the filename, and ARTIQ decorators should be used to distinguish between @kernel and @rpc execution. For example, the following code could be used to implement proportional feedback in a file named "servo.py":
+```
+@kernel
+def servo(self):
+    self.error_signal = self.adc_result - self.setpoint
+    self.output += self.gain * self.error_signal
+```
+Here, the "adc_result" variable is assumed to store a voltage measured by a Sampler board using the ADC interface in the Sequence Editor.
+
+## Timestep definitions
+The next row lists the durations of all timesteps. You can left-click a timestep to edit its value. In the popup, the link button to the right of the value can be used to toggle into Variable mode, where the duration can be linked to a variable. New timesteps can be added by clicking the plus icon at the end of the sequence. Timesteps can be reordered, inserted, or deleted by right-clicking the duration in the sequence table.
+
+## TTL table
+The TTL table shows a grid of buttons representing the state of all digital output channels over each timestep in the sequence. The state can be toggled on (red) or off (gray) by left-clicking.
+
+## DAC table
+The DAC table shows timelines representing the voltage setpoint of each channel throughout the sequence. Left-clicking on one of the points in the timeline opens a popup to define the voltage. Each timestep can operate in "Setpoint" mode, where a single value is defined, or "Ramp" mode, where the voltage is ramped between start and stop points with a settable number of steps. Using the link button to the right of each field, the setpoint and ramp start/stop points can be linked to variables.
+
+## DDS enable table
+The DDS enable table displays a grid of buttons, similar to the TTL table, which allows the rf switches on each channel to be toggled on and off at each timestep. Right-clicking any of the buttons opens a popup which allows the rf attenuation of the channel to be updated. The attenuation can be linked to a variable using the link button.
+
+## DDS frequency table
+The DDS frequency table functions identically to the DAC table, allowing the frequency of each channel during the sequence to be defined in terms of constant setpoints or ramps.
+
+## ADC table
+Similar to the TTL table, the ADC table allows sampling to be toggled on or off during each timestep. Right-clicking a button opens a popup with the following options:
+* Duration: total time of sampling. Should be less than the timestep duration.
+* Samples: the number of samples to acquire over the specified duration. The sampling interval (samples/duration) should be less than around 10 us to avoid RTIOUnderflows, though faster sampling in short bursts may be achievable.
+* Delay: an optional delay relative to the start of the timestep to begin sampling. This can be used to compensate for slow actuators, e.g. to allow for a short acousto-optic modulator rise time when measuring a laser power from a photodiode.
+When sampling is enabled, ARTIQ simultaneously samples all eight channels of the ADC, storing the results in arrays. Array reduction operations (mean, min, max, etc.) can be used to convert the data acquired from any or all of the channels to a single value, which can then be assigned to a variable.
+
+# Playlists
+Multiple sequence can be combined to create a larger sequence known as a Playlist. This system is generally used to make interleaved comparisons between a reference experiment and an experiment with some variation or external perturbation. The "Add to playlist" button in the Sequence Editor adds the active sequence to the playlist. Using the Playlist Panel, sequences within the playlist can be reordered or deleted. To run the playlist, as opposed to a single sequence, use the Play button in the upper right corner of the Playlist Panel.
+
+When running Playlists, the "__stage__" variable will be used to differentiate experimental results from different experiments in the playlist. The first experiment has __stage__=0, the second has __stage__=1, and so on.
+
+# Variables
+The Variables panel on the left side of the web interface allows variables to be defined and sorted into groups. A variable has a name and value which are passed into the ARTIQ code at runtime and stored as attributes of the experiment class, e.g. self.voltage = 1.0. The experimental sequence can be linked to variables in various ways, for example, defining a DDS frequency at a certain timestep. Variables can also be used to store experimental results, either by using them to store ADC reads or more complicated derived values using the Scripts system. This can enhance reproducibility between experiments: the variable values and experimental results will be written to the database after each cycle, allowing the state of the experiment at any time to be recalled.
+
+If the "Sync" checkbox is checked, the ARTIQ experiment will request new values of the variable after each sequence. This allows the experiment to be externally controlled, e.g. to vary an rf frequency and study the effects on the experiment live without recompilation. External control can be achieved either directly through the interface (edit the variable value and click the "Send" button) or through the python client (see below).
+
+Note that the client/server communications required for the Variables system introduce a non-deterministic delay requirement after each cycle; therefore, a timestep with sufficient duration should be added near the end of the sequence to allot the required slack. This should generally be chosen to be as short as possible without resulting in RTIOUnderflows. While the experiment is running, the slack at the end of each cycle can be read off from the terminal spawned by Argent.
+
+# Interactive control
+Argent includes a Python client which can be used to communicate with the server from an external process. This can be used bidirectionally to update variables or receive data from the experiment. The client should be instantiated with the same IP address and port specified in your config.yml file. For example,
+```
+from argent import Client
+client = Client('127.0.0.1:8051')
+```
+Variables can be updated or read as follows:
+```
+client.set('pi', 3.14)
+print(client.get('pi'))
+```
+Once the client is instantiated, it automatically receives experimental data broadcast at the end of each cycle, storing it in a pandas DataFrame linked to the "data" attribute:
+```
+print(client.data)
+```
+
+## Datasets
+To organize data into individual runs or measurements, you can use Datasets. In the following example, we initiate a Dataset, wait until 50 points are received with the collect() function, then stop the dataset:
+```
+ds = argent.dataset()
+ds.collect(50)
+ds.stop()
+```
+The data is stored as a pandas DataFrame identically to the client's data() attribute:
+```
+print(ds.data)
+```
+For interleaved measurements using the Playlists system, you can divide data by stage using pandas syntax. For example, the average frequency difference between two stages would look like:
+```
+f0 = ds.data[ds.data['__stage__']==0]
+f1 = ds.data[ds.data['__stage__']==1]
+delta_f = (f1 - f0).mean()
+```
+
+## Sweeps
+Variable sweeps can be triggered with syntax like the following:
+```
+argent.sweep('x', 0, 1, 50, , sweeps=3, legend=['y', [0, 1, 2]], plot='f')
+```
+The "sweep" function uses the same syntax as numpy's linspace function: here, we sweep a variable called "x" from 0 to 1 over 50 steps. The sweep function takes an optional "sweeps" argument which can be used to average multiple sweeps. The "legend" argument is used to repeat the sweep for different values of a second variable, here called "y". We also passed a variable name to the "plot" keyword argument, which produces a realtime plot of a variable "f" as a function of "x" and "y".
+
+
 # Ongoing development
 Argent has been fully implemented on the Yb transportable optical lattice clock experiment at NIST. It is now in a fairly stable state where most changes will be non-breaking bugfixes, user experience improvements, or routine maintenance. For feature requests, or if you're interested in contributing to development or maintenance of Argent, you can contact me at robbie.fasano@gmail.com
 
