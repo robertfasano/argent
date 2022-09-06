@@ -15,8 +15,9 @@ def test_variables(client):
     variables = json.loads(client.get('/variables').data)
     assert variables == {}
 
-    client.post('/variables', json={'x': 1})
-    client.post('/variables', json={'y': 2})
+    client.post('/variables', json={'x': {"value": 1, "sync": False, "current": 1, "group": "default"}})
+    client.post('/variables', json={'y': {"value": 2, "sync": False, "current": 1, "group": "default"}})
 
     variables = json.loads(client.get('/variables').data)
-    assert variables == {'x': 1, 'y': 2}
+    assert variables['x']['value'] == 1
+    assert variables['y']['value'] == 2
