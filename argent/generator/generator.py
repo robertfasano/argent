@@ -79,7 +79,7 @@ def generate_run(playlist, config, variables):
             if prep_filename is not None:
                 filename = './repository/' + prep_filename
                 with open(filename) as file:
-                    code += f'\t\tself.__{prep_filename.split(".py")[0]}__()\n'
+                    code += f'\t\tself.{prep_filename.split(".py")[0]}()\n'
                     prep_scripts[prep_filename.split('.py')[0]] = textwrap.indent(file.read(), '\t\t') + '\n'
 
             function_call = f"\t\tself.{fragment['name'].replace(' ', '_')}()\n"
@@ -94,7 +94,7 @@ def generate_run(playlist, config, variables):
             if analysis_filename is not None:
                 filename = './repository/' + analysis_filename
                 with open(filename) as file:
-                    code += f'\t\tself.__{analysis_filename.split(".py")[0]}__()\n'
+                    code += f'\t\tself.{analysis_filename.split(".py")[0]}()\n'
                     analysis_scripts[analysis_filename.split('.py')[0]] = textwrap.indent(file.read(), '\t\t') + '\n'
 
         ## sync with server
@@ -138,16 +138,10 @@ def generate_run(playlist, config, variables):
 
     # write scripts
     for script in prep_scripts:
-        code += '@kernel\n'
-        code += f'def __{script}__(self):\n'
-        code += f"\t'''Imported from {script}.py'''\n"
-        code += textwrap.indent(textwrap.dedent(prep_scripts[script]), '\t') + '\n'
+        code += textwrap.dedent(prep_scripts[script]) + '\n'
 
     for script in analysis_scripts:
-        code += '@kernel\n'
-        code += f'def __{script}__(self):\n'
-        code += f"\t'''Imported from {script}.py'''\n"
-        code += textwrap.indent(textwrap.dedent(analysis_scripts[script]), '\t') + '\n'
+        code += textwrap.dedent(analysis_scripts[script]) + '\n'
 
     return code
 
