@@ -153,6 +153,25 @@ argent.sweep('x', 0, 1, 50, , sweeps=3, legend=['y', [0, 1, 2]], plot='f')
 ```
 The "sweep" function uses the same syntax as numpy's linspace function: here, we sweep a variable called "x" from 0 to 1 over 50 steps. The sweep function takes an optional "sweeps" argument which can be used to average multiple sweeps. The "legend" argument is used to repeat the sweep for different values of a second variable, here called "y". We also passed a variable name to the "plot" keyword argument, which produces a realtime plot of a variable "f" as a function of "x" and "y".
 
+# FAQ
+**Why is my experiment crashing with RTIOUnderflow exceptions?**
+If you haven't yet, familiarize yourself with ARTIQ's [Real-Time I/O Concepts](http://m-labs.hk/artiq/manual/rtio.html). An RTIOUnderflow occurs when events are scheduled with a timestamp in the past, which can occur if you try to schedule events faster than they can be executed. This can occur for a few reasons in Argent:
+* Not allocating enough time at the end of the sequence for client-server communications
+* Scheduling demanding events like ramps simultaneously with or shortly after ADC events (which consume all slack)
+* Forgetting to include delays in scripts to account for script execution time
+Generally you can troubleshoot an RTIOUnderflow by reading the traceback that's generated when the exception occurs. This should point to a line in the generated_experiment.py file, located in the same directory as your config.yml, which will show where the experiment needs to be modified.
+
+**Why did my sequences disappear?**
+Sequences are stored in the browser's Local Storage when Argent is running. Occasionally, the Local Storage can be reset due to a browser update or an out-of-memory error. When this happens, Argent will return to its default state and your data will be lost. To prevent this, you should regularly save sequences to file using the "Save" button in the Sequence Editor.
+
+**Why don't new channels appear in the web interface after I've updated my config file?**
+In order to force new channels to appear, you'll need to clear the browser's Local Storage. WARNING: THIS WILL ERASE ALL SEQUENCES AND VARIABLES FROM MEMORY. MAKE SURE YOU SAVE ANY IMPORTANT SEQUENCES TO FILE SO THEY CAN BE RECOVERED AFTERWARDS.
+
+To reset Local Storage:
+1. Press F12 to open the Developer Tools panel.
+2. Go to the Application tab.
+3. Under Storage -> Local Storage, look for the entry matching Argent's IP:port. Right click it and select "Clear".
+4. Do a hard refresh with ctrl+shift+R.
 
 # Ongoing development
 Argent has been fully implemented on the Yb transportable optical lattice clock experiment at NIST. It is now in a fairly stable state where most changes will be non-breaking bugfixes, user experience improvements, or routine maintenance. For feature requests, or if you're interested in contributing to development or maintenance of Argent, you can contact me at robbie.fasano@gmail.com
