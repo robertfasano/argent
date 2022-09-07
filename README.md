@@ -15,18 +15,28 @@ conda create -n argent python=3.9
 conda activate argent
 ```
 
-Install using pip:
-
+Install or update using pip:
 ```pip install git+https://github.com/robertfasano/argent```
 
-Alternately, you can clone the repository and install in developer mode if you need to tinker with the codebase:
+Argent also requires Microsoft Visual C++ 14.0 or greater, currently available at https://visualstudio.microsoft.com/visual-cpp-build-tools/.
+
+# Developing Argent
+To develop Argent, clone the repository and install in development mode instead of installing with pip:
 ```
 git clone https://github.com/robertfasano/argent
 cd argent
 python setup.py develop
 ```
-
-Argent also requires Microsoft Visual C++ 14.0 or greater, currently available at https://visualstudio.microsoft.com/visual-cpp-build-tools/.
+To develop the web interface, you'll need to install [npm](https://www.npmjs.com/). Then, install the required js packages:
+```
+cd argent/static
+npm install .
+```
+Finally, compile the web interface:
+```
+npm run watch
+```
+The ```watch``` script activates a developer mode where any changes to the code base trigger rapid recompilations. For a one-off build, you can instead call ```npm run build```.
 
 # The config file
 Before running Argent, you'll need a properly setup config.yml file. This file is essentially gateware between ARTIQ's device_db.py file and Argent, declaring and naming hardware channels. An example config.yml file is shown in the repository. The required fields are:
