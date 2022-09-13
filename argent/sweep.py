@@ -1,6 +1,8 @@
 import numpy as np
 from argent.live_plot import LivePlot
 from argent.dataset import Dataset
+from scipy.interpolate import interp1d
+from scipy.optimize import minimize
 
 class Sweep(Dataset):
     def __init__(self, client, x, start, stop, steps, sweeps=1, plot=None, legend=None):
@@ -49,12 +51,26 @@ class Sweep(Dataset):
     def cancel(self):
         self.client.stop()
 
-    def find_max(self, x, y):
+    def find_max(self, x=None, y=None, interpolate=False):
         ''' Returns a value of variable x coinciding with the maximum of variable y '''
-        idx = self.data[y].idxmax()
-        return self.data.loc[idx, x]
+        x_data = self.data[x or self.x]
+        y_data = self.data[y or self.y]
+        if interpolate:
+            interpolator = interp1d(x_data, -y_data)
+            x0 = self.find_max(x, y, interpolate=False)
+            return minimize(interpolator, x0=x0, bounds=[[x_data.min(), x_data.max()]]).x[0]
+        else:
+            idx = self.data[y or self.y].idxmax()
+            return self.data.loc[idx, x or self.x]
 
-    def find_min(self, x, y):
+    def find_min(self, x=None, y=None, interpolate=False):
         ''' Returns a value of variable x coinciding with the minimum of variable y '''
-        idx = self.data[y].idxmin()
-        return self.data.loc[idx, x]
+        x_data = self.data[x or self.x]
+        y_data = self.data[y or self.y]
+        if interpolate:
+            interpolator = interp1d(x_data, y_data)
+            x0 = self.find_max(x, y, interpolate=False)
+            return minimize(interpolator, x0=x0, bounds=[[x_data.min(), x_data.max()]]).x[0]
+        else:
+            idx = self.data[y or self.y].idxmin()
+            return self.data.loc[idx, x or self.x]
