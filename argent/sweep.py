@@ -1,7 +1,6 @@
 import numpy as np
 from argent.live_plot import LivePlot
 from argent.dataset import Dataset
-import time
 
 class Sweep(Dataset):
     def __init__(self, client, x, start, stop, steps, sweeps=1, plot=None, legend=None):
@@ -26,6 +25,7 @@ class Sweep(Dataset):
         self.steps = steps
         self.sweeps = sweeps
         self.y = plot
+        self.plotter = None
         self.legend = legend
         if self.legend is None:
             self.legend = [None, []]
@@ -36,30 +36,12 @@ class Sweep(Dataset):
         super().plot(x or self.x, y or self.y, legend or [None, []])
 
     def run(self):
-        if self.y is not None:
-            self.progress_plot = LivePlot(self, self.x, self.y, xlim=[self.start, self.stop], legend=self.legend)
-
+        self.set_run_id(self.run_id)
+        if self.y is not None and self.plotter is None:
+            self.plotter = LivePlot(self, self.x, self.y, xlim=[self.start, self.stop], legend=self.legend)
         sweep_points = list(np.linspace(self.start, self.stop, self.steps))
         self.client.post('/sweep', {'name': self.x, 'values': sweep_points, 'legend_name': self.legend[0], 'legend_values': self.legend[1], 'sweeps': self.sweeps, 'run_id': self.run_id})
-        data_length = len(self.data)
-       
-        while True:
-            try:
-                ## check if a new point has come in
-                new_length = len(self.data)
-                if new_length == data_length:
-                    time.sleep(0.01)
-                    continue
-                data_length = new_length
-
-                if self.y is not None:
-                    self.progress_plot.update()
-
-                if not self.active:
-                    break
-            except KeyboardInterrupt:
-                self.client.stop()
-                break
+        super().run()
 
     def save(self, filename):
         self.data.to_csv(filename)

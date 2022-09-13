@@ -4,14 +4,32 @@ import numpy as np
 import json
 import requests
 from argent.live_plot import LivePlot
+import time
 
 class Dataset:
-    def __init__(self, client):
+    def __init__(self, client, plot=None):
         self.client = client
         self._data = None
         self.run_id = self.get_run_id() + 1
+        self.plotter = None
+        self.y = plot
+
+    def collect(self, N, plot=None):
+        ''' Create a dataset and average N points '''
         self.set_run_id(self.run_id)
-    
+        self.client.post('/queue', {'mode': 'write', 'values': [{}]*N})
+        self.run()
+
+    def wait_for_next_point(self):
+        data_length = len(self.data)
+        while True:
+            new_length = len(self.data)
+            if new_length == data_length:
+                time.sleep(0.01)
+                continue
+            else:
+                return
+
     def get_run_id(self):
         ''' Returns an integer labeling the last run_id submitted to the server '''
         return float(json.loads(requests.get(f"http://{self.client.address}/max_run_id").text))
@@ -56,4 +74,16 @@ class Dataset:
             legend = [None, []]
         self.plotter = LivePlot(self, x, y, legend=legend)
         self.plotter.update()
+
+    def run(self):
+        while True:
+            try:
+                self.wait_for_next_point()
+                if self.plotter is not None:
+                    self.plotter.update()
+                if not self.active:
+                    break
+            except KeyboardInterrupt:
+                self.client.stop()
+                break
 
