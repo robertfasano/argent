@@ -1,8 +1,5 @@
 import numpy as np
 from argent.live_plot import LivePlot
-import requests
-import json
-from threading import Thread
 import time
 
 class Sweep:
@@ -29,14 +26,11 @@ class Sweep:
         self.sweeps = sweeps
         self.y = plot
         self.dataset = self.client.dataset()
-
         self.legend = legend
         if self.legend is None:
             self.legend = [None, []]
 
         self.run()
-        # self.thread = Thread(target=self.run)
-        # self.thread.start()
 
     def plot(self, x=None, y=None):
         ''' Convenience function for plotting sweep data with variables other than the instantiated x and y choices '''
@@ -52,10 +46,8 @@ class Sweep:
             self.progress_plot = LivePlot(self.dataset, self.x, self.y, xlim=[self.start, self.stop], legend=self.legend)
 
         sweep_points = list(np.linspace(self.start, self.stop, self.steps))
-        self.client.post('/sweep', {'name': self.x, 'values': sweep_points, 'legend_name': self.legend[0], 'legend_values': self.legend[1], 'sweeps': self.sweeps})
+        self.client.post('/sweep', {'name': self.x, 'values': sweep_points, 'legend_name': self.legend[0], 'legend_values': self.legend[1], 'sweeps': self.sweeps, 'run_id': self.dataset.run_id})
         data_length = len(self.dataset.data)
-        first_cycle = True
-
        
         while True:
             try:
@@ -66,33 +58,20 @@ class Sweep:
                     continue
                 data_length = new_length
 
-                # don't plot points from before sweep
-                if first_cycle:
-                    y_value = self.dataset.data.iloc[-1][self.x]
-                    if y_value != sweep_points[0]:
-                        continue
-                    else:
-                        first_cycle = False
-                        self.dataset.start_time = self.dataset.data.index[-2]
                 if self.y is not None:
                     self.progress_plot.update()
 
-                if not self.sweeping():
+                if not self.dataset.active:
                     break
             except KeyboardInterrupt:
                 self.client.stop()
                 break
-
-        self.dataset.stop()
 
     def save(self, filename):
         self.dataset.data.to_csv(filename)
 
     def cancel(self):
         self.client.stop()
-
-    def sweeping(self):
-        return json.loads(requests.get(f"http://{self.client.address}/sweep").text)
 
     def find_max(self, x, y):
         ''' Returns a value of variable x coinciding with the maximum of variable y '''

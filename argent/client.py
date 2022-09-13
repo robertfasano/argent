@@ -29,14 +29,11 @@ class Client:
 
         self.client.connect(f'http://{self.address}')
 
-    def collect(self, points):
-        ''' Block until a certain number of points have been collected '''
-        cycle = self.data['__cycle__'].iloc[-1]
-
-        while self.data['__cycle__'].iloc[-1] - cycle < points:
-            continue
-
-        return self.data.iloc[-points::]
+    def collect(self, N):
+        ''' Create a dataset and average N points '''
+        ds = self.dataset()
+        self.post('/queue', {'mode': 'write', 'values': [{}]*N})
+        return ds
 
     def config(self):
         ''' Load the config file currently used by the server '''
@@ -82,6 +79,9 @@ class Client:
 
     def record(self, name):
         self.post('/record', {"__run__": name})
+
+    def run_id(self):
+        return float(requests.get(f'http://{self.address}/run_id').text)
 
     def set(self, name, value, save=False):
         if self.get(name) is None:

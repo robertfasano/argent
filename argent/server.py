@@ -34,6 +34,8 @@ class App:
         self.variables = {}
         self.results = {'variables': {}}
         self.queued_points = []
+        self.run_id = 0.0
+        self.max_run_id = 0.0
 
         self.app = Flask(__name__)
         self.socketio = SocketIO(self.app)
@@ -77,6 +79,8 @@ class App:
             sequence = request.json['playlist']
             pid = request.json['pid']
             variables = request.json['variables']
+            variables['__run_id__'] = {'value': self.run_id, 'sync': True}
+
             code = generate_experiment(sequence, self.config, pid, variables)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
@@ -136,7 +140,10 @@ class App:
                         print(point)
                         for key, val in point.items():
                             vars[key]['value'] = val
-
+                        vars['__run_id__'] = {'value': self.run_id}
+                    else:
+                        vars['__run_id__'] = {'value': 0.0}
+                        self.run_id = 0.0
                 return json.dumps(vars)
 
         @self.app.route("/variables/default", methods=['POST'])
@@ -168,6 +175,18 @@ class App:
             elif request.method == 'GET':
                 return json.dumps(self.results)
 
+        @self.app.route("/run_id", methods=['GET', 'POST'])
+        def run_id():
+            if request.method == 'POST':
+                self.run_id = float(request.json['run_id'])
+                if self.run_id > self.max_run_id:
+                    self.max_run_id = self.run_id
+            return str(self.run_id)
+
+        @self.app.route("/max_run_id")
+        def max_run_id():
+            return str(self.max_run_id)
+            
         @self.app.route("/sweep", methods=['GET', 'POST'])
         def sweep(): 
             if request.method == 'POST':

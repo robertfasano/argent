@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import json
+import requests
 
 class Dataset:
     def __init__(self, client, name=''):
@@ -9,41 +11,32 @@ class Dataset:
         self.stop_time = None
         self._data = None
         self.name = name
-        
-        self.start()
-        
-    def start(self):
-        if self.start_time is None:
-            self.start_time = self.timestamp()
-            self.client.record(self.name)
-        else:
-            raise Exception('Dataset has already been started!')
-            
-    def stop(self):
-        if self.stop_time is None:
-            self.stop_time = self.timestamp()
-            self.client.record('')
-        else:
-            raise Exception('Dataset has already been stopped!')
-        
-    def timestamp(self):
-        ''' Returns the timestamp of the most recent data point '''
-        return self.client.data.index[-1]
+        self.run_id = self.get_run_id() + 1
+        self.set_run_id(self.run_id)
     
+    def get_run_id(self):
+        ''' Returns an integer labeling the last run_id submitted to the server '''
+        return float(json.loads(requests.get(f"http://{self.client.address}/max_run_id").text))
+
+    def set_run_id(self, id):
+        requests.post(f"http://{self.client.address}/run_id", json={'run_id': str(id)})
+
     @classmethod
     def load(self, filename):
         df = pd.read_csv(filename, index_col=0)
         df.index = pd.DatetimeIndex(df.index)
         return df
+
+    @property
+    def active(self):
+        ''' Returns True if the run is still active and False otherwise '''
+        return self.run_id == self.client.run_id()
         
     @property
-    def data(self):            
-        if self.stop_time is not None:
-            self._data = self.client.data.loc[self.start_time:self.stop_time]
-        else:
-            self._data = self.client.data.loc[self.start_time::]
-        self._data = self._data.iloc[1:, :]             # discard first point
-        return self._data.dropna(axis=1, how='all')
+    def data(self):
+        if self.get_run_id() == self.run_id:        ## experiment is still running, update the dataset
+            self._data = self.client.data[self.client.data['__run_id__'] == self.run_id]
+        return self._data
 
     def pivot(self, var, stage=None):
         ''' Returns a pivot table of a variable with different columns for each stage. If a stage
