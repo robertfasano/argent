@@ -139,16 +139,17 @@ print(client.data)
 ```
 
 ## Datasets
-To organize data into individual runs or measurements, you can use Datasets. In the following example, we initiate a Dataset, wait until 50 points are received with the collect() function, then stop the dataset:
+To organize data into individual runs or measurements, you can use Datasets. In the following example, we initiate a Dataset and collect 50 points from the experiment:
 ```
 ds = argent.dataset()
 ds.collect(50)
-ds.stop()
 ```
 The data is stored as a pandas DataFrame identically to the client's data() attribute:
 ```
 print(ds.data)
 ```
+Each Dataset has a unique ```run_id``` attribute which is passed to the ARTIQ experiment and included in the experimental broadcast at the end of each cycle. In the example above, the ```run_id``` on the ARTIQ hardware will be reset to ```0``` after 50 points are acquired, telling the Dataset object that the run is complete. You can call the ```collect()``` method again to resume the run and gather a specified number of additional points.
+
 For interleaved measurements using the Playlists system, you can divide data by stage using pandas syntax. For example, the average frequency difference between two stages would look like:
 ```
 f0 = ds.data[ds.data['__stage__']==0]
@@ -159,9 +160,13 @@ delta_f = (f1 - f0).mean()
 ## Sweeps
 Variable sweeps can be triggered with syntax like the following:
 ```
-argent.sweep('x', 0, 1, 50, , sweeps=3, legend=['y', [0, 1, 2]], plot='f')
+sweep = argent.sweep('x', 0, 1, 50, , sweeps=3, legend=['y', [0, 1, 2]], plot='f')
 ```
 The "sweep" function uses the same syntax as numpy's linspace function: here, we sweep a variable called "x" from 0 to 1 over 50 steps. The sweep function takes an optional "sweeps" argument which can be used to average multiple sweeps. The "legend" argument is used to repeat the sweep for different values of a second variable, here called "y". We also passed a variable name to the "plot" keyword argument, which produces a realtime plot of a variable "f" as a function of "x" and "y".
+
+After running a sweep, you can repeat it by calling ```sweep.run()```. 
+
+The ```sweep.find_max()``` and ```find_min()``` functions allow you to find the value of "x" corresponding to the maximum or minimum value of "y". If you pass the keyword "interpolate=True" to either of these functions, the optimization will use a cubic spline to fit the data; otherwise, the returned point will be a point explicitly measured in the sweep.
 
 # FAQ
 **Why is my experiment crashing with RTIOUnderflow exceptions?**

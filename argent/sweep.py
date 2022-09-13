@@ -56,7 +56,7 @@ class Sweep(Dataset):
         x_data = self.data[x or self.x]
         y_data = self.data[y or self.y]
         if interpolate:
-            interpolator = interp1d(x_data, -y_data)
+            interpolator = interp1d(x_data, -y_data, kind='cubic')
             x0 = self.find_max(x, y, interpolate=False)
             return minimize(interpolator, x0=x0, bounds=[[x_data.min(), x_data.max()]]).x[0]
         else:
@@ -68,7 +68,7 @@ class Sweep(Dataset):
         x_data = self.data[x or self.x]
         y_data = self.data[y or self.y]
         if interpolate:
-            interpolator = interp1d(x_data, y_data)
+            interpolator = interp1d(x_data, y_data, kind='cubic')
             x0 = self.find_max(x, y, interpolate=False)
             return minimize(interpolator, x0=x0, bounds=[[x_data.min(), x_data.max()]]).x[0]
         else:
