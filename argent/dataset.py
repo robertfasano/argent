@@ -34,6 +34,8 @@ class Dataset:
         
     @property
     def data(self):
+        if len(self.client.data) == 0:
+            return self.client.data
         if self.get_run_id() == self.run_id:        ## experiment is still running, update the dataset
             self._data = self.client.data[self.client.data['__run_id__'] == self.run_id]
         return self._data
