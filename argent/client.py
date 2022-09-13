@@ -39,8 +39,8 @@ class Client:
         ''' Load the config file currently used by the server '''
         return json.loads(requests.get(f'http://{self.address}/config').text)
 
-    def dataset(self, name=''):
-        return Dataset(self, name=name)
+    def dataset(self):
+        return Dataset(self)
 
     def get(self, name):
         results = requests.get(f"http://{self.address}/results").json()
