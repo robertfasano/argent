@@ -15,7 +15,7 @@ class LivePlot:
         self.fig = plt.figure(dpi=200, figsize=(9, 4.5))
         self.ax = plt.gca()
         plt.xlim(xlim)
-            
+        
     def update(self):
         clear_output(wait = True)
 
@@ -48,3 +48,4 @@ class LivePlot:
             plt.legend()
 
         display(self.fig)
+        plt.close()
