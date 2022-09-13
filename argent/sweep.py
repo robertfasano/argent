@@ -32,12 +32,12 @@ class Sweep(Dataset):
         if self.legend is None:
             self.legend = [None, []]
 
-        self.run()
+        self.sweep()
 
     def plot(self, x=None, y=None, legend=None):
         super().plot(x or self.x, y or self.y, legend or [None, []])
 
-    def run(self):
+    def sweep(self):
         self.set_run_id(self.run_id)
         if self.y is not None and self.plotter is None:
             self.plotter = LivePlot(self, self.x, self.y, xlim=[self.start, self.stop], legend=self.legend)
