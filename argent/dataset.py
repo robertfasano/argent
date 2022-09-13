@@ -3,14 +3,12 @@ import pandas as pd
 import numpy as np
 import json
 import requests
+from argent.live_plot import LivePlot
 
 class Dataset:
-    def __init__(self, client, name=''):
+    def __init__(self, client):
         self.client = client
-        self.start_time = None
-        self.stop_time = None
         self._data = None
-        self.name = name
         self.run_id = self.get_run_id() + 1
         self.set_run_id(self.run_id)
     
@@ -31,7 +29,7 @@ class Dataset:
     def active(self):
         ''' Returns True if the run is still active and False otherwise '''
         return self.run_id == self.client.run_id()
-        
+
     @property
     def data(self):
         if len(self.client.data) == 0:
@@ -52,44 +50,10 @@ class Dataset:
             pivot = pivot[stage]
         return pivot.dropna()
 
-    def plot(self, x, y, z, xlabel='', ylabel='', zlabel='', fig=None, legend=True, colors=None, style='errorbar'):
-        if fig is None:
-            fig = plt.figure(figsize=(9, 6), dpi=400)
+    def plot(self, x, y, legend=None):
+        ''' Convenience function for plotting sweep data with variables other than the instantiated x and y choices '''
+        if legend is None:
+            legend = [None, []]
+        self.plotter = LivePlot(self, x, y, legend=legend)
+        self.plotter.update()
 
-        if type(x) == str:
-            if xlabel == '':
-                xlabel = x
-            x = self.pivot(x, 0)
-
-        if type(y) == str:
-            if ylabel == '':
-                ylabel = y
-            y = self.pivot(y, 0)
-            
-        if type(z) == str:
-            if zlabel == '':
-                zlabel = z
-            z = self.pivot(z, 0)
-            
-        z_vals = z.unique()
-        concat = pd.concat([x, y, z], axis=1).dropna()
-        concat.columns = ['x', 'y', 'z']
-
-        for i, z0 in enumerate(z_vals):
-            subdata = concat[concat.z == z0]
-            mean = subdata.groupby(subdata.x).mean()
-            std = subdata.groupby(subdata.x).std()
-            sterror = subdata.groupby(subdata.x).aggregate(lambda x: np.std(x, ddof=1)/np.sqrt(x.count()))
-
-            color = None
-            if colors is not None:
-                color = colors[i]
-            if style == 'errorbar':
-                plt.errorbar(mean.index, mean.y, sterror.y, capsize=4, linestyle='None', markersize=4, marker='o', label=f'{zlabel}={z0}', color=color)
-            elif style == 'line':
-                plt.plot(mean.index, mean.y, color=color, label=f'{zlabel}={z0}')
-
-        if legend:
-            plt.legend()
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
