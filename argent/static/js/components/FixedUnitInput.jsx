@@ -13,6 +13,7 @@ function FixedUnitInput (props) {
   
   function toDecimalString (num) {
     num = String(num)
+    if (props.integer) return num
     if (num == '') return num
     if (!num.includes('.')) {
       return num + '.0'
@@ -29,6 +30,7 @@ function FixedUnitInput (props) {
                label={props.label}
                InputLabelProps={{ shrink: true }}
                style={props.style || {}}
+               disabled={props.disabled}
                InputProps={{
                  endAdornment: <InputAdornment position="end">
                                 {props.unit}
@@ -44,6 +46,8 @@ FixedUnitInput.propTypes = {
   placeholder: PropTypes.string,
   label: PropTypes.string,
   unit: PropTypes.string,
-  style: PropTypes.object
+  style: PropTypes.object,
+  integer: PropTypes.bool,
+  disabled: PropTypes.bool
 }
 export default FixedUnitInput
