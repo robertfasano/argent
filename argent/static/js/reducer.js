@@ -56,7 +56,7 @@ export default function reducer (state = [], action) {
 
     case 'adc/outputs/add':
       return produce(state, draft => {
-        draft.sequences[state.active_sequence].steps[action.path.timestep].adc[action.path.board].variables[action.value] = { ch: action.path.ch, operation: 'first' }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].adc[action.path.board].variables[action.value] = { ch: action.path.ch, operation: 'mean' }
       })
 
     case 'adc/outputs/changeChannel':
@@ -199,50 +199,42 @@ export default function reducer (state = [], action) {
 
     case 'dds/frequency/ramp/start':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, start: action.value }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp.start = action.value
       })
 
     case 'dds/frequency/ramp/stop':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, stop: action.value }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp.stop = action.value
       })
 
     case 'dds/frequency/ramp/iterations':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, iterations: action.value }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp.iterations = action.value
       })
 
     case 'dds/frequency/ramp/steps':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, steps: action.value }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp.steps = action.value
       })
 
     case 'dds/attenuation/ramp/start':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, start: action.value }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp.start = action.value
       })
 
     case 'dds/attenuation/ramp/stop':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, stop: action.value }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp.stop = action.value
       })
 
     case 'dds/attenuation/ramp/iterations':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, iterations: action.value }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp.iterations = action.value
       })
 
     case 'dds/attenuation/ramp/steps':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp
-        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, steps: action.value }
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp.steps = action.value
       })
 
     case 'dds/toggle':
