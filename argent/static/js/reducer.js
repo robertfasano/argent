@@ -137,6 +137,11 @@ export default function reducer (state = [], action) {
         draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][action.path.ch].ramp.stop = action.value
       })
 
+    case 'dac/ramp/iterations':
+      return produce(state, draft => {
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dac[action.path.board][action.path.ch].ramp.iterations = action.value
+      })
+
     case 'dac/ramp/steps':
       return produce(state, draft => {
         const channels = Object.keys(selectTimestep(state, action.path.timestep).dac[action.path.board])
@@ -204,6 +209,12 @@ export default function reducer (state = [], action) {
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, stop: action.value }
       })
 
+    case 'dds/frequency/ramp/iterations':
+      return produce(state, draft => {
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, iterations: action.value }
+      })
+
     case 'dds/frequency/ramp/steps':
       return produce(state, draft => {
         const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp
@@ -220,6 +231,12 @@ export default function reducer (state = [], action) {
       return produce(state, draft => {
         const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, stop: action.value }
+      })
+
+    case 'dds/attenuation/ramp/iterations':
+      return produce(state, draft => {
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp
+        draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, iterations: action.value }
       })
 
     case 'dds/attenuation/ramp/steps':

@@ -69,7 +69,8 @@ function Timeline (props) {
       yi.push(...filledSpline)
     } else if (starts[i] === stops[i]) yi.push(...Array(100).fill(starts[i]))
     else {
-      yi.push(...step(x0, linspace(i, i + 1, props.data[i].ramp.steps), linspace(starts[i], stops[i], props.data[i].ramp.steps)))
+      yi.push(...step(x0, linspace(i, i + 1, props.data[i].ramp.steps), looped_linspace(starts[i], stops[i], props.data[i].ramp.steps, props.data[i].ramp.iterations)))
+
     }
   }
 
@@ -189,7 +190,15 @@ function arange (start, stop, step) {
 }
 
 function linspace (start, stop, points) {
-  return arange(start, stop, (stop - start) / (points - 1))
+  return arange(start, stop, (stop - start) / (points ))
+}
+
+function looped_linspace (start, stop, points, iterations) {
+  const arr = []
+  for (let i = 0; i < iterations; i++) {
+    arr.push(...linspace(start, stop, Math.round(points/iterations)))
+  }
+  return arr
 }
 
 function stack (arr1, arr2) {

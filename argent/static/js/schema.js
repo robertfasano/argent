@@ -3,11 +3,11 @@ import { merge } from 'lodash'
 
 export const TTL = false
 
-export const DAC = { mode: 'setpoint', setpoint: '', ramp: { start: '', stop: '', steps: 10 }, spline: { points: ['0.0', '0.5', '1.0'], steps: 10 } }
+export const DAC = { mode: 'setpoint', setpoint: '', ramp: { start: '', stop: '', steps: 10, iterations: 1 }, spline: { points: ['0.0', '0.5', '1.0'], steps: 10 } }
 
 export const DDS = {
-  frequency: { mode: 'setpoint', setpoint: '', ramp: { start: '', stop: '', steps: 10 }, spline: { points: ['0', '0.5', '1'], steps: 10 } },
-  attenuation: { mode: 'setpoint', setpoint: '', ramp: { start: '', stop: '', steps: 10 }, spline: { points: ['0', '0.5', '1'], steps: 10 } },
+  frequency: { mode: 'setpoint', setpoint: '', ramp: { start: '', stop: '', steps: 10, iterations: 1 }, spline: { points: ['0', '0.5', '1'], steps: 10 } },
+  attenuation: { mode: 'setpoint', setpoint: '', ramp: { start: '', stop: '', steps: 10, iterations: 1 }, spline: { points: ['0', '0.5', '1'], steps: 10 } },
   enable: false
 }
 
