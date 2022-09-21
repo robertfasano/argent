@@ -90,7 +90,7 @@ function mapStateToProps (state, props) {
   return {
     duration: timestep.duration,
     variables: selectVariableValues(state),
-    skip: timestep.skip || false
+    skip: timestep.skip
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(Duration)

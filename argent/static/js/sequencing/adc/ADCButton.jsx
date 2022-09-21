@@ -274,11 +274,11 @@ function mapStateToProps (state, props) {
   return {
     enable: channel.enable,
     variables: channel.variables,
-    delay: channel.delay || 0,
+    delay: channel.delay,
     allVariables: selectVariableNames(state),
-    samples: channel.samples || 1,
-    duration: channel.duration || timestep.duration,
-    skip: timestep.skip || false,
+    samples: channel.samples,
+    duration: channel.duration,
+    skip: timestep.skip,
     channels: state.channels.adc[props.board]
   }
 }

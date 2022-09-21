@@ -47,7 +47,7 @@ function mapStateToProps (state, props) {
   const timestep = selectTimestep(state, props.timestep)
   return {
     on: timestep.ttl[props.channel],
-    skip: timestep.skip || false
+    skip: timestep.skip
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(TTLButton)

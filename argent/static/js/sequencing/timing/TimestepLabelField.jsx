@@ -33,8 +33,8 @@ function mapStateToProps (state, props) {
   state = selectPresentState(state)
   const timestep = selectTimestep(state, props.timestep)
   return {
-    label: timestep.label || '',
-    skip: timestep.skip || false
+    label: timestep.label,
+    skip: timestep.skip
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(TimestepLabelField)

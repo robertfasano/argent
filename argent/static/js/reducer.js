@@ -194,37 +194,37 @@ export default function reducer (state = [], action) {
 
     case 'dds/frequency/ramp/start':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, start: action.value }
       })
 
     case 'dds/frequency/ramp/stop':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, stop: action.value }
       })
 
     case 'dds/frequency/ramp/steps':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].frequency.ramp
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].frequency.ramp = { ...ramp, steps: action.value }
       })
 
     case 'dds/attenuation/ramp/start':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, start: action.value }
       })
 
     case 'dds/attenuation/ramp/stop':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, stop: action.value }
       })
 
     case 'dds/attenuation/ramp/steps':
       return produce(state, draft => {
-        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp || { start: '', stop: '', steps: 10 }
+        const ramp = selectTimestep(state, action.path.timestep).dds[action.path.ch].attenuation.ramp
         draft.sequences[state.active_sequence].steps[action.path.timestep].dds[action.path.ch].attenuation.ramp = { ...ramp, steps: action.value }
       })
 
