@@ -7,7 +7,6 @@ import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import FixedUnitInput from '../../components/FixedUnitInput.jsx'
-import IntegerUnitInput from '../../components/IntegerUnitInput.jsx'
 import { connect } from 'react-redux'
 import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -70,19 +69,21 @@ function CameraButton (props) {
           <Box m={1}>
           <Grid container>
               <Grid item xs={6}>
-              <IntegerUnitInput value={props.ROI[0][0]}
+              <FixedUnitInput value={props.ROI[0][0]}
                         onChange={props.setROIx1}
                         unit = 'px'
                         label = 'X1'
                         style={{ width: '63px' }}
+                        integer
               />
               </Grid>
               <Grid item xs={6}>
-              <IntegerUnitInput value={props.ROI[0][1]}
+              <FixedUnitInput value={props.ROI[0][1]}
                         onChange={props.setROIx2}
                         unit = 'px'
                         label = 'X2'
                         style={{ width: '63px' }}
+                        integer
               />
               </Grid>
           </Grid>
@@ -90,19 +91,21 @@ function CameraButton (props) {
           <Box m={1}>
           <Grid container>
               <Grid item xs={6}>
-              <IntegerUnitInput value={props.ROI[1][0]}
+              <FixedUnitInput value={props.ROI[1][0]}
                         onChange={props.setROIy1}
                         unit = 'px'
                         label = 'Y1'
                         style={{ width: '63px' }}
+                        integer
               />
               </Grid>
               <Grid item xs={6}>
-              <IntegerUnitInput value={props.ROI[1][1]}
+              <FixedUnitInput value={props.ROI[1][1]}
                         onChange={props.setROIy2}
                         unit = 'px'
                         label = 'Y2'
                         style={{ width: '63px' }}
+                        integer
               />
               </Grid>
           </Grid>

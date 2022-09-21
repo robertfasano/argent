@@ -15,6 +15,7 @@ function Ramp (props) {
                           unit = {''}
                           label={'Steps'}
                           style={{ width: '250px' }}
+                          integer
         />
       </Box>
     </>
