@@ -38,7 +38,7 @@ function DACPopover (props) {
                       value={props.mode}
                       onChange = {(event) => props.update('dac/mode', event.target.value)}
                       ramp={true}
-                      spline={true}
+                      spline={false}
         />
 
         {(props.mode === 'setpoint')
