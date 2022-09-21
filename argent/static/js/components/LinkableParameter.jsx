@@ -4,12 +4,11 @@ import Grid from '@material-ui/core/Grid'
 import Box from '@material-ui/core/Box'
 import FixedUnitInput from './FixedUnitInput.jsx'
 import LinkIcon from '@material-ui/icons/Link'
-import TextField from '@material-ui/core/TextField'
 import LinkOffIcon from '@material-ui/icons/LinkOff'
 import IconButton from '@material-ui/core/IconButton'
-import Autocomplete from '@mui/material/Autocomplete'
+import VariableSelector from './VariableSelector.jsx'
 import { connect } from 'react-redux'
-import { selectPresentState, selectVariableGroups } from '../selectors'
+import { selectPresentState } from '../selectors'
 
 function LinkableParameter (props) {
   const variableMode = String(props.value).includes('self.')
@@ -26,15 +25,6 @@ function LinkableParameter (props) {
 
   const [inputValue, setInputValue] = React.useState('')
 
-  const options = []
-  const groups = {}
-  for (const [group, vars] of Object.entries(props.groups)) {
-    for (const name of vars.slice().sort()) { // slice is used to create a new array to allow sorting
-      options.push(name)
-      groups[name] = group
-    }
-  }
-
   function onChange (newValue) {
     if (newValue == null) {
       props.onChange('')
@@ -48,17 +38,7 @@ function LinkableParameter (props) {
       ? (
         <Grid container>
           <Grid item xs={10}>
-            <Autocomplete options={options}
-            value={props.value.split('self.')[1]}
-            renderInput={(params) => <TextField {...params} label={props.label} />}
-            onChange = {(event, newValue) => onChange(newValue)}
-            inputValue={inputValue}
-            groupBy={(option) => groups[option]}
-            onInputChange={(event, newInputValue) => {
-              setInputValue(newInputValue)
-            }}
-            style={{ width: '250px' }}
-            />
+            <VariableSelector onChange={onChange} label={props.label} value={props.value.split('self.')[1]}/>
           </Grid>
           <Grid item xs={2}>
             <Box mt={1}>
@@ -100,14 +80,12 @@ LinkableParameter.propTypes = {
   variables: PropTypes.array,
   unit: PropTypes.string,
   label: PropTypes.string,
-  groups: PropTypes.object
 }
 
 function mapStateToProps (state) {
   state = selectPresentState(state)
 
   return {
-    groups: selectVariableGroups(state),
     variables: Object.keys(state.variables)
   }
 }

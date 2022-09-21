@@ -19,6 +19,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import ClearIcon from '@material-ui/icons/Clear'
 import AddIcon from '@material-ui/icons/Add'
 import { selectTimestep, selectPresentState } from '../../selectors.js'
+import VariableSelector from '../../components/VariableSelector.jsx'
 
 function ADCButton (props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
@@ -108,7 +109,10 @@ function ADCButton (props) {
               {Object.keys(props.variables).map((name) => (
                 <TableRow key={name}>
                   <TableCell>
-                    <Select label="Variable"
+                    <VariableSelector onChange={(value) => props.replaceOutput(name, value)} label={'Variable'} value={name}/>
+                    {/* <VariableSelector onChange={(value) => console.log(name, value)} label={'Variable'} value={name}/> */}
+
+                    {/* <Select label="Variable"
                             value={name || ''}
                             onChange = {(event) => props.replaceOutput(name, event.target.value)}
                             style={{ width: '100%' }}
@@ -121,7 +125,7 @@ function ADCButton (props) {
                           {key}
                         </MenuItem>
                       ))}
-                    </Select>
+                    </Select> */}
                   </TableCell>
                   <TableCell>
                     <Select label="Channel"
