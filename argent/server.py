@@ -36,7 +36,7 @@ class App:
         self.queued_points = []
         self.run_id = 0.0
         self.max_run_id = 0.0
-
+        self.sweeping = False
         self.app = Flask(__name__)
         self.socketio = SocketIO(self.app)
 
@@ -88,7 +88,7 @@ class App:
             try:
                 code = generate_experiment(sequence, self.config, pid, variables)
             except Exception as e:
-                self.socketio.emit('message', {'message': e, 'variant': 'error'})
+                self.socketio.emit('message', {'message': str(e), 'variant': 'error'})
 
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
@@ -146,14 +146,17 @@ class App:
 
                 if source == 'ARTIQ':
                     if len(self.queued_points) > 0:
+                        self.sweeping = True
                         point = self.queued_points.pop(0)
                         print(point)
                         for key, val in point.items():
                             vars[key]['value'] = val
-                        vars['__run_id__'] = {'value': self.run_id}
+                        
                     else:
-                        vars['__run_id__'] = {'value': 0.0}
-                        self.run_id = 0.0
+                        if self.sweeping:   # run has ended, reset run_id
+                            self.sweeping = False
+                            self.run_id = 0.0
+                vars['__run_id__'] = {'value': self.run_id}
                 return json.dumps(vars)
 
         @self.app.route("/variables/default", methods=['POST'])
@@ -189,12 +192,14 @@ class App:
         def run_id():
             if request.method == 'POST':
                 self.run_id = float(request.json['run_id'])
-                if self.run_id > self.max_run_id:
-                    self.max_run_id = self.run_id
+                # if self.run_id > self.max_run_id:
+                #     self.max_run_id = self.run_id
             return str(self.run_id)
 
-        @self.app.route("/max_run_id")
+        @self.app.route("/max_run_id", methods=['GET', 'POST'])
         def max_run_id():
+            if request.method == 'POST':
+                self.max_run_id += 1
             return str(self.max_run_id)
             
         @self.app.route("/sweep", methods=['GET', 'POST'])

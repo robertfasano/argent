@@ -1,3 +1,23 @@
+''' The Client class offers many methods for interacting with the experiment. 
+
+    Instantiating a client:
+        from argent import Client
+        client = Client('127.0.0.1:8051')    # pass your server address where the web interface runs
+
+    Setting and getting variables:
+        client.set('x', 100)      # set the variable 'x' to 100
+        print(client.get('x'))    # query the server for the variable 'x' and print the value
+
+    Creating a Dataset (see dataset.py):
+        ds = client.dataset()
+
+    Creating a Sweep (see sweep.py):
+        sweep = client.sweep('detuning', -150, 150, 100)
+
+    Clear the experimental queue (e.g. to abort a sweep early):
+        client.stop()
+'''
+
 import socketio
 import pandas as pd
 import numpy as np
@@ -28,12 +48,6 @@ class Client:
                 callback(new_data)
 
         self.client.connect(f'http://{self.address}')
-
-    def collect(self, N):
-        ''' Create a dataset and average N points '''
-        ds = self.dataset()
-        self.post('/queue', {'mode': 'write', 'values': [{}]*N})
-        return ds
 
     def config(self):
         ''' Load the config file currently used by the server '''
@@ -75,10 +89,6 @@ class Client:
                 time.sleep(0.25)
 
         Thread(target=mock_results, args=(self,)).start()
-        
-
-    def record(self, name):
-        self.post('/record', {"__run__": name})
 
     def run_id(self):
         return float(requests.get(f'http://{self.address}/run_id').text)

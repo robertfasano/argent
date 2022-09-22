@@ -1,3 +1,16 @@
+''' The Sweep class allows you to vary one parameter and study the change in others. Usage example:
+        from argent import Client
+        client = Client('127.0.0.1:8051')    
+        sweep = client.sweep('detuning', -150, 150, 100, plot='P')      # sweep detuning from -150 to +150 MHz in 100 steps and plot excitation fraction
+
+    After a sweep is created, you can repeat the sweep to gather more statistics by calling its sweep method:
+        sweep.sweep()
+
+    A Sweep inherits many properties from its parent class, the Dataset (see the documentation in dataset.py). For example,
+    after a sweep is finished, you could stop on a point of interest and gather 10 points for better statistics:
+        client.set('detuning', 0)   # set detuning to 0 MHz
+        sweep.collect(10)           # collect 10 points at 0 MHz detuning
+'''
 import numpy as np
 from argent.live_plot import LivePlot
 from argent.dataset import Dataset
