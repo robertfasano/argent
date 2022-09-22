@@ -19,6 +19,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import ClearIcon from '@material-ui/icons/Clear'
 import AddIcon from '@material-ui/icons/Add'
 import { selectTimestep, selectPresentState } from '../../selectors.js'
+import VariableSelector from '../../components/VariableSelector.jsx'
 
 function ADCButton (props) {
   const [anchorEl, setAnchorEl] = React.useState(null)
@@ -38,7 +39,6 @@ function ADCButton (props) {
     event.preventDefault()
     setAnchorEl(event.currentTarget)
   }
-
   return (
     <TableCell component="th" scope="row">
       <Button variant="contained"
@@ -108,20 +108,7 @@ function ADCButton (props) {
               {Object.keys(props.variables).map((name) => (
                 <TableRow key={name}>
                   <TableCell>
-                    <Select label="Variable"
-                            value={name || ''}
-                            onChange = {(event) => props.replaceOutput(name, event.target.value)}
-                            style={{ width: '100%' }}
-                            >
-                      <MenuItem value={''} key={''}>
-                        {''}
-                      </MenuItem>
-                      {props.allVariables.map((key, index) => (
-                        <MenuItem value={key} key={key}>
-                          {key}
-                        </MenuItem>
-                      ))}
-                    </Select>
+                    <VariableSelector onChange={(value) => props.replaceOutput(name, value)} label={''} value={name}/>
                   </TableCell>
                   <TableCell>
                     <Select label="Channel"
@@ -188,7 +175,7 @@ ADCButton.propTypes = {
   setSamples: PropTypes.func,
   skip: PropTypes.bool,
   channels: PropTypes.object,
-  delay: PropTypes.number
+  delay: PropTypes.string
 }
 
 function mapDispatchToProps (dispatch, props) {
@@ -274,11 +261,11 @@ function mapStateToProps (state, props) {
   return {
     enable: channel.enable,
     variables: channel.variables,
-    delay: channel.delay || 0,
+    delay: channel.delay,
     allVariables: selectVariableNames(state),
-    samples: channel.samples || 1,
-    duration: channel.duration || timestep.duration,
-    skip: timestep.skip || false,
+    samples: channel.samples,
+    duration: channel.duration,
+    skip: timestep.skip,
     channels: state.channels.adc[props.board]
   }
 }

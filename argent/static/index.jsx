@@ -11,6 +11,7 @@ import undoable, { excludeAction } from 'redux-undo'
 import { persistStore, persistReducer } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import { PersistGate } from 'redux-persist/integration/react'
+import { SnackbarProvider } from 'notistack'
 
 function defaultStore (channels, sequences) {
   const state = {}
@@ -47,7 +48,9 @@ export function createGUI (sequences, channels) {
   ReactDOM.render(<Provider store={store}>
                     <PersistGate loading={null} persistor={persistor}>
                       <ThemeProvider theme={theme}>
-                        <App/>
+                        <SnackbarProvider maxSnack={3} preventDuplicate anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} autoHideDuration={10000}>
+                          <App/>
+                        </SnackbarProvider>
                       </ThemeProvider>
                     </PersistGate>
                   </Provider>, document.getElementById('root'))

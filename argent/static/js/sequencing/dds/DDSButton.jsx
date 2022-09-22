@@ -92,7 +92,7 @@ function mapStateToProps (state, props) {
     attenuation: channel.attenuation,
     frequency: channel.frequency,
     variables: selectVariableValues(state),
-    skip: timestep.skip || false
+    skip: timestep.skip
   }
 }
 

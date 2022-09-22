@@ -15,6 +15,17 @@ function Ramp (props) {
                           unit = {''}
                           label={'Steps'}
                           style={{ width: '250px' }}
+                          integer
+        />
+      </Box>
+      <Box mx={1}>
+        <FixedUnitInput value={props.ramp.iterations}
+                          onChange = {(value) => props.update(props.prefix + '/ramp/iterations', value)}
+                          unit = {''}
+                          label={'Iterations'}
+                          style={{ width: '250px' }}
+                          integer
+                          disabled
         />
       </Box>
     </>

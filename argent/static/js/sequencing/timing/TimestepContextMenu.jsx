@@ -75,7 +75,7 @@ function mapStateToProps (state, props) {
   state = selectPresentState(state)
   let skip = false
   if (props.state.index !== null) {
-    skip = selectTimestep(state, props.state.index).skip || false
+    skip = selectTimestep(state, props.state.index).skip
   }
   return {
     open: Boolean(props.state.anchor),
