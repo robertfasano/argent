@@ -4,7 +4,7 @@ import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import SequenceTable from './sequencing/SequenceTable.jsx'
 import VariableTable from './variables/VariableTable.jsx'
-
+import { useSnackbar } from 'notistack'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { connect } from 'react-redux'
@@ -30,6 +30,7 @@ const useStyles = makeStyles(theme => ({
 
 function App (props) {
   const classes = useStyles()
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar()
 
   React.useEffect(() => {
     const socket = io()
@@ -42,6 +43,10 @@ function App (props) {
       get('/results', (result) => {
         props.dispatch({ type: 'variables/current', variables: result.variables })
       })
+    })
+
+    socket.on('message', (data) => {
+      enqueueSnackbar(data['message'], {variant: data['variant']})
     })
 
     socket.on('default', (data) => {

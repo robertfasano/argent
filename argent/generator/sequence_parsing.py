@@ -30,3 +30,42 @@ def remove_redundant_events(sequence):
                         del step['dds'][ch][key]
 
     return new_sequence
+
+def validate_sequence(sequence):
+    ''' Checks for errors in a sequence and raises an exception if any are found. '''
+
+    def validate_number(num, exception, timestep):
+        try:
+            float(num)
+        except:
+            raise ValueError(exception + f' in timestep {timestep}.')
+    
+    for i, step in enumerate(sequence):
+        validate_number(step['duration'], 'Invalid duration', i)
+        
+        for board in step['dac']:
+            for channel in step['dac'][board]:
+                state = step['dac'][board][channel]
+                if state['mode'] == 'setpoint':
+                    if state['setpoint'] != '':
+                        validate_number(state['setpoint'], f'Invalid DAC setpoint for board {board}, channel {channel}', i)
+                elif state['mode'] == 'ramp':
+                    validate_number(state['ramp']['start'], f'Invalid DAC ramp start for board {board}, channel {channel}', i)
+                    validate_number(state['ramp']['stop'], f'Invalid DAC ramp stop for board {board}, channel {channel}', i)
+                    validate_number(state['ramp']['steps'], f'Invalid DAC ramp steps for board {board}, channel {channel}', i)
+
+        for channel in step['dds']:
+            for out_type in ['attenuation', 'frequency']:
+                state = step['dds'][channel][out_type]
+                if state['mode'] == 'setpoint':
+                    if state['setpoint'] != '':
+                        validate_number(state['setpoint'], f'Invalid DDS {out_type} setpoint for channel {channel}', i)
+                elif state['mode'] == 'ramp':
+                    validate_number(state['ramp']['start'], f'Invalid DDS {out_type} ramp start for channel {channel}', i)
+                    validate_number(state['ramp']['stop'], f'Invalid DDS {out_type} ramp stop for channel {channel}', i)
+                    validate_number(state['ramp']['steps'], f'Invalid DDS {out_type} ramp steps for channel {channel}', i)
+
+        for board in step['adc']:
+            validate_number(step['adc'][board]['delay'], f'Invalid ADC delay for board {board}', i)
+            validate_number(step['adc'][board]['samples'], f'Invalid number of ADC samples for board {board}', i)
+            validate_number(step['adc'][board]['duration'], f'Invalid ADC sampling duration for board {board}', i)

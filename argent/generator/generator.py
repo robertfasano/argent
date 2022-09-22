@@ -25,7 +25,7 @@ def generate_experiment(playlist, config, pid, variables={}):
     for i in range(len(playlist)):
         for j in range(len(playlist[i]['fragments'])):
             playlist[i]['fragments'][j]['sequence']['steps'] = remove_redundant_events(playlist[i]['fragments'][j]['sequence']['steps'])
-
+            validate_sequence(playlist[i]['fragments'][j]['sequence']['steps'])
     code = 'import requests\n'
     code += 'import numpy as np\n'
     code += 'from artiq.experiment import *\n'

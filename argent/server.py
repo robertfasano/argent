@@ -66,9 +66,14 @@ class App:
             sequence = request.json['playlist']
             pid = request.json['pid']
             variables = request.json['variables']
-            code = generate_experiment(sequence, self.config, pid, variables)
+            try:
+                code = generate_experiment(sequence, self.config, pid, variables)
+            except Exception as e:
+                self.socketio.emit('message', {'message': str(e), 'variant': 'error'})
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
+            self.socketio.emit('message', {'message': 'Sequence generated.', 'variant': 'success'})
+
             return json.dumps(code)
 
         @self.app.route("/submit", methods=['POST'])
@@ -80,8 +85,11 @@ class App:
             pid = request.json['pid']
             variables = request.json['variables']
             variables['__run_id__'] = {'value': self.run_id, 'sync': True}
+            try:
+                code = generate_experiment(sequence, self.config, pid, variables)
+            except Exception as e:
+                self.socketio.emit('message', {'message': e, 'variant': 'error'})
 
-            code = generate_experiment(sequence, self.config, pid, variables)
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             env_name = self.config['environment_name']
@@ -90,6 +98,8 @@ class App:
             if len(self.processes) >= 3:
                 self.processes[0].terminate()
                 self.processes.pop(0)
+            self.socketio.emit('message', {'message': 'Sequence generated.', 'variant': 'success'})
+
             return json.dumps(code)
 
         @self.app.route("/channels")
