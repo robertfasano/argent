@@ -39,7 +39,6 @@ function ADCButton (props) {
     event.preventDefault()
     setAnchorEl(event.currentTarget)
   }
-
   return (
     <TableCell component="th" scope="row">
       <Button variant="contained"
@@ -109,23 +108,7 @@ function ADCButton (props) {
               {Object.keys(props.variables).map((name) => (
                 <TableRow key={name}>
                   <TableCell>
-                    <VariableSelector onChange={(value) => props.replaceOutput(name, value)} label={'Variable'} value={name}/>
-                    {/* <VariableSelector onChange={(value) => console.log(name, value)} label={'Variable'} value={name}/> */}
-
-                    {/* <Select label="Variable"
-                            value={name || ''}
-                            onChange = {(event) => props.replaceOutput(name, event.target.value)}
-                            style={{ width: '100%' }}
-                            >
-                      <MenuItem value={''} key={''}>
-                        {''}
-                      </MenuItem>
-                      {props.allVariables.map((key, index) => (
-                        <MenuItem value={key} key={key}>
-                          {key}
-                        </MenuItem>
-                      ))}
-                    </Select> */}
+                    <VariableSelector onChange={(value) => props.replaceOutput(name, value)} label={''} value={name}/>
                   </TableCell>
                   <TableCell>
                     <Select label="Channel"
@@ -192,7 +175,7 @@ ADCButton.propTypes = {
   setSamples: PropTypes.func,
   skip: PropTypes.bool,
   channels: PropTypes.object,
-  delay: PropTypes.number
+  delay: PropTypes.string
 }
 
 function mapDispatchToProps (dispatch, props) {
