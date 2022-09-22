@@ -13,6 +13,12 @@ channels:
     urukulA_ch0: urukulA_ch0
     urukulA_ch1: urukulA_ch1
   adc:
-    samplerA: sampler
-  cam:
-    grabberA: grabber
+    samplerA: 
+      0: samplerA0
+      1: samplerA1
+      2: samplerA2
+      3: samplerA3
+      4: samplerA4
+      5: samplerA5
+      6: samplerA6
+      7: samplerA7
