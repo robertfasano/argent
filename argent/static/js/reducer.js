@@ -505,8 +505,9 @@ export default function reducer (state = [], action) {
 
     case 'variables/current':
       return produce(state, draft => {
+        const ignored = ['__run_id__']
         for (const [key, val] of Object.entries(action.variables)) {
-          draft.variables[key].current = toDecimalString(val)
+          if (!ignored.includes(key)) draft.variables[key].current = toDecimalString(val)
         }
       })
 
