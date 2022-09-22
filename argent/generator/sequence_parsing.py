@@ -36,7 +36,8 @@ def validate_sequence(sequence):
 
     def validate_number(num, exception, timestep):
         try:
-            float(num)
+            if 'self.' not in str(num):
+                float(num)
         except:
             raise ValueError(exception + f' in timestep {timestep}.')
     
