@@ -70,6 +70,8 @@ class App:
                 code = generate_experiment(sequence, self.config, pid, variables)
             except Exception as e:
                 self.socketio.emit('message', {'message': str(e), 'variant': 'error'})
+                print('Sequence generation exception:', str(e))
+                return
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             self.socketio.emit('message', {'message': 'Sequence generated.', 'variant': 'success'})
@@ -89,7 +91,8 @@ class App:
                 code = generate_experiment(sequence, self.config, pid, variables)
             except Exception as e:
                 self.socketio.emit('message', {'message': str(e), 'variant': 'error'})
-
+                print('Sequence generation exception:', str(e))
+                return
             with open('generated_experiment.py', 'w') as file:
                 file.write(code)
             env_name = self.config['environment_name']
