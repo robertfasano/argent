@@ -1,5 +1,4 @@
-from distutils.core import setup
-from setuptools import find_packages
+from setuptools import find_packages, setup
 import os
 
 def package_files(directory):
@@ -12,15 +11,15 @@ extra_files = package_files('argent')
 
 setup(
     name='argent',
-    version='0.1',
-    description='High-level sequence control interface for ARTIQ',
+    version='1.0.0',
+    description='Interactive client/server/UI framework for ARTIQ experiments',
     author='Robert Fasano',
-    author_email='robert.j.fasano@colorado.edu',
+    author_email='robbie.fasano@gmail.com',
     packages=find_packages(),
     license='MIT',
     long_description=open('README.md').read(),
     package_data={'': extra_files},
-    install_requires=['scipy', 'pyyaml', 'click', 'requests', 'pyzmq', 'pandas', 'matplotlib', 'tqdm', 'flask', 'python-socketio', 'flask_socketio', 'influxdb_client', 'gevent', 'gevent-websocket', 'ipython', 'websocket-client'],
+    install_requires=['scipy', 'pyyaml', 'click', 'requests', 'pandas', 'matplotlib', 'tqdm', 'flask', 'python-socketio', 'flask_socketio', 'influxdb_client', 'gevent', 'gevent-websocket', 'ipython'],
     entry_points='''
         [console_scripts]
         argent_run=argent.server:main

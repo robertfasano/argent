@@ -4,6 +4,7 @@ Argent is a high-level sequencing interface for [ARTIQ](https://github.com/m-lab
 * A code generator to produce and run ARTIQ code based on user-defined sequences
 * A client-server architecture allowing experimental variables to be changed or systematically optimized live without recompilation
 * Integration with InfluxDB for long-term data logging and visualization
+Argent was developed and tested on ARTIQ 6. Other versions may work, but are not currently officially supported.
 
 # Installation
 This installation guide assumes that you've installed the [standard Anaconda distribution](https://www.anaconda.com/products/individual]). If you're not using Anaconda, Argent can still be installed as a standard Python package without a virtual environment.
@@ -11,22 +12,22 @@ This installation guide assumes that you've installed the [standard Anaconda dis
 Create and activate a new virtual environment:
 
 ```
-conda create -n argent python=3.9
+conda create -n argent python=3.10
 conda activate argent
 ```
+Clone the repository from GitHub:
+```
+git clone https://github.com/robertfasano/argent
+cd argent
+pip install -e . -r requirements.txt
+```
+The ```-e``` command is used to install in editable mode, allowing you to modify the code without reinstalling; you can omit this for a permanent installation. The ```-r requirements.txt``` command instructs pip to install specific pinned dependency versions with which Argent has been verified to work. This can be omitted, or the requirements.txt file can be modified, in order to install newer dependencies at your own risk.
 
-Install or update using pip:
-```pip install git+https://github.com/robertfasano/argent```
+To update Argent, just ```cd``` to the cloned directory and ```git pull```. If you didn't install in editable mode above, you'll need to also reinstall it. After updating, it's encouraged to save your sequences, clear Local Storage, and reload sequences (see the FAQ for more info). This should automatically update your sequence in the case of a breaking change to the sequence format. If your old sequences still don't work after updating, contact me (robbie.fasano@gmail.com) for assistance with manual sequence reformatting.
 
 Argent also requires Microsoft Visual C++ 14.0 or greater, currently available at https://visualstudio.microsoft.com/visual-cpp-build-tools/.
 
 # Developing Argent
-To develop Argent, clone the repository and install in development mode instead of installing with pip:
-```
-git clone https://github.com/robertfasano/argent
-cd argent
-python setup.py develop
-```
 To develop the web interface, you'll need to install [npm](https://www.npmjs.com/). Then, install the required js packages:
 ```
 cd argent/static
@@ -48,6 +49,7 @@ Before running Argent, you'll need a properly setup config.yml file. This file i
     * dac: (key, value) entries for Zotino boards, grouped by board. Keys should have the format {board_name}{channel_number}. For example, if your Zotino board appears as "zotinoA" in the device_db, then channel 0 should have the key "zotinoA0".
     * dds: (key, value) entries for Urukul channels
     * adc: (key, value) entries for Sampler channels, grouped by board. Keys should be an integer from 0-7.
+Camera (grabber) functionality is prototyped but not yet implemented.
 
 The optional "influx" field can be used to define a connection to an Influx database; if this is passed, all experimental variables (see the Variables section below) will be written into the database after each cycle. The subfields are:
 * addr: an IPv4 address and port for the InfluxDB server. Default value is "127.0.0.1:8086".
